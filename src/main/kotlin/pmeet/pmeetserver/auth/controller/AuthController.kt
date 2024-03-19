@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.auth.controller
 
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -17,7 +18,7 @@ class AuthController(
 ) {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  suspend fun createUser(@RequestBody requestDto: SignUpRequestDto): UserResponseDto {
+  suspend fun createUser(@RequestBody @Valid requestDto: SignUpRequestDto): UserResponseDto {
     return userService.save(requestDto)
   }
 }
