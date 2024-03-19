@@ -45,6 +45,9 @@ dependencies {
 	// security
 	implementation("org.springframework.security:spring-security-core:6.1.7")
 
+	// log
+	implementation("io.github.oshai:kotlin-logging-jvm:5.1.1")
+
 }
 
 tasks.withType<KotlinCompile> {
