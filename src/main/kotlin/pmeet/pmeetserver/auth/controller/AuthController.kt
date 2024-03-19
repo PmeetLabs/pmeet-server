@@ -16,7 +16,7 @@ import pmeet.pmeetserver.user.service.UserService
 class AuthController(
   private val userService: UserService
 ) {
-  @PostMapping
+  @PostMapping("/sign-up")
   @ResponseStatus(HttpStatus.CREATED)
   suspend fun createUser(@RequestBody @Valid requestDto: SignUpRequestDto): UserResponseDto {
     return userService.save(requestDto)

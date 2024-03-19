@@ -2,3 +2,7 @@ spring:
   data:
     mongodb:
       uri: mongodb://pmeet_user:pmeet_pwd@localhost:27017/pmeet?authSource=admin
+
+logging:
+  level:
+    root: debug
