@@ -16,8 +16,15 @@ private val logger = KotlinLogging.logger {}
 class GlobalExceptionHandler {
   @ExceptionHandler(value = [WebExchangeBindException::class])
   @ResponseStatus(HttpStatus.BAD_REQUEST)
-  suspend fun handleMethodArgumentNotValidException(exception: WebExchangeBindException): WebExchangeBindExceptionDto {
-    logger.error(exception) { "Validation error: ${exception.message}" }
-    return WebExchangeBindExceptionDto(ErrorCode.INVALID_PARAMETER, exception)
+  suspend fun handleWebExchangeBindException(exception: WebExchangeBindException): WebExchangeBindExceptionDto {
+    logger.error(exception) { "error: ${exception.message}" }
+    return WebExchangeBindExceptionDto(ErrorCode.INVALID_INPUT_PARAMETER, exception)
+  }
+
+  @ExceptionHandler(value = [EntityDuplicateException::class])
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  suspend fun handleEntityDuplicateException(exception: EntityDuplicateException): ExceptionDto {
+    logger.error(exception) { "error: ${exception.message}" }
+    return ExceptionDto(exception.errorCode, exception.message!!)
   }
 }
