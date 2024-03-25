@@ -2,6 +2,7 @@ package pmeet.pmeetserver.user.service
 
 import kotlinx.coroutines.reactive.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
+import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -15,7 +16,8 @@ import pmeet.pmeetserver.user.repository.UserRepository
 @Service
 class UserService(
   private val userRepository: UserRepository,
-  private val passwordEncoder: PasswordEncoder
+  private val passwordEncoder: PasswordEncoder,
+  private val reactiveRedisTemplate: ReactiveRedisTemplate<String, String>
 ) {
   @Transactional
   suspend fun save(requestDto: SignUpRequestDto): UserResponseDto {
@@ -35,6 +37,9 @@ class UserService(
         nickname = requestDto.nickname,
       )
     ).awaitSingle()
+
+    val refreshToken = "Token" + user.id
+    reactiveRedisTemplate.opsForValue().set(refreshToken, user.id!!).subscribe();
 
     return UserResponseDto.from(user)
   }

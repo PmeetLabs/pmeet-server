@@ -21,9 +21,18 @@ services:
       - ME_CONFIG_MONGODB_ADMINPASSWORD=pmeet_pwd
       - ME_CONFIG_MONGODB_SERVER=mongodb
       - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - data-redis:/data
 volumes:
-  data: {}
+  data: { }
+  data-redis: { }
 
 networks:
   default:
     name: mongodb_network
+
