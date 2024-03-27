@@ -43,4 +43,9 @@ class UserService(
 
     return UserResponseDto.from(user)
   }
+
+  @Transactional(readOnly = true)
+  suspend fun getUserByNickname(nickname: String): User? {
+    return userRepository.findByNickname(nickname).awaitSingleOrNull();
+  }
 }
