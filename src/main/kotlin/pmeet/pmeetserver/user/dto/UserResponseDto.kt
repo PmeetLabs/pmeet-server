@@ -7,7 +7,6 @@ data class UserResponseDto(
   val provider: String?,
   val email: String,
   val name: String,
-  val password: String?,
   val nickname: String
 ) {
   companion object {
@@ -17,7 +16,6 @@ data class UserResponseDto(
         provider = user.provider,
         email = user.email,
         name = user.name,
-        password = user.password,
         nickname = user.nickname
       )
     }
