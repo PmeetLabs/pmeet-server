@@ -1,4 +1,4 @@
-package pmeet.pmeetserver.user.dto
+package pmeet.pmeetserver.user.dto.response
 
 import pmeet.pmeetserver.user.domain.User
 

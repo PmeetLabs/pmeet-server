@@ -9,7 +9,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 
-
 @EnableWebFluxSecurity
 @Configuration
 class SecurityConfig {
@@ -28,6 +27,7 @@ class SecurityConfig {
       authorizeExchange {
         authorize("/v3/api-docs/**", permitAll)
         authorize("/webjars/**", permitAll)
+        authorize("/api/v1/auth/**", permitAll)
         authorize(anyExchange, authenticated)
       }
     }

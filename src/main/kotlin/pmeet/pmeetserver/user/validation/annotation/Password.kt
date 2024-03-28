@@ -1,9 +1,9 @@
-package pmeet.pmeetserver.auth.validation.annotation
+package pmeet.pmeetserver.user.validation.annotation
 
 import jakarta.validation.Constraint
 import jakarta.validation.Payload
 import kotlin.reflect.KClass
-import pmeet.pmeetserver.auth.validation.PasswordValidator
+import pmeet.pmeetserver.user.validation.PasswordValidator
 
 @Target(AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)

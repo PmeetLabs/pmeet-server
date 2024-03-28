@@ -1,8 +1,8 @@
-package pmeet.pmeetserver.auth.validation
+package pmeet.pmeetserver.user.validation
 
 import jakarta.validation.ConstraintValidator
 import jakarta.validation.ConstraintValidatorContext
-import pmeet.pmeetserver.auth.validation.annotation.Password
+import pmeet.pmeetserver.user.validation.annotation.Password
 
 class PasswordValidator : ConstraintValidator<Password, String> {
   override fun isValid(value: String?, context: ConstraintValidatorContext?): Boolean {

@@ -1,10 +1,10 @@
-package pmeet.pmeetserver.user.dto
+package pmeet.pmeetserver.user.dto.request
 
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
-import pmeet.pmeetserver.auth.validation.annotation.Password
+import pmeet.pmeetserver.user.validation.annotation.Password
 
 data class SignUpRequestDto(
   @field:Email(message = "이메일 형식이 아닙니다. 다시 입력해 주세요.")
