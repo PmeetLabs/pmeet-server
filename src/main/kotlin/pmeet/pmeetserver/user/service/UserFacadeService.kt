@@ -14,6 +14,7 @@ import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
 import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.request.SignInRequestDto
 import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
+import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.response.UserResponseDto
 
 @Service
@@ -62,6 +63,11 @@ class UserFacadeService(
   suspend fun sendVerificationCode(requestDto: SendVerificationCodeRequestDto): Boolean {
     emailService.sendEmailWithVerificationCode(requestDto.email)
     return true
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun verifyVerificationCode(requestDto: VerifyVerificationCodeRequestDto): Boolean {
+    return emailService.verifyVerificationCode(requestDto.email, requestDto.verificationCode)
   }
 }
 

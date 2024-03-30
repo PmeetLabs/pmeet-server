@@ -55,6 +55,8 @@ dependencies {
   // SMTP
   implementation("org.springframework.boot:spring-boot-starter-mail")
 
+  implementation("io.netty:netty-resolver-dns-native-macos:4.1.106.Final:osx-aarch_64")
+
 }
 
 tasks.withType<KotlinCompile> {

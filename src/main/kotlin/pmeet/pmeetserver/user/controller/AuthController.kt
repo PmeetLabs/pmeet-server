@@ -11,6 +11,7 @@ import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
 import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.request.SignInRequestDto
 import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
+import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.response.UserResponseDto
 import pmeet.pmeetserver.user.service.UserFacadeService
 
@@ -41,6 +42,12 @@ class AuthController(
   @ResponseStatus(HttpStatus.OK)
   suspend fun sendVerificationCode(@RequestBody @Valid requestDto: SendVerificationCodeRequestDto): Boolean {
     return userFacadeService.sendVerificationCode(requestDto)
+  }
+
+  @PostMapping("/verification-code/verify")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun verifyVerificationCode(@RequestBody @Valid requestDto: VerifyVerificationCodeRequestDto): Boolean {
+    return userFacadeService.verifyVerificationCode(requestDto)
   }
 }
 
