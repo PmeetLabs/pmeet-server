@@ -4,12 +4,14 @@ import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import pmeet.pmeetserver.auth.service.EmailService
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityDuplicateException
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
+import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.request.SignInRequestDto
 import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
 import pmeet.pmeetserver.user.dto.response.UserResponseDto
@@ -18,7 +20,8 @@ import pmeet.pmeetserver.user.dto.response.UserResponseDto
 class UserFacadeService(
   private val passwordEncoder: PasswordEncoder,
   private val userService: UserService,
-  private val reactiveRedisTemplate: ReactiveRedisTemplate<String, String>
+  private val reactiveRedisTemplate: ReactiveRedisTemplate<String, String>,
+  private val emailService: EmailService
 ) {
   @Transactional
   suspend fun save(requestDto: SignUpRequestDto): UserResponseDto {
@@ -53,6 +56,12 @@ class UserFacadeService(
       throw EntityDuplicateException(ErrorCode.USER_DUPLICATE_BY_NICKNAME)
     }
     return false
+  }
+
+  @Transactional
+  suspend fun sendVerificationCode(requestDto: SendVerificationCodeRequestDto): Boolean {
+    emailService.sendEmailWithVerificationCode(requestDto.email)
+    return true
   }
 }
 

@@ -52,6 +52,9 @@ dependencies {
   // redis
   implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
 
+  // SMTP
+  implementation("org.springframework.boot:spring-boot-starter-mail")
+
 }
 
 tasks.withType<KotlinCompile> {
