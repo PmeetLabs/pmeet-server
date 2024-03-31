@@ -27,4 +27,18 @@ class GlobalExceptionHandler {
     logger.error(exception) { "error: ${exception.message}" }
     return ExceptionDto(exception.errorCode, exception.message!!)
   }
+
+  @ExceptionHandler(value = [EntityNotFoundException::class])
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  suspend fun handleEntityNotFoundException(exception: EntityNotFoundException): ExceptionDto {
+    logger.error(exception) { "error: ${exception.message}" }
+    return ExceptionDto(exception.errorCode, exception.message!!)
+  }
+
+  @ExceptionHandler(value = [UnauthorizedException::class])
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  suspend fun handleUnauthorizedExceptionException(exception: UnauthorizedException): ExceptionDto {
+    logger.error(exception) { "error: ${exception.message}" }
+    return ExceptionDto(exception.errorCode, exception.message!!)
+  }
 }

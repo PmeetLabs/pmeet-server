@@ -1,6 +1,5 @@
 package pmeet.pmeetserver.user.service
 
-import org.springframework.data.redis.core.ReactiveRedisTemplate
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -8,20 +7,22 @@ import pmeet.pmeetserver.auth.service.EmailService
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.exception.UnauthorizedException
+import pmeet.pmeetserver.common.utils.jwt.JwtUtil
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
 import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.request.SignInRequestDto
 import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
 import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
+import pmeet.pmeetserver.user.dto.response.UserJwtDto
 import pmeet.pmeetserver.user.dto.response.UserResponseDto
 
 @Service
 class UserFacadeService(
   private val passwordEncoder: PasswordEncoder,
   private val userService: UserService,
-  private val reactiveRedisTemplate: ReactiveRedisTemplate<String, String>,
-  private val emailService: EmailService
+  private val emailService: EmailService,
+  private val jwtUtil: JwtUtil
 ) {
   @Transactional
   suspend fun save(requestDto: SignUpRequestDto): UserResponseDto {
@@ -35,18 +36,15 @@ class UserFacadeService(
     return UserResponseDto.from(userService.save(user))
   }
 
-  suspend fun signIn(requestDto: SignInRequestDto): UserResponseDto {
+  @Transactional
+  suspend fun signIn(requestDto: SignInRequestDto): UserJwtDto {
     val user = userService.getUserByEmail(requestDto.email)
 
-    if (user.password != passwordEncoder.encode(requestDto.password)) {
+    if (!passwordEncoder.matches(requestDto.password, user.password)) {
       throw UnauthorizedException(ErrorCode.INVALID_PASSWORD)
     }
 
-    // TODO Token Test will be deleted
-//    val refreshToken = "Token" + user.id
-//    reactiveRedisTemplate.opsForValue().set(refreshToken, user.id!!).subscribe();\
-
-    return UserResponseDto.from(user)
+    return jwtUtil.createToken(user.id!!)
   }
 
   @Transactional(readOnly = true)

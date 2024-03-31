@@ -35,7 +35,7 @@ class UserService(
 
   @Transactional(readOnly = true)
   suspend fun getUserByEmail(email: String): User {
-    return userRepository.findByNickname(email).awaitSingleOrNull()
+    return userRepository.findByEmail(email).awaitSingleOrNull()
       ?: throw EntityNotFoundException(ErrorCode.USER_NOT_FOUND_BY_EMAIL)
   }
 }
