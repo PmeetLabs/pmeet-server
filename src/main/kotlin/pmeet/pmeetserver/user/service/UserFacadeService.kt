@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.auth.service.EmailService
 import pmeet.pmeetserver.common.ErrorCode
-import pmeet.pmeetserver.common.exception.EntityDuplicateException
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.user.domain.User
@@ -37,8 +36,7 @@ class UserFacadeService(
   }
 
   suspend fun signIn(requestDto: SignInRequestDto): UserResponseDto {
-    val user =
-      userService.getUserByEmail(requestDto.email) ?: throw EntityNotFoundException(ErrorCode.USER_NOT_FOUND_BY_EMAIL)
+    val user = userService.getUserByEmail(requestDto.email)
 
     if (user.password != passwordEncoder.encode(requestDto.password)) {
       throw UnauthorizedException(ErrorCode.INVALID_PASSWORD)
@@ -53,10 +51,11 @@ class UserFacadeService(
 
   @Transactional(readOnly = true)
   suspend fun isDuplicateNickName(requestDto: CheckNickNameRequestDto): Boolean {
-    userService.getUserByNickname(requestDto.nickname)?.let {
-      throw EntityDuplicateException(ErrorCode.USER_DUPLICATE_BY_NICKNAME)
+    try {
+      userService.getUserByNickname(requestDto.nickname).let { return true }
+    } catch (e: EntityNotFoundException) {
+      return false
     }
-    return false
   }
 
   @Transactional

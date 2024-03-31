@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityDuplicateException
+import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.repository.UserRepository
 
@@ -27,12 +28,14 @@ class UserService(
   }
 
   @Transactional(readOnly = true)
-  suspend fun getUserByNickname(nickname: String): User? {
-    return userRepository.findByNickname(nickname).awaitSingleOrNull();
+  suspend fun getUserByNickname(nickname: String): User {
+    return userRepository.findByNickname(nickname).awaitSingleOrNull()
+      ?: throw EntityNotFoundException(ErrorCode.USER_NOT_FOUND_BY_NICKNAME)
   }
 
   @Transactional(readOnly = true)
-  suspend fun getUserByEmail(email: String): User? {
-    return userRepository.findByNickname(email).awaitSingleOrNull();
+  suspend fun getUserByEmail(email: String): User {
+    return userRepository.findByNickname(email).awaitSingleOrNull()
+      ?: throw EntityNotFoundException(ErrorCode.USER_NOT_FOUND_BY_EMAIL)
   }
 }
