@@ -1,26 +1,68 @@
 version: "3.8"
 services:
-  mongodb:
+  mongo1:
     image: mongo
-    container_name: mongodb
+    hostname: mongo1
+    container_name: mongo1
     ports:
       - "27017:27017"
     volumes:
-      - data:/data
+      - data-mongo1:/data/db
+      - ./mongodb.key:/etc/mongodb.key
     environment:
       - MONGO_INITDB_ROOT_USERNAME=pmeet_user
       - MONGO_INITDB_ROOT_PASSWORD=pmeet_pwd
       - MONGO_INITDB_DATABASE=pmeet
+    command: 'mongod --replSet myReplicaSet --keyFile /etc/mongodb.key --bind_ip_all'
+
+  mongo2:
+    image: mongo
+    hostname: mongo2
+    container_name: mongo2
+    depends_on:
+      - mongo1
+    ports:
+      - "27018:27017"
+    volumes:
+      - data-mongo2:/data/db
+      - ./mongodb.key:/etc/mongodb.key
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=pmeet_user
+      - MONGO_INITDB_ROOT_PASSWORD=pmeet_pwd
+      - MONGO_INITDB_DATABASE=pmeet
+    command: 'mongod --replSet myReplicaSet --keyFile /etc/mongodb.key --bind_ip_all'
+
+  mongo3:
+    image: mongo
+    hostname: mongo
+    container_name: mongo3
+    depends_on:
+      - mongo2
+    ports:
+      - "27019:27017"
+    volumes:
+      - data-mongo3:/data/db
+      - ./mongodb.key:/etc/mongodb.key
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=pmeet_user
+      - MONGO_INITDB_ROOT_PASSWORD=pmeet_pwd
+      - MONGO_INITDB_DATABASE=pmeet
+    command: 'mongod --replSet myReplicaSet --keyFile /etc/mongodb.key --bind_ip_all'
+
+
   mongo-express:
     image: mongo-express
     container_name: mongo-express
     ports:
       - "8081:8081"
+    depends_on:
+      - mongo1
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=pmeet_user
       - ME_CONFIG_MONGODB_ADMINPASSWORD=pmeet_pwd
-      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_SERVER=mongo1
       - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+
   redis:
     image: redis
     container_name: redis
@@ -28,8 +70,12 @@ services:
       - "6379:6379"
     volumes:
       - data-redis:/data
+
 volumes:
   data: { }
+  data-mongo1: { }
+  data-mongo2: { }
+  data-mongo3: { }
   data-redis: { }
 
 networks:
