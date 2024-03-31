@@ -1,10 +1,10 @@
 package pmeet.pmeetserver.common.utils.jwt
 
-import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import jakarta.annotation.PostConstruct
 import java.util.Date
+import javax.crypto.SecretKey
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import pmeet.pmeetserver.user.domain.auth.RefreshTokenMap
@@ -18,11 +18,11 @@ class JwtUtil(
   @Value("\${spring.jwt.access-token.expire-seconds}") val ACCESS_TOKEN_EXPIRE_TIME: Long,
   @Value("\${spring.jwt.refresh-token.expire-seconds}") val REFRESH_TOKEN_EXPIRE_TIME: Long
 ) {
-  lateinit var SECRET_KEY: ByteArray
+  lateinit var SECRET_KEY: SecretKey
 
   @PostConstruct
   protected fun init() {
-    this.SECRET_KEY = SECRET.toByteArray()
+    this.SECRET_KEY = Keys.hmacShaKeyFor(this.SECRET.toByteArray())
   }
 
   suspend fun createToken(
@@ -37,21 +37,23 @@ class JwtUtil(
   }
 
   private suspend fun generateAccessToken(userId: String, now: Date): String {
-    val claims: Claims = Jwts.claims().setSubject(userId)
-
     return Jwts.builder()
-      .setClaims(claims)
-      .setIssuedAt(now)
-      .setExpiration(Date(now.time + ACCESS_TOKEN_EXPIRE_TIME))
-      .signWith(Keys.hmacShaKeyFor(this.SECRET_KEY), io.jsonwebtoken.SignatureAlgorithm.HS256)
+      .claims()
+      .subject(userId)
+      .issuedAt(now)
+      .expiration(Date(now.time + ACCESS_TOKEN_EXPIRE_TIME))
+      .and()
+      .signWith(this.SECRET_KEY)
       .compact()
   }
 
   private suspend fun generateRefreshToken(userId: String, now: Date): String {
-    val token: String = Jwts.builder()
-      .setIssuedAt(now)
-      .setExpiration(Date(now.time + REFRESH_TOKEN_EXPIRE_TIME))
-      .signWith(Keys.hmacShaKeyFor(this.SECRET_KEY), io.jsonwebtoken.SignatureAlgorithm.HS256)
+    val token = Jwts.builder()
+      .claims()
+      .issuedAt(now)
+      .expiration(Date(now.time + REFRESH_TOKEN_EXPIRE_TIME))
+      .and()
+      .signWith(this.SECRET_KEY)
       .compact()
 
     refreshTokenUtil.save(RefreshTokenMap(token, userId))

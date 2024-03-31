@@ -37,7 +37,7 @@ class AuthController(
 
   @PostMapping("/nickname/duplicate")
   @ResponseStatus(HttpStatus.OK)
-  suspend fun getNickname(@RequestBody @Valid requestDto: CheckNickNameRequestDto): Boolean {
+  suspend fun isDuplicateNickName(@RequestBody @Valid requestDto: CheckNickNameRequestDto): Boolean {
     return userFacadeService.isDuplicateNickName(requestDto)
   }
 

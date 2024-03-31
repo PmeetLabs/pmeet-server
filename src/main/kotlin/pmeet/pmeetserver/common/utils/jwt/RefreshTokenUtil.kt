@@ -14,7 +14,7 @@ class RefreshTokenUtil(
 
   suspend fun save(refreshTokenMap: RefreshTokenMap) {
     reactiveRedisTemplate.opsForValue()
-      .set(refreshTokenMap.refreshToken, refreshTokenMap.userId, Duration.ofSeconds(REFRESH_TOKEN_EXPIRE_TIME))
+      .set(refreshTokenMap.refreshToken, refreshTokenMap.userId, Duration.ofMillis(REFRESH_TOKEN_EXPIRE_TIME))
       .subscribe()
   }
 }
