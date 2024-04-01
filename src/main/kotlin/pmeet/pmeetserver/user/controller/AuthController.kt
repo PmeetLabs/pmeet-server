@@ -42,19 +42,19 @@ class AuthController(
 
   @GetMapping("/sign-in/google")
   @ResponseStatus(HttpStatus.OK)
-  suspend fun signInGoogle(@RequestParam code: String): UserResponseDto {
+  suspend fun signInGoogle(@RequestParam code: String): UserJwtDto {
     return oauthFacadeService.loginGoogleOauth(code)
   }
 
   @GetMapping("/sign-in/naver")
   @ResponseStatus(HttpStatus.OK)
-  suspend fun signInNaver(@RequestParam code: String, @RequestParam state: String): UserResponseDto {
+  suspend fun signInNaver(@RequestParam code: String, @RequestParam state: String): UserJwtDto {
     return oauthFacadeService.loginNaverOauth(code, state)
   }
 
   @GetMapping("/sign-in/kakao")
   @ResponseStatus(HttpStatus.OK)
-  suspend fun signInKakao(@RequestParam code: String): UserResponseDto {
+  suspend fun signInKakao(@RequestParam code: String): UserJwtDto {
     return oauthFacadeService.loginKakaoOauth(code)
   }
 
