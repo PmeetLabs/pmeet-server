@@ -10,7 +10,6 @@ enum class ErrorCode(private val code: String, private val message: String) {
   VERIFICATION_CODE_NOT_MATCH("USER-40004", "인증번호가 일치하지 않습니다."),
   VERIFICATION_CODE_EXPIRED("USER-40005", "인증번호가 만료되었습니다."),
   USER_NOT_FOUND_BY_NICKNAME("USER-40006", "해당하는 닉네임의 유저를 찾을 수 없습니다.")
-
   ;
 
 

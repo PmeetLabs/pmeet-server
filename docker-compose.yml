@@ -1,9 +1,10 @@
 version: "3.8"
 services:
-  mongo1:
+  mongo-primary:
     image: mongo
     hostname: mongo1
     container_name: mongo1
+    restart: always
     ports:
       - "27017:27017"
     volumes:
@@ -15,12 +16,13 @@ services:
       - MONGO_INITDB_DATABASE=pmeet
     command: 'mongod --replSet myReplicaSet --keyFile /etc/mongodb.key --bind_ip_all'
 
-  mongo2:
+  mongo-secondary-1:
     image: mongo
     hostname: mongo2
     container_name: mongo2
+    restart: always
     depends_on:
-      - mongo1
+      - mongo-primary
     ports:
       - "27018:27017"
     volumes:
@@ -32,12 +34,13 @@ services:
       - MONGO_INITDB_DATABASE=pmeet
     command: 'mongod --replSet myReplicaSet --keyFile /etc/mongodb.key --bind_ip_all'
 
-  mongo3:
+  mongo-secondary-2:
     image: mongo
-    hostname: mongo
+    hostname: mongo3
     container_name: mongo3
+    restart: always
     depends_on:
-      - mongo2
+      - mongo-secondary-1
     ports:
       - "27019:27017"
     volumes:
@@ -53,19 +56,21 @@ services:
   mongo-express:
     image: mongo-express
     container_name: mongo-express
+    restart: always
     ports:
       - "8081:8081"
     depends_on:
-      - mongo1
+      - mongo-primary
     environment:
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=pmeet_user
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=pmeet_pwd
-      - ME_CONFIG_MONGODB_SERVER=mongo1
-      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      ME_CONFIG_MONGODB_ADMINUSERNAME: pmeet_user
+      ME_CONFIG_MONGODB_ADMINPASSWORD: pmeet_pwd
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: "true"
+      ME_CONFIG_MONGODB_URL: 'mongodb://pmeet_user:pmeet_pwd@mongo1:27017/pmeet?authSource=admin'
 
   redis:
     image: redis
     container_name: redis
+    restart: always
     ports:
       - "6379:6379"
     volumes:

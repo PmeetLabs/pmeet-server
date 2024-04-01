@@ -11,6 +11,7 @@ import pmeet.pmeetserver.common.utils.jwt.JwtUtil
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
 import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
+import pmeet.pmeetserver.user.dto.request.SetPasswordRequestDto
 import pmeet.pmeetserver.user.dto.request.SignInRequestDto
 import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
 import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
@@ -65,6 +66,14 @@ class UserFacadeService(
   @Transactional(readOnly = true)
   suspend fun verifyVerificationCode(requestDto: VerifyVerificationCodeRequestDto): Boolean {
     return emailService.verifyVerificationCode(requestDto.email, requestDto.verificationCode)
+  }
+
+  @Transactional
+  suspend fun setPassword(requestDto: SetPasswordRequestDto): Boolean {
+    val user = userService.getUserByEmail(requestDto.email)
+    user.changePassword(passwordEncoder.encode(requestDto.password))
+    userService.update(user)
+    return true
   }
 }
 

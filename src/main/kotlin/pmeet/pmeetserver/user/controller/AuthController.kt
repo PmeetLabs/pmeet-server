@@ -3,12 +3,14 @@ package pmeet.pmeetserver.user.controller
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
 import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
+import pmeet.pmeetserver.user.dto.request.SetPasswordRequestDto
 import pmeet.pmeetserver.user.dto.request.SignInRequestDto
 import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
 import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
@@ -49,6 +51,11 @@ class AuthController(
   @ResponseStatus(HttpStatus.OK)
   suspend fun verifyVerificationCode(@RequestBody @Valid requestDto: VerifyVerificationCodeRequestDto): Boolean {
     return userFacadeService.verifyVerificationCode(requestDto)
+  }
+
+  @PutMapping("/password")
+  suspend fun setPassword(@RequestBody @Valid requestDto: SetPasswordRequestDto): Boolean {
+    return userFacadeService.setPassword(requestDto)
   }
 }
 

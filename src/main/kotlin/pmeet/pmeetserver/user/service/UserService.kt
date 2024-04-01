@@ -38,4 +38,9 @@ class UserService(
     return userRepository.findByEmail(email).awaitSingleOrNull()
       ?: throw EntityNotFoundException(ErrorCode.USER_NOT_FOUND_BY_EMAIL)
   }
+
+  @Transactional
+  suspend fun update(user: User): User {
+    return userRepository.save(user).awaitSingle()
+  }
 }

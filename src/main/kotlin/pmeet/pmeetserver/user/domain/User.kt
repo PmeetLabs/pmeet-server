@@ -9,7 +9,13 @@ class User(
   val id: String? = null, // mongodb auto id generation
   val provider: String? = null,
   val email: String,
-  val name: String,
-  val password: String? = null,
-  val nickname: String
-)
+  var name: String,
+  var password: String? = null,
+  var nickname: String
+) {
+
+  fun changePassword(password: String) {
+    this.password = password
+  }
+
+}
