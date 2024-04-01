@@ -41,3 +41,6 @@ out/
 
 ### Resources ###
 application-secret.yml
+
+### mac os DS_Store ###
+.DS_Store

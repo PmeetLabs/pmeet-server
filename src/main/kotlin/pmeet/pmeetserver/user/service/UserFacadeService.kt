@@ -17,6 +17,7 @@ import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
 import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.response.UserJwtDto
 import pmeet.pmeetserver.user.dto.response.UserResponseDto
+import pmeet.pmeetserver.user.dto.response.UserSummaryResponseDto
 
 @Service
 class UserFacadeService(
@@ -74,6 +75,11 @@ class UserFacadeService(
     user.changePassword(passwordEncoder.encode(requestDto.password))
     userService.update(user)
     return true
+  }
+
+  @Transactional
+  suspend fun getMySummaryInfo(userId: String): UserSummaryResponseDto {
+    return UserSummaryResponseDto.from(userService.getUserById(userId))
   }
 }
 

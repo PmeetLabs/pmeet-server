@@ -11,11 +11,12 @@ class User(
   val email: String,
   var name: String,
   var password: String? = null,
-  var nickname: String
+  var nickname: String,
+  var isEmployed: Boolean = false,
+  var profileImageUrl: String? = null
 ) {
 
   fun changePassword(password: String) {
     this.password = password
   }
-
 }

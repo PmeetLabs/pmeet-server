@@ -40,6 +40,12 @@ class UserService(
   }
 
   @Transactional
+  suspend fun getUserById(userId: String): User {
+    return userRepository.findById(userId).awaitSingleOrNull()
+      ?: throw EntityNotFoundException(ErrorCode.USER_NOT_FOUND_BY_ID)
+  }
+
+  @Transactional
   suspend fun update(user: User): User {
     return userRepository.save(user).awaitSingle()
   }
