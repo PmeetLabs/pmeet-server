@@ -1,12 +1,7 @@
 spring:
   config:
     import: classpath:application-secret.yml
-  data:
-    mongodb:
-      uri: mongodb://pmeet_user:pmeet_pwd@localhost:27017/pmeet?authSource=admin
-    redis:
-      host: localhost
-      port: 6379
+
 logging:
   level:
     root: debug
