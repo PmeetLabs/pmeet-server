@@ -1,8 +1,8 @@
 package pmeet.pmeetserver.common
 
 enum class ErrorCode(private val code: String, private val message: String) {
-  //TODO will be detailed such as "만료된 토큰입이다", "토큰의 키가 유효하지 않습니다." and so on..
-  UNAUTHORIZED_TOKEN("AUTH-40100", "유효하지 않은 토큰입니다."),
+  INVALID_TOKEN("AUTH-40100", "유효하지 않은 토큰입니다."),
+  EXPIRED_TOKEN("AUTH-40101", "토큰의 유효기간이 만료되었습니다."),
 
   INVALID_INPUT_PARAMETER("COMMON-40000", "유효하지 않은 입력값입니다."),
 
@@ -14,6 +14,7 @@ enum class ErrorCode(private val code: String, private val message: String) {
   VERIFICATION_CODE_EXPIRED("USER-40005", "인증번호가 만료되었습니다."),
   USER_NOT_FOUND_BY_NICKNAME("USER-40006", "해당하는 닉네임의 유저를 찾을 수 없습니다."),
   USER_NOT_FOUND_BY_ID("USER-40007", "해당하는 ID의 유저를 찾을 수 없습니다.")
+
   ;
 
 

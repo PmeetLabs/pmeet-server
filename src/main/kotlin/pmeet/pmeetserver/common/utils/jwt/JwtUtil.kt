@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.common.utils.jwt
 
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -8,6 +9,8 @@ import java.util.Date
 import javax.crypto.SecretKey
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
+import pmeet.pmeetserver.common.ErrorCode
+import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.config.BearerToken
 import pmeet.pmeetserver.user.domain.auth.RefreshTokenMap
 import pmeet.pmeetserver.user.dto.response.UserJwtDto
@@ -63,29 +66,28 @@ class JwtUtil(
     return token
   }
 
-  suspend fun getUserId(token: BearerToken): String {
-    val subject = Jwts.parser()
-      .verifyWith(this.SECRET_KEY)
-      .build()
-      .parseSignedClaims(token.principal.toString())
-      .payload
+  suspend fun getUserId(token: BearerToken): String =
+    getAllClaims(token.principal.toString())
       .subject
-
-    return subject
-  }
 
   suspend fun isValidToken(token: BearerToken): Boolean {
     try {
-      val claims = Jwts.parser()
-        .verifyWith(this.SECRET_KEY)
-        .build()
-        .parseSignedClaims(token.principal.toString())
+      val claims = getAllClaims(token.principal.toString())
 
-      return !claims.payload.expiration.before(Date())
+      return !claims.expiration.before(Date())
     } catch (e: ExpiredJwtException) {
-      return throw e
+      throw UnauthorizedException(ErrorCode.EXPIRED_TOKEN)
     } catch (e: Exception) {
-      return throw e
+      throw UnauthorizedException(ErrorCode.INVALID_TOKEN)
     }
+  }
+
+  private suspend fun getAllClaims(token: String): Claims {
+    val parser = Jwts.parser()
+      .verifyWith(this.SECRET_KEY)
+      .build()
+    return parser
+      .parseSignedClaims(token)
+      .payload
   }
 }

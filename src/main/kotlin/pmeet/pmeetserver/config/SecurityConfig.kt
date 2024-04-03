@@ -10,6 +10,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.server.SecurityWebFilterChain
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter
+import org.springframework.security.web.server.authentication.ServerAuthenticationFailureHandler
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.pathMatchers
 
 @EnableWebFluxSecurity
@@ -24,10 +25,12 @@ class SecurityConfig {
   fun filterChain(
     http: ServerHttpSecurity,
     converter: JwtServerAuthenticationConverter,
+    handler: ServerAuthenticationFailureHandler,
     authManager: JwtAuthenticationManager
   ): SecurityWebFilterChain {
     val filter = AuthenticationWebFilter(authManager)
     filter.setServerAuthenticationConverter(converter)
+    filter.setAuthenticationFailureHandler(handler)
 
     return http {
       cors { disable() }
