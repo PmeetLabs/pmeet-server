@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import pmeet.pmeetserver.user.dto.request.CheckMailRequestDto
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
 import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.request.SetPasswordRequestDto
@@ -39,6 +40,12 @@ class AuthController(
   @ResponseStatus(HttpStatus.OK)
   suspend fun isDuplicateNickName(@RequestBody @Valid requestDto: CheckNickNameRequestDto): Boolean {
     return userFacadeService.isDuplicateNickName(requestDto)
+  }
+
+  @PostMapping("/mail/duplicate")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun isDuplicateMail(@RequestBody @Valid requestDto: CheckMailRequestDto): Boolean {
+    return userFacadeService.isDuplicateMail(requestDto)
   }
 
   @PostMapping("/verification-code")

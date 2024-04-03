@@ -5,10 +5,10 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.auth.service.EmailService
 import pmeet.pmeetserver.common.ErrorCode
-import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.common.utils.jwt.JwtUtil
 import pmeet.pmeetserver.user.domain.User
+import pmeet.pmeetserver.user.dto.request.CheckMailRequestDto
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
 import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.request.SetPasswordRequestDto
@@ -51,11 +51,14 @@ class UserFacadeService(
 
   @Transactional(readOnly = true)
   suspend fun isDuplicateNickName(requestDto: CheckNickNameRequestDto): Boolean {
-    try {
-      userService.getUserByNickname(requestDto.nickname).let { return true }
-    } catch (e: EntityNotFoundException) {
-      return false
-    }
+    userService.findUserByNickname(requestDto.nickname)?.let { return true }
+    return false
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun isDuplicateMail(requestDto: CheckMailRequestDto): Boolean {
+    userService.findUserByEmail(requestDto.mail)?.let { return true }
+    return false
   }
 
   @Transactional
@@ -77,7 +80,7 @@ class UserFacadeService(
     return true
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   suspend fun getMySummaryInfo(userId: String): UserSummaryResponseDto {
     return UserSummaryResponseDto.from(userService.getUserById(userId))
   }

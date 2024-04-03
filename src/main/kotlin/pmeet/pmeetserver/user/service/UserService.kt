@@ -39,10 +39,20 @@ class UserService(
       ?: throw EntityNotFoundException(ErrorCode.USER_NOT_FOUND_BY_EMAIL)
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   suspend fun getUserById(userId: String): User {
     return userRepository.findById(userId).awaitSingleOrNull()
       ?: throw EntityNotFoundException(ErrorCode.USER_NOT_FOUND_BY_ID)
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun findUserByNickname(nickname: String): User? {
+    return userRepository.findByNickname(nickname).awaitSingleOrNull()
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun findUserByEmail(email: String): User? {
+    return userRepository.findByEmail(email).awaitSingleOrNull()
   }
 
   @Transactional
