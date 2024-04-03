@@ -22,6 +22,7 @@ class EmailService(
 
   companion object {
     private val VERIFICATION_CODE_TIME_TO_LIVE by lazy { 5L }
+    private val VERIFICATION_CONFIRMED_TIME_TO_LIVE by lazy { 5L }
     private val SUBJECT_MESSAGE by lazy { "pmeet 회원가입 인증 번호" }
     private val EMAIL_BODY_TEMPLATE by lazy {
       """
@@ -40,15 +41,16 @@ class EmailService(
   suspend fun sendEmailWithVerificationCode(email: String) {
     withContext(dispatcher) {
       val message = javaMailSender.createMimeMessage()
-      val helper = MimeMessageHelper(message, true, "UTF-8")
       val verificationCode = VerificationCodeGenerator.generateVerificationCode()
-      helper.setTo(email)
-      helper.setSubject(SUBJECT_MESSAGE)
 
-      val htmlMsg = EMAIL_BODY_TEMPLATE.replace("{verificationCode}", verificationCode)
+      MimeMessageHelper(message, true, "UTF-8").apply {
+        setTo(email)
+        setSubject(SUBJECT_MESSAGE)
+        setText(EMAIL_BODY_TEMPLATE.replace("{verificationCode}", verificationCode), true)
+      }
 
-      helper.setText(htmlMsg, true)
       javaMailSender.send(message)
+
       reactiveRedisTemplate.opsForValue()
         .set(email, verificationCode, Duration.ofMinutes(VERIFICATION_CODE_TIME_TO_LIVE)).subscribe()
     }
@@ -57,10 +59,26 @@ class EmailService(
   @Transactional
   suspend fun verifyVerificationCode(email: String, verificationCode: String): Boolean {
     reactiveRedisTemplate.opsForValue().get(email).awaitSingleOrNull()?.also { storedCode ->
-      if (storedCode != verificationCode) {
-        throw UnauthorizedException(ErrorCode.VERIFICATION_CODE_NOT_MATCH)
+      when {
+        storedCode != verificationCode -> {
+          throw UnauthorizedException(ErrorCode.VERIFICATION_CODE_NOT_MATCH)
+        }
       }
     } ?: throw UnauthorizedException(ErrorCode.VERIFICATION_CODE_EXPIRED)
+
+    reactiveRedisTemplate.opsForValue()
+      .set(
+        email + "_verified",
+        VerificationCodeGenerator.generateVerificationCode(),
+        Duration.ofMinutes(VERIFICATION_CONFIRMED_TIME_TO_LIVE)
+      ).subscribe()
     return true
+  }
+
+  @Transactional
+  suspend fun validateVerifiedEmail(email: String) {
+    println(email + "_verified")
+    reactiveRedisTemplate.opsForValue().get(email + "_verified").awaitSingleOrNull()
+      ?: throw UnauthorizedException(ErrorCode.NOT_VERIFIED_EMAIL)
   }
 }

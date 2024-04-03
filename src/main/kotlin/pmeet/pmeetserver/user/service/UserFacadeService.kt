@@ -74,9 +74,11 @@ class UserFacadeService(
 
   @Transactional
   suspend fun setPassword(requestDto: SetPasswordRequestDto): Boolean {
-    val user = userService.getUserByEmail(requestDto.email)
-    user.changePassword(passwordEncoder.encode(requestDto.password))
-    userService.update(user)
+    userService.getUserByEmail(requestDto.email).apply {
+      emailService.validateVerifiedEmail(email)
+      changePassword(passwordEncoder.encode(requestDto.password))
+      userService.update(this)
+    }
     return true
   }
 
