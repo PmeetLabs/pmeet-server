@@ -12,6 +12,7 @@ class User(
   var name: String,
   var password: String? = null,
   var nickname: String,
+  var nicknameNumber: Int? = null,
   var isEmployed: Boolean = false,
   var profileImageUrl: String? = null
 ) {

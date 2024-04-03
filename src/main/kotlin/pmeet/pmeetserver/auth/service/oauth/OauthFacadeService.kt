@@ -5,6 +5,7 @@ import com.auth0.jwt.interfaces.DecodedJWT
 import org.springframework.stereotype.Service
 import pmeet.pmeetserver.common.utils.jwt.JwtUtil
 import pmeet.pmeetserver.user.domain.User
+import pmeet.pmeetserver.user.dto.UserInfo
 import pmeet.pmeetserver.user.dto.response.UserJwtDto
 import pmeet.pmeetserver.user.service.UserService
 
@@ -24,7 +25,15 @@ class OauthFacadeService(
     if (user != null) {
       return jwtUtil.createToken(user.id!!)
     } else {
-      val savedUser = userService.save(User(email = userInfo.email, name = userInfo.name, provider = "google", nickname = "google"))
+      // TODO 동시성 문제 해결 추후 도입
+      val nickNameNumber = generateNicknameNumber()
+      val nickname = "Pmeet#${String.format("%04d", nickNameNumber)}"
+      val savedUser = userService.save(User(
+        email = userInfo.email,
+        name = userInfo.name,
+        provider = "google",
+        nickname = nickname,
+        nicknameNumber = nickNameNumber))
       return jwtUtil.createToken(savedUser.id!!)
     }
   }
@@ -37,7 +46,15 @@ class OauthFacadeService(
     if (user != null) {
       return jwtUtil.createToken(user.id!!)
     } else {
-      val savedUser = userService.save(User(email = userInfo.email, name = userInfo.name, provider = "naver", nickname = "naver"))
+      // TODO 동시성 문제 해결 추후 도입
+      val nickNameNumber = generateNicknameNumber()
+      val nickname = "Pmeet#${String.format("%04d", nickNameNumber)}"
+      val savedUser = userService.save(User(
+        email = userInfo.email,
+        name = userInfo.name,
+        provider = "naver",
+        nickname = nickname,
+        nicknameNumber = nickNameNumber))
       return jwtUtil.createToken(savedUser.id!!)
     }
   }
@@ -50,20 +67,28 @@ class OauthFacadeService(
     if (user != null) {
       return jwtUtil.createToken(user.id!!)
     } else {
-      val savedUser = userService.save(User(email = userInfo.email, name = userInfo.name, provider = "kakao", nickname = "kakao"))
+      // TODO 동시성 문제 해결 추후 도입
+      val nickNameNumber = generateNicknameNumber()
+      val nickname = "Pmeet#${String.format("%04d", nickNameNumber)}"
+      val savedUser = userService.save(User(
+        email = userInfo.email,
+        name = userInfo.name,
+        provider = "kakao",
+        nickname = nickname,
+        nicknameNumber = nickNameNumber))
       return jwtUtil.createToken(savedUser.id!!)
     }
   }
 
-  fun decodeIdToken(idToken: String): UserInfo {
+  private suspend fun decodeIdToken(idToken: String): UserInfo {
     val decodedJWT: DecodedJWT = JWT.decode(idToken)
     val name = decodedJWT.getClaim("name").asString()
     val email = decodedJWT.getClaim("email").asString()
     return UserInfo(name, email)
   }
-}
 
-data class UserInfo(
-  val name: String,
-  val email: String
-)
+  private suspend fun generateNicknameNumber(): Int {
+    val highestNicknameNumber = userService.findUserWithHighestNicknameNumber()?.nicknameNumber ?: 0
+    return highestNicknameNumber + 1
+  }
+}

@@ -59,5 +59,10 @@ class UserService(
   suspend fun update(user: User): User {
     return userRepository.save(user).awaitSingle()
   }
+
+  @Transactional(readOnly = true)
+  suspend fun findUserWithHighestNicknameNumber(): User? {
+    return userRepository.findTopByOrderByNicknameNumberDesc().awaitSingleOrNull()
+  }
 }
 

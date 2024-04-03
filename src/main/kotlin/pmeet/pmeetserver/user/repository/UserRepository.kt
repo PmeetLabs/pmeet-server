@@ -7,5 +7,5 @@ import reactor.core.publisher.Mono
 interface UserRepository : ReactiveMongoRepository<User, String> {
   fun findByEmail(email: String): Mono<User>
   fun findByNickname(nickname: String): Mono<User>
-
+  fun findTopByOrderByNicknameNumberDesc(): Mono<User>
 }

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.BodyInserters
 import org.springframework.web.reactive.function.client.WebClient
 import org.springframework.web.reactive.function.client.bodyToMono
+import pmeet.pmeetserver.user.dto.UserInfo
 
 @Service
 class NaverOauthService(
@@ -44,10 +45,10 @@ class NaverOauthService(
 data class NaverResponse(
   val resultcode: String,
   val message: String,
-  val response: Response
+  val response: NaverAccount
 )
 
-data class Response(
+data class NaverAccount(
   val id: String,
   val email: String,
   val name: String
