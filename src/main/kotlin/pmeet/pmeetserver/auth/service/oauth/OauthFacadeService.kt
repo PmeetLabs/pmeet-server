@@ -21,11 +21,9 @@ class OauthFacadeService(
     val idToken = googleAuthService.getIdToken(code)
     val userInfo = decodeIdToken(idToken)
 
-    val user = userService.findUserByEmail(userInfo.email)
-    if (user != null) {
-      return jwtUtil.createToken(user.id!!)
-    } else {
-      // TODO 동시성 문제 해결 추후 도입
+    return userService.findUserByEmail(userInfo.email)?.let { existingUser ->
+      jwtUtil.createToken(existingUser.id!!)
+    } ?: run {
       val nickNameNumber = generateNicknameNumber()
       val nickname = "Pmeet#${String.format("%04d", nickNameNumber)}"
       val savedUser = userService.save(User(
@@ -34,7 +32,7 @@ class OauthFacadeService(
         provider = "google",
         nickname = nickname,
         nicknameNumber = nickNameNumber))
-      return jwtUtil.createToken(savedUser.id!!)
+      jwtUtil.createToken(savedUser.id!!)
     }
   }
 
@@ -42,11 +40,9 @@ class OauthFacadeService(
     val accessToken = naverAuthService.getAccessToken(code, state)
     val userInfo = naverAuthService.getProfile(accessToken)
 
-    val user = userService.findUserByEmail(userInfo.email)
-    if (user != null) {
-      return jwtUtil.createToken(user.id!!)
-    } else {
-      // TODO 동시성 문제 해결 추후 도입
+    return userService.findUserByEmail(userInfo.email)?.let { existingUser ->
+      jwtUtil.createToken(existingUser.id!!)
+    } ?: run {
       val nickNameNumber = generateNicknameNumber()
       val nickname = "Pmeet#${String.format("%04d", nickNameNumber)}"
       val savedUser = userService.save(User(
@@ -55,7 +51,7 @@ class OauthFacadeService(
         provider = "naver",
         nickname = nickname,
         nicknameNumber = nickNameNumber))
-      return jwtUtil.createToken(savedUser.id!!)
+      jwtUtil.createToken(savedUser.id!!)
     }
   }
 
@@ -63,11 +59,9 @@ class OauthFacadeService(
     val accessToken = kakaoAuthService.getAccessToken(code)
     val userInfo = kakaoAuthService.getProfile(accessToken)
 
-    val user = userService.findUserByEmail(userInfo.email)
-    if (user != null) {
-      return jwtUtil.createToken(user.id!!)
-    } else {
-      // TODO 동시성 문제 해결 추후 도입
+    return userService.findUserByEmail(userInfo.email)?.let { existingUser ->
+      jwtUtil.createToken(existingUser.id!!)
+    } ?: run {
       val nickNameNumber = generateNicknameNumber()
       val nickname = "Pmeet#${String.format("%04d", nickNameNumber)}"
       val savedUser = userService.save(User(
@@ -76,7 +70,7 @@ class OauthFacadeService(
         provider = "kakao",
         nickname = nickname,
         nicknameNumber = nickNameNumber))
-      return jwtUtil.createToken(savedUser.id!!)
+      jwtUtil.createToken(savedUser.id!!)
     }
   }
 
