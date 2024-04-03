@@ -10,6 +10,7 @@ plugins {
 
 val kotestVersion = "5.8.1"
 val mockVersion = "1.13.10"
+val awsVersion = "2.25.23"
 group = "Pmeet"
 version = "0.0.1-SNAPSHOT"
 
@@ -63,12 +64,16 @@ dependencies {
   // redis
   implementation("org.springframework.boot:spring-boot-starter-data-redis-reactive")
 
-  // SMTP
+  // smtp
   implementation("org.springframework.boot:spring-boot-starter-mail")
   implementation("io.netty:netty-resolver-dns-native-macos:4.1.106.Final:osx-aarch_64")
 
   // oauth
   implementation("com.auth0:java-jwt:3.18.1")
+
+  // aws
+  implementation("software.amazon.awssdk:s3:$awsVersion")
+
 }
 
 tasks.withType<KotlinCompile> {

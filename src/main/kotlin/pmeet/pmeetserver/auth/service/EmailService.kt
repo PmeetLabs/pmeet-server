@@ -21,10 +21,10 @@ class EmailService(
 ) {
 
   companion object {
-    private val VERIFICATION_CODE_TIME_TO_LIVE by lazy { 5L }
-    private val VERIFICATION_CONFIRMED_TIME_TO_LIVE by lazy { 5L }
-    private val SUBJECT_MESSAGE by lazy { "pmeet 회원가입 인증 번호" }
-    private val EMAIL_BODY_TEMPLATE by lazy {
+    private const val VERIFICATION_CODE_TIME_TO_LIVE = 5L
+    private const val VERIFICATION_CONFIRMED_TIME_TO_LIVE = 5L
+    private const val SUBJECT_MESSAGE = "pmeet 회원가입 인증 번호"
+    private val EMAIL_BODY_TEMPLATE: String =
       """
             <div style="font-family: Arial, '맑은 고딕', sans-serif; color: #333;">
                 <h2>회원가입 인증 코드</h2>
@@ -34,7 +34,7 @@ class EmailService(
                 <p>본인이 요청하지 않았다면, 이 이메일을 무시해 주세요.</p>
             </div>
         """.trimIndent()
-    }
+
   }
 
   @Transactional
