@@ -15,6 +15,9 @@ import org.springframework.security.web.server.authentication.AuthenticationWebF
 import org.springframework.security.web.server.authentication.ServerAuthenticationFailureHandler
 import org.springframework.security.web.server.util.matcher.PathPatternParserServerWebExchangeMatcher
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers.pathMatchers
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.reactive.CorsConfigurationSource
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource
 
 @EnableWebFluxSecurity
 @Configuration
@@ -28,7 +31,7 @@ class SecurityConfig {
   @Bean
   open fun authApiFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
     return http {
-      cors { disable() }
+      cors { configurationSource = corsConfigurationSource() }
       csrf { disable() }
       formLogin { disable() }
       httpBasic { disable() }
@@ -51,7 +54,7 @@ class SecurityConfig {
     filter.setAuthenticationFailureHandler(handler)
 
     return http {
-      cors { disable() }
+      cors { configurationSource = corsConfigurationSource() }
       csrf { disable() }
       formLogin { disable() }
       httpBasic { disable() }
@@ -61,5 +64,19 @@ class SecurityConfig {
       }
       addFilterAt(filter, SecurityWebFiltersOrder.AUTHENTICATION)
     }
+  }
+
+  @Bean
+  fun corsConfigurationSource(): CorsConfigurationSource {
+    val configuration = CorsConfiguration()
+    // TODO: set allowed origin
+    configuration.allowedOrigins = listOf("*")
+    configuration.allowedHeaders = listOf("*")
+    configuration.allowedMethods = listOf("*")
+    configuration.allowCredentials = true
+    configuration.maxAge = 3600L
+    val source = UrlBasedCorsConfigurationSource()
+    source.registerCorsConfiguration("/**", configuration)
+    return source
   }
 }

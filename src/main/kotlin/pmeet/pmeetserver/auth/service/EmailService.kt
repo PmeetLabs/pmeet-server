@@ -77,7 +77,6 @@ class EmailService(
 
   @Transactional
   suspend fun validateVerifiedEmail(email: String) {
-    println(email + "_verified")
     reactiveRedisTemplate.opsForValue().get(email + "_verified").awaitSingleOrNull()
       ?: throw UnauthorizedException(ErrorCode.NOT_VERIFIED_EMAIL)
   }
