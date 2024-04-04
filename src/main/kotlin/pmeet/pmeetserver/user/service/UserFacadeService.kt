@@ -28,13 +28,13 @@ class UserFacadeService(
 ) {
   @Transactional
   suspend fun save(requestDto: SignUpRequestDto): UserResponseDto {
+    emailService.validateVerifiedEmail(requestDto.email)
     val user = User(
       email = requestDto.email,
       name = requestDto.name,
       password = passwordEncoder.encode(requestDto.password),
       nickname = requestDto.nickname,
     )
-
     return UserResponseDto.from(userService.save(user))
   }
 
