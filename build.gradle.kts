@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+
 plugins {
   id("org.springframework.boot") version "3.2.3"
   id("io.spring.dependency-management") version "1.1.4"
@@ -7,6 +8,8 @@ plugins {
   kotlin("plugin.spring") version "1.9.22"
 }
 
+val kotestVersion = "5.8.1"
+val mockVersion = "1.13.10"
 group = "Pmeet"
 version = "0.0.1-SNAPSHOT"
 
@@ -39,6 +42,10 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.springframework.security:spring-security-test")
+  testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
+  testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+  testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
+  testImplementation("io.mockk:mockk:$mockVersion")
 
   // validation
   implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -69,6 +76,10 @@ tasks.withType<KotlinCompile> {
     freeCompilerArgs += "-Xjsr305=strict"
     jvmTarget = "21"
   }
+}
+
+tasks.withType<Test> {
+  jvmArgs("-XX:+EnableDynamicAgentLoading")
 }
 
 tasks.withType<Test> {
