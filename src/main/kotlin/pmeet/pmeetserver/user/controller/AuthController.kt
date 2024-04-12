@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.server.ServerWebExchange
 import pmeet.pmeetserver.auth.service.oauth.OauthFacadeService
 import pmeet.pmeetserver.user.dto.request.CheckMailRequestDto
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
@@ -21,6 +22,7 @@ import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.response.UserJwtDto
 import pmeet.pmeetserver.user.dto.response.UserResponseDto
 import pmeet.pmeetserver.user.service.UserFacadeService
+import java.net.URI
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -42,20 +44,43 @@ class AuthController(
 
   @GetMapping("/sign-in/google")
   @ResponseStatus(HttpStatus.OK)
-  suspend fun signInGoogle(@RequestParam code: String): UserJwtDto {
-    return oauthFacadeService.loginGoogleOauth(code)
+  suspend fun signInGoogle(@RequestParam code: String, exchange: ServerWebExchange) {
+    val userJwt = oauthFacadeService.loginGoogleOauth(code)
+    val redirectUrl = buildString {
+      append("http://localhost:3000?")
+      append("userId=${userJwt.userId}&")
+      append("accessToken=${userJwt.accessToken}&")
+      append("refreshToken=${userJwt.refreshToken}")
+    }
+    exchange.response.statusCode = HttpStatus.SEE_OTHER
+    exchange.response.headers.location = URI.create(redirectUrl)
   }
 
   @GetMapping("/sign-in/naver")
-  @ResponseStatus(HttpStatus.OK)
-  suspend fun signInNaver(@RequestParam code: String, @RequestParam state: String): UserJwtDto {
-    return oauthFacadeService.loginNaverOauth(code, state)
+  suspend fun signInNaver(@RequestParam code: String, @RequestParam state: String, exchange: ServerWebExchange) {
+    val userJwt = oauthFacadeService.loginNaverOauth(code, state)
+    val redirectUrl = buildString {
+      append("http://localhost:3000?")
+      append("userId=${userJwt.userId}&")
+      append("accessToken=${userJwt.accessToken}&")
+      append("refreshToken=${userJwt.refreshToken}")
+    }
+    exchange.response.statusCode = HttpStatus.SEE_OTHER
+    exchange.response.headers.location = URI.create(redirectUrl)
   }
 
   @GetMapping("/sign-in/kakao")
   @ResponseStatus(HttpStatus.OK)
-  suspend fun signInKakao(@RequestParam code: String): UserJwtDto {
-    return oauthFacadeService.loginKakaoOauth(code)
+  suspend fun signInKakao(@RequestParam code: String, exchange: ServerWebExchange) {
+    val userJwt = oauthFacadeService.loginKakaoOauth(code)
+    val redirectUrl = buildString {
+      append("http://localhost:3000?")
+      append("userId=${userJwt.userId}&")
+      append("accessToken=${userJwt.accessToken}&")
+      append("refreshToken=${userJwt.refreshToken}")
+    }
+    exchange.response.statusCode = HttpStatus.SEE_OTHER
+    exchange.response.headers.location = URI.create(redirectUrl)
   }
 
   @PostMapping("/nickname/duplicate")
