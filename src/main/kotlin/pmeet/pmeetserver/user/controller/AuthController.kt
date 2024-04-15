@@ -47,7 +47,7 @@ class AuthController(
   suspend fun signInGoogle(@RequestParam code: String, exchange: ServerWebExchange) {
     val userJwt = oauthFacadeService.loginGoogleOauth(code)
     val redirectUrl = buildString {
-      append("http://localhost:3000?")
+      append("https://pmeet.site/?")
       append("userId=${userJwt.userId}&")
       append("accessToken=${userJwt.accessToken}&")
       append("refreshToken=${userJwt.refreshToken}")
@@ -60,7 +60,7 @@ class AuthController(
   suspend fun signInNaver(@RequestParam code: String, @RequestParam state: String, exchange: ServerWebExchange) {
     val userJwt = oauthFacadeService.loginNaverOauth(code, state)
     val redirectUrl = buildString {
-      append("http://localhost:3000?")
+      append("https://pmeet.site/?")
       append("userId=${userJwt.userId}&")
       append("accessToken=${userJwt.accessToken}&")
       append("refreshToken=${userJwt.refreshToken}")
@@ -74,7 +74,7 @@ class AuthController(
   suspend fun signInKakao(@RequestParam code: String, exchange: ServerWebExchange) {
     val userJwt = oauthFacadeService.loginKakaoOauth(code)
     val redirectUrl = buildString {
-      append("http://localhost:3000?")
+      append("https://pmeet.site/?")
       append("userId=${userJwt.userId}&")
       append("accessToken=${userJwt.accessToken}&")
       append("refreshToken=${userJwt.refreshToken}")
