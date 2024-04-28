@@ -1,6 +1,7 @@
 package pmeet.pmeetserver.user.service
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -21,7 +22,7 @@ import reactor.core.publisher.Mono
 
 @ExperimentalCoroutinesApi
 internal class UserServiceUnitTest : DescribeSpec({
-//  isolationMode = IsolationMode.InstancePerLeaf
+  isolationMode = IsolationMode.InstancePerLeaf
 
   val testDispatcher = StandardTestDispatcher()
 
@@ -38,7 +39,7 @@ internal class UserServiceUnitTest : DescribeSpec({
       email = "testEmail@test.com",
       name = "testName",
       password = "testPassword",
-      nickname = "testNickname",
+      nickname = "testNickname"
     )
     ReflectionTestUtils.setField(user, "id", "testId")
   }

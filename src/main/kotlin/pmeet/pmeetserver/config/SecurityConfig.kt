@@ -29,7 +29,7 @@ class SecurityConfig {
 
   @Order(Ordered.HIGHEST_PRECEDENCE)
   @Bean
-  open fun authApiFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
+  fun authApiFilterChain(http: ServerHttpSecurity): SecurityWebFilterChain {
     return http {
       cors { configurationSource = corsConfigurationSource() }
       csrf { disable() }

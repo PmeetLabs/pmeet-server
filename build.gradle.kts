@@ -43,10 +43,17 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation("io.projectreactor:reactor-test")
   testImplementation("org.springframework.security:spring-security-test")
+
   testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
   testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
+  testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
+
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("io.mockk:mockk:$mockVersion")
+
+  testImplementation("org.testcontainers:testcontainers:1.19.7")
+  testImplementation("org.testcontainers:junit-jupiter:1.19.7")
+  testImplementation("org.testcontainers:mongodb:1.19.7")
 
   // validation
   implementation("org.springframework.boot:spring-boot-starter-validation")
