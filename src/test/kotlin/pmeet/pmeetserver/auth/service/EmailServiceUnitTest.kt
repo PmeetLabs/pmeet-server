@@ -45,78 +45,88 @@ class EmailServiceUnitTest : DescribeSpec({
     Dispatchers.resetMain()
   }
 
-  describe("이메일 인증 코드 전송") {
-    it("이메일 인증 코드가 정상적으로 전송된다.") {
-      runTest {
-        val email = "test@test.com"
+  describe("sendEmailWithVerificationCode") {
+    context("정상적으로 전송되면") {
+      it("Redis에 인증 코드가 저장된다") {
+        runTest {
+          val email = "test@test.com"
 
-        every {
-          reactiveRedisTemplate.opsForValue().set(any<String>(), any<String>(), any<Duration>())
-        } answers { Mono.just(true) }
+          every {
+            reactiveRedisTemplate.opsForValue().set(any<String>(), any<String>(), any<Duration>())
+          } answers { Mono.just(true) }
 
-        emailService.sendEmailWithVerificationCode(email)
+          emailService.sendEmailWithVerificationCode(email)
 
-        verify(exactly = 1) { javaMailSender.send(any<MimeMessage>()) }
-        verify(exactly = 1) { reactiveRedisTemplate.opsForValue().set(any<String>(), any<String>(), any<Duration>()) }
+          verify(exactly = 1) { javaMailSender.send(any<MimeMessage>()) }
+          verify(exactly = 1) { reactiveRedisTemplate.opsForValue().set(any<String>(), any<String>(), any<Duration>()) }
 
+        }
       }
     }
   }
 
-  describe("인증 코드 검증") {
-    it("올바른 인증 코드가 제공되면 검증에 성공해야 한다") {
-      runTest {
-        val email = "test@test.com"
-        val correctCode = "123456"
+  describe("verifyVerificationCode") {
+    context("올바른 인증 코드가 주어지면") {
+      it("검증에 성공한다") {
+        runTest {
+          val email = "test@test.com"
+          val correctCode = "123456"
 
-        every { reactiveRedisTemplate.opsForValue().get(email) } answers { Mono.just(correctCode) }
+          every { reactiveRedisTemplate.opsForValue().get(email) } answers { Mono.just(correctCode) }
 
-        val result = emailService.verifyVerificationCode(email, correctCode)
+          val result = emailService.verifyVerificationCode(email, correctCode)
 
-        result shouldBe true
+          result shouldBe true
+        }
       }
     }
 
-    it("잘못된 인증 코드가 제공되면 UnauthorizedException이 발생해야 한다") {
-      runTest {
-        val email = "test@test.com"
-        val wrongCode = "654321"
+    context("잘못된 인증 코드가 주어지면") {
+      it("UnauthorizedException 예외를 던진다") {
+        runTest {
+          val email = "test@test.com"
+          val wrongCode = "654321"
 
-        every { reactiveRedisTemplate.opsForValue().get(email) } answers { Mono.just("123456") }
+          every { reactiveRedisTemplate.opsForValue().get(email) } answers { Mono.just("123456") }
 
-        val exception = shouldThrow<UnauthorizedException> {
-          emailService.verifyVerificationCode(email, wrongCode)
+          val exception = shouldThrow<UnauthorizedException> {
+            emailService.verifyVerificationCode(email, wrongCode)
+          }
+
+          exception.errorCode shouldBe ErrorCode.VERIFICATION_CODE_NOT_MATCH
         }
-
-        exception.errorCode shouldBe ErrorCode.VERIFICATION_CODE_NOT_MATCH
       }
     }
   }
 
-  describe("이메일 인증 상태 확인") {
-    it("이메일이 인증되었다면 예외가 발생하지 않는다") {
-      runTest {
-        val email = "test@test.com"
+  describe("validateVerifiedEmail") {
+    context("이메일 인증되었다면") {
+      it("예외를 던지지 않는다") {
+        runTest {
+          val email = "test@test.com"
 
-        every { reactiveRedisTemplate.opsForValue().get("${email}_verified") } answers { Mono.just("123456") }
+          every { reactiveRedisTemplate.opsForValue().get("${email}_verified") } answers { Mono.just("123456") }
 
-        shouldNotThrowAny {
-          emailService.validateVerifiedEmail(email)
+          shouldNotThrowAny {
+            emailService.validateVerifiedEmail(email)
+          }
         }
       }
     }
 
-    it("이메일이 인증되지 않았다면 UnauthorizedException이 발생해야 한다") {
-      runTest {
-        val email = "test@test.com"
+    context("이에일 인증이 되지 않았다면") {
+      it("UnauthorizedException 예외를 던진다") {
+        runTest {
+          val email = "test@test.com"
 
-        every { reactiveRedisTemplate.opsForValue().get("${email}_verified") } answers { Mono.empty() }
+          every { reactiveRedisTemplate.opsForValue().get("${email}_verified") } answers { Mono.empty() }
 
-        val exception = shouldThrow<UnauthorizedException> {
-          emailService.validateVerifiedEmail(email)
+          val exception = shouldThrow<UnauthorizedException> {
+            emailService.validateVerifiedEmail(email)
+          }
+
+          exception.errorCode shouldBe ErrorCode.NOT_VERIFIED_EMAIL
         }
-
-        exception.errorCode shouldBe ErrorCode.NOT_VERIFIED_EMAIL
       }
     }
   }
