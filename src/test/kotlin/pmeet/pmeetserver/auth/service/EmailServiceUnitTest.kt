@@ -22,7 +22,7 @@ import reactor.core.publisher.Mono
 import java.time.Duration
 
 @ExperimentalCoroutinesApi
-class EmailServiceUnitTest : DescribeSpec({
+internal class EmailServiceUnitTest : DescribeSpec({
 
   lateinit var javaMailSender: JavaMailSender
   lateinit var reactiveRedisTemplate: ReactiveRedisTemplate<String, String>

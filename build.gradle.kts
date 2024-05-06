@@ -11,6 +11,9 @@ plugins {
 val kotestVersion = "5.8.1"
 val mockVersion = "1.13.10"
 val awsVersion = "2.25.23"
+val springMockkVersion = "4.0.2"
+val kotestSpringExtensionVersion = "1.1.3"
+val testContainerVersion = "1.19.7"
 group = "Pmeet"
 version = "0.0.1-SNAPSHOT"
 
@@ -46,14 +49,16 @@ dependencies {
 
   testImplementation("io.kotest:kotest-runner-junit5:$kotestVersion")
   testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
-  testImplementation("io.kotest.extensions:kotest-extensions-spring:1.1.3")
 
   testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test")
   testImplementation("io.mockk:mockk:$mockVersion")
+  testImplementation("com.ninja-squad:springmockk:$springMockkVersion")
+  testImplementation("io.kotest.extensions:kotest-extensions-spring:$kotestSpringExtensionVersion")
 
-  testImplementation("org.testcontainers:testcontainers:1.19.7")
-  testImplementation("org.testcontainers:junit-jupiter:1.19.7")
-  testImplementation("org.testcontainers:mongodb:1.19.7")
+
+  testImplementation("org.testcontainers:testcontainers:$testContainerVersion")
+  testImplementation("org.testcontainers:junit-jupiter:$testContainerVersion")
+  testImplementation("org.testcontainers:mongodb:$testContainerVersion")
 
   // validation
   implementation("org.springframework.boot:spring-boot-starter-validation")
