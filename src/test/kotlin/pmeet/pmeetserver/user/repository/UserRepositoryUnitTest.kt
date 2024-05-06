@@ -51,7 +51,6 @@ internal class UserRepositoryUnitTest(
     userRepository.deleteAll().block()
   }
 
-
   describe("findByEmail") {
     context("이메일이 주어지면") {
       it("유저 반환") {
