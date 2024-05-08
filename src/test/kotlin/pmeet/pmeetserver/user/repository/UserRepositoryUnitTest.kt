@@ -56,9 +56,6 @@ internal class UserRepositoryUnitTest(
     context("이메일이 주어지면") {
       it("유저 반환") {
         runTest {
-          userRepository.findAll().subscribe { user ->
-            println("User: $user")
-          }
 
           val result = userRepository.findByEmail(user.email).block()
 
@@ -75,9 +72,6 @@ internal class UserRepositoryUnitTest(
     context("닉네임이 주어지면") {
       it("유저 반환") {
         runTest {
-          userRepository.findAll().subscribe { user ->
-            println("User: $user")
-          }
 
           val result = userRepository.findByNickname(user.nickname).block()
 
@@ -94,9 +88,6 @@ internal class UserRepositoryUnitTest(
     context("가장 큰 닉네임 숫자를 가진 유저를 반환할 때") {
       it("유저 반환") {
         runTest {
-          userRepository.findAll().subscribe { user ->
-            println("User: $user")
-          }
 
           val result = userRepository.findTopByOrderByNicknameNumberDesc().block()
 

@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.mongodb.ReactiveMongoDatabaseFactory
 import org.springframework.data.mongodb.ReactiveMongoTransactionManager
+import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.config.EnableReactiveMongoRepositories
 import org.springframework.transaction.reactive.TransactionalOperator
 
@@ -21,4 +22,8 @@ class MongoConfig {
     return TransactionalOperator.create(reactiveTransactionManager)
   }
 
+  @Bean
+  fun reactiveMongoTemplate(reactiveMongoDatabaseFactory: ReactiveMongoDatabaseFactory): ReactiveMongoTemplate {
+    return ReactiveMongoTemplate(reactiveMongoDatabaseFactory)
+  }
 }
