@@ -7,15 +7,17 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
+import org.springframework.context.annotation.Import
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
+import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.user.dto.response.UserSummaryResponseDto
 import pmeet.pmeetserver.user.service.UserFacadeService
 
-
 @WebFluxTest(UserController::class)
+@Import(TestSecurityConfig::class)
 internal class UserControllerUnitTest : DescribeSpec() {
 
   @MockkBean
