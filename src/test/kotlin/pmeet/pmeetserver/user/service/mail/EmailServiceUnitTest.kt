@@ -1,4 +1,4 @@
-package pmeet.pmeetserver.auth.service
+package pmeet.pmeetserver.user.service.mail
 
 import io.kotest.assertions.throwables.shouldNotThrowAny
 import io.kotest.assertions.throwables.shouldThrow

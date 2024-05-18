@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.util.UriBuilder
-import pmeet.pmeetserver.auth.service.oauth.OauthFacadeService
+import pmeet.pmeetserver.user.service.oauth.OauthFacadeService
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.user.dto.request.CheckMailRequestDto
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto

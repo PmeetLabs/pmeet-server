@@ -17,7 +17,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.util.ReflectionTestUtils
-import pmeet.pmeetserver.auth.service.EmailService
+import pmeet.pmeetserver.user.service.mail.EmailService
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.common.utils.jwt.JwtUtil

@@ -1,4 +1,4 @@
-package pmeet.pmeetserver.auth.service.oauth
+package pmeet.pmeetserver.user.service.oauth
 
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.beans.factory.annotation.Value

@@ -17,7 +17,7 @@ import org.springframework.security.test.web.reactive.server.SecurityMockServerC
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.testcontainers.containers.MongoDBContaineradd
+import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.dto.response.UserSummaryResponseDto

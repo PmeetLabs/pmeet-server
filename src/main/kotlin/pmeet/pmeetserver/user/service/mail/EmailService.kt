@@ -1,4 +1,4 @@
-package pmeet.pmeetserver.auth.service
+package pmeet.pmeetserver.user.service.mail
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.reactor.awaitSingleOrNull

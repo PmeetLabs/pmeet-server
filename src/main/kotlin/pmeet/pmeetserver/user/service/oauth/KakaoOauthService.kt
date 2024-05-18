@@ -1,4 +1,4 @@
-package pmeet.pmeetserver.auth.service.oauth
+package pmeet.pmeetserver.user.service.oauth
 
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.beans.factory.annotation.Value
@@ -10,20 +10,19 @@ import org.springframework.web.reactive.function.client.bodyToMono
 import pmeet.pmeetserver.user.dto.UserInfo
 
 @Service
-class NaverOauthService(
+class KakaoOauthService(
 
   private val webClient: WebClient,
-  @Value("\${naver.oauth.client-id}") private val clientId: String,
-  @Value("\${naver.oauth.client-secret}") private val clientSecret: String
+  @Value("\${kakao.oauth.client-id}") private val clientId: String,
+  @Value("\${kakao.oauth.redirect-uri}") private val redirectUri: String
 ) {
-  suspend fun getAccessToken(code: String, state: String): String {
+  suspend fun getAccessToken(code: String): String {
     val responseBody: Map<String, Any> = webClient.post()
-      .uri("https://nid.naver.com/oauth2.0/token/")
+      .uri("https://kauth.kakao.com/oauth/token")
       .contentType(MediaType.APPLICATION_FORM_URLENCODED)
       .body(BodyInserters.fromFormData("code", code)
         .with("client_id", clientId)
-        .with("client_secret", clientSecret)
-        .with("state", state)
+        .with("redirect_uri", redirectUri)
         .with("grant_type", "authorization_code"))
       .retrieve()
       .bodyToMono<Map<String, Any>>()
@@ -32,24 +31,26 @@ class NaverOauthService(
   }
 
   suspend fun getProfile(accessToken: String): UserInfo {
-    val NaverResponse = webClient.post()
-      .uri("https://openapi.naver.com/v1/nid/me")
+    val kakaoResponse = webClient.post()
+      .uri("https://kapi.kakao.com/v2/user/me")
+      .contentType(MediaType.APPLICATION_FORM_URLENCODED)
       .header("Authorization", "Bearer " + accessToken)
       .retrieve()
-      .bodyToMono(NaverResponse::class.java)
+      .bodyToMono(KakaoResponse::class.java)
       .awaitSingle()
-    return UserInfo(NaverResponse.response.name, NaverResponse.response.email)
+    return UserInfo(kakaoResponse.kakao_account.profile.nickname, kakaoResponse.kakao_account.email)
   }
 }
 
-data class NaverResponse(
-  val resultcode: String,
-  val message: String,
-  val response: NaverAccount
+data class KakaoResponse(
+  val kakao_account: KakaoAccount
 )
 
-data class NaverAccount(
-  val id: String,
+data class KakaoAccount(
   val email: String,
-  val name: String
+  val profile: KakaoProfile
+)
+
+data class KakaoProfile(
+  val nickname: String
 )

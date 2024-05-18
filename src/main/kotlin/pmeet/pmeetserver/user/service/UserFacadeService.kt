@@ -3,7 +3,7 @@ package pmeet.pmeetserver.user.service
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import pmeet.pmeetserver.auth.service.EmailService
+import pmeet.pmeetserver.user.service.mail.EmailService
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.common.utils.jwt.JwtUtil

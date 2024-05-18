@@ -1,4 +1,4 @@
-package pmeet.pmeetserver.auth.service.oauth
+package pmeet.pmeetserver.user.service.oauth
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.interfaces.DecodedJWT

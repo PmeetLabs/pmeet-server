@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.server.ServerWebExchange
-import pmeet.pmeetserver.auth.service.oauth.OauthFacadeService
+import pmeet.pmeetserver.user.service.oauth.OauthFacadeService
 import pmeet.pmeetserver.user.dto.request.CheckMailRequestDto
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
 import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
