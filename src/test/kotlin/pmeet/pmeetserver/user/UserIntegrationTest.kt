@@ -6,8 +6,6 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactive.awaitFirst
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -19,7 +17,7 @@ import org.springframework.security.test.web.reactive.server.SecurityMockServerC
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.containers.MongoDBContaineradd
 import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.dto.response.UserSummaryResponseDto
@@ -46,8 +44,6 @@ internal class UserIntegrationTest : DescribeSpec() {
     }
   }
 
-  val testDispatcher = StandardTestDispatcher()
-
   @Autowired
   lateinit var webTestClient: WebTestClient
 
@@ -64,14 +60,14 @@ internal class UserIntegrationTest : DescribeSpec() {
   lateinit var userId: String
 
   override suspend fun beforeSpec(spec: Spec) {
-    withContext(testDispatcher) {
+    withContext(Dispatchers.IO) {
       userRepository.save(user).block()
       userId = userRepository.findByNickname(user.nickname).awaitFirst().id!!
     }
   }
 
   override suspend fun afterSpec(spec: Spec) {
-    withContext(testDispatcher) {
+    withContext(Dispatchers.IO) {
       userRepository.deleteAll().block()
     }
   }
