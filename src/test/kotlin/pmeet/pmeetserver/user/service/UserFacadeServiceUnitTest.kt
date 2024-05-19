@@ -258,6 +258,7 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
           result.nickname shouldBe user.nickname
           result.gender shouldBe user.gender
           result.phoneNumber shouldBe user.phoneNumber
+          result.birthDate shouldBe user.birthDate
           result.introductionComment shouldBe user.introductionComment
         }
       }

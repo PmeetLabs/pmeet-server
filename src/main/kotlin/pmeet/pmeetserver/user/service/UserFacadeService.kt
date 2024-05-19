@@ -13,6 +13,7 @@ import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.request.SetPasswordRequestDto
 import pmeet.pmeetserver.user.dto.request.SignInRequestDto
 import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
+import pmeet.pmeetserver.user.dto.request.UpdateUserRequestDto
 import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.response.UserJwtDto
 import pmeet.pmeetserver.user.dto.response.UserResponseDto
@@ -81,6 +82,23 @@ class UserFacadeService(
       userService.update(this)
     }
     return true
+  }
+
+  @Transactional
+  suspend fun updateUser(userId: String, requestDto: UpdateUserRequestDto): UserResponseDto {
+    val user = userService.getUserById(userId).apply {
+      updateUser(
+        requestDto.profileImageUrl,
+        requestDto.name,
+        requestDto.nickname,
+        requestDto.phoneNumber,
+        requestDto.birthDate,
+        requestDto.gender,
+        requestDto.isEmployed,
+        requestDto.introductionComment
+      )
+    }
+    return UserResponseDto.from(userService.update(user))
   }
 
   @Transactional(readOnly = true)

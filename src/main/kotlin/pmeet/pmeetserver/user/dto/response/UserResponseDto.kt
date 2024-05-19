@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.user.dto.response
 
+import java.time.LocalDate
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
 
@@ -9,6 +10,7 @@ data class UserResponseDto(
   val email: String,
   val name: String,
   val phoneNumber: String?,
+  val birthDate: LocalDate?,
   val gender: Gender?,
   val introductionComment: String?,
   val nickname: String,
@@ -23,6 +25,7 @@ data class UserResponseDto(
         email = user.email,
         name = user.name,
         phoneNumber = user.phoneNumber,
+        birthDate = user.birthDate,
         gender = user.gender,
         introductionComment = user.introductionComment,
         nickname = user.nickname,

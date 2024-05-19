@@ -120,6 +120,7 @@ internal class UserIntegrationTest : DescribeSpec() {
               userResponse.gender shouldBe user.gender
               userResponse.introductionComment shouldBe user.introductionComment
               userResponse.phoneNumber shouldBe user.phoneNumber
+              userResponse.birthDate shouldBe user.birthDate
             }
         }
       }
