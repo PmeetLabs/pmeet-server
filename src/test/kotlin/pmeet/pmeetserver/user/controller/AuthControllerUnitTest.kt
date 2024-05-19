@@ -21,7 +21,7 @@ import pmeet.pmeetserver.user.dto.request.SignInRequestDto
 import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
 import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.response.UserJwtDto
-import pmeet.pmeetserver.user.dto.response.UserResponseDto
+import pmeet.pmeetserver.user.dto.response.UserSignUpResponseDto
 import pmeet.pmeetserver.user.service.UserFacadeService
 
 @WebFluxTest(AuthController::class)
@@ -41,8 +41,8 @@ internal class AuthControllerUnitTest : DescribeSpec() {
     describe("POST /api/v1/auth/sign-up") {
       context("유저 생성 요청이 들어오면") {
         val requestDto: SignUpRequestDto = SignUpRequestDto("test@test.com", "test", "testpassword1@", "test")
-        val responseDto: UserResponseDto =
-          UserResponseDto("1234", null, "test@test.com", "test", "test", true, "test/test.jpg")
+        val responseDto: UserSignUpResponseDto =
+          UserSignUpResponseDto("1234", null, "test@test.com", "test", "test")
         coEvery { userFacadeService.save(requestDto) } answers { responseDto }
         val performRequest =
           webTestClient.post()
@@ -57,13 +57,11 @@ internal class AuthControllerUnitTest : DescribeSpec() {
         }
 
         it("생성된 유저 정보를 반환한다") {
-          performRequest.expectBody<UserResponseDto>().consumeWith { response ->
+          performRequest.expectBody<UserSignUpResponseDto>().consumeWith { response ->
             response.responseBody?.provider shouldBe responseDto.provider
             response.responseBody?.id shouldBe responseDto.id
             response.responseBody?.email shouldBe responseDto.email
             response.responseBody?.nickname shouldBe responseDto.nickname
-            response.responseBody?.isEmployed shouldBe responseDto.isEmployed
-            response.responseBody?.profileImageUrl shouldBe responseDto.profileImageUrl
           }
         }
       }

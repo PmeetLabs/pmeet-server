@@ -3,7 +3,6 @@ package pmeet.pmeetserver.user.service
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import pmeet.pmeetserver.user.service.mail.EmailService
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.common.utils.jwt.JwtUtil
@@ -17,7 +16,9 @@ import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
 import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.response.UserJwtDto
 import pmeet.pmeetserver.user.dto.response.UserResponseDto
+import pmeet.pmeetserver.user.dto.response.UserSignUpResponseDto
 import pmeet.pmeetserver.user.dto.response.UserSummaryResponseDto
+import pmeet.pmeetserver.user.service.mail.EmailService
 
 @Service
 class UserFacadeService(
@@ -27,7 +28,7 @@ class UserFacadeService(
   private val jwtUtil: JwtUtil
 ) {
   @Transactional
-  suspend fun save(requestDto: SignUpRequestDto): UserResponseDto {
+  suspend fun save(requestDto: SignUpRequestDto): UserSignUpResponseDto {
     emailService.validateVerifiedEmail(requestDto.email)
     val user = User(
       email = requestDto.email,
@@ -35,7 +36,7 @@ class UserFacadeService(
       password = passwordEncoder.encode(requestDto.password),
       nickname = requestDto.nickname,
     )
-    return UserResponseDto.from(userService.save(user))
+    return UserSignUpResponseDto.from(userService.save(user))
   }
 
   @Transactional
@@ -85,6 +86,11 @@ class UserFacadeService(
   @Transactional(readOnly = true)
   suspend fun getMySummaryInfo(userId: String): UserSummaryResponseDto {
     return UserSummaryResponseDto.from(userService.getUserById(userId))
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun getMyInfo(userId: String): UserResponseDto {
+    return UserResponseDto.from(userService.getUserById(userId))
   }
 }
 

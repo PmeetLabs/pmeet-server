@@ -20,6 +20,8 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.user.domain.User
+import pmeet.pmeetserver.user.domain.enum.Gender
+import pmeet.pmeetserver.user.dto.response.UserResponseDto
 import pmeet.pmeetserver.user.dto.response.UserSummaryResponseDto
 import pmeet.pmeetserver.user.repository.UserRepository
 
@@ -52,9 +54,12 @@ internal class UserIntegrationTest : DescribeSpec() {
 
   private val user = User(
     email = "test@example.com",
-    name = "Test User",
-    nickname = "testuser",
-    password = "password"
+    name = "testUser",
+    nickname = "testNickname",
+    password = "password",
+    phoneNumber = "1234567890",
+    gender = Gender.MALE,
+    introductionComment = "testIntroduction"
   )
 
   lateinit var userId: String
@@ -88,6 +93,33 @@ internal class UserIntegrationTest : DescribeSpec() {
               val userSummary = it.responseBody!!
               userSummary.email shouldBe user.email
               userSummary.nickname shouldBe user.nickname
+              userSummary.isEmployed shouldBe user.isEmployed
+              userSummary.profileImageUrl shouldBe user.profileImageUrl
+            }
+        }
+      }
+    }
+
+    describe("GET /api/v1/users/me") {
+      context("인증된 사용자의 정보를 가져올 때") {
+        it("사용자의 정보를 반환한다") {
+          val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+
+          webTestClient.mutateWith(mockAuthentication(mockAuthentication)).get()
+            .uri("/api/v1/users/me")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<UserResponseDto>()
+            .consumeWith {
+              val userResponse = it.responseBody!!
+              userResponse.email shouldBe user.email
+              userResponse.nickname shouldBe user.nickname
+              userResponse.isEmployed shouldBe user.isEmployed
+              userResponse.profileImageUrl shouldBe user.profileImageUrl
+              userResponse.gender shouldBe user.gender
+              userResponse.introductionComment shouldBe user.introductionComment
+              userResponse.phoneNumber shouldBe user.phoneNumber
             }
         }
       }

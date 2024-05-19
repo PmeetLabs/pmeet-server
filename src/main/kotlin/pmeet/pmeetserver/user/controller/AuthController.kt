@@ -20,7 +20,7 @@ import pmeet.pmeetserver.user.dto.request.SignInRequestDto
 import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
 import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.response.UserJwtDto
-import pmeet.pmeetserver.user.dto.response.UserResponseDto
+import pmeet.pmeetserver.user.dto.response.UserSignUpResponseDto
 import pmeet.pmeetserver.user.service.UserFacadeService
 import java.net.URI
 
@@ -32,7 +32,7 @@ class AuthController(
 ) {
   @PostMapping("/sign-up")
   @ResponseStatus(HttpStatus.CREATED)
-  suspend fun createUser(@RequestBody @Valid requestDto: SignUpRequestDto): UserResponseDto {
+  suspend fun createUser(@RequestBody @Valid requestDto: SignUpRequestDto): UserSignUpResponseDto {
     return userFacadeService.save(requestDto)
   }
 

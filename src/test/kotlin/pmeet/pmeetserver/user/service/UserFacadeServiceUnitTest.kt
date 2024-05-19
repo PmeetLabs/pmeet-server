@@ -22,6 +22,7 @@ import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.common.utils.jwt.JwtUtil
 import pmeet.pmeetserver.user.domain.User
+import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.dto.request.CheckMailRequestDto
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
 import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
@@ -58,7 +59,10 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
       email = "testEmail@test.com",
       name = "testName",
       password = "testPassword",
-      nickname = "testNickname"
+      nickname = "testNickname",
+      phoneNumber = "1234567890",
+      gender = Gender.MALE,
+      introductionComment = "testIntroduction"
     )
     ReflectionTestUtils.setField(user, "id", "testId")
   }
@@ -75,7 +79,7 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
         "testPassword",
         "testNickname"
       )
-      it("저장 후 UserResponseDto 반환") {
+      it("저장 후 UserSignUpResponseDto 반환") {
         runTest {
           val encodedPassword = "encodedPassword"
 
@@ -240,4 +244,23 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
     }
   }
 
+  describe("getMyInfo") {
+    context("유저 ID가 주어지면") {
+      val userId = "testId"
+      it("유저를 조회한 후 UserResponseDto 반환") {
+        runTest {
+          coEvery { userService.getUserById(userId) } returns user
+
+          val result = userFacadeService.getMyInfo(userId)
+
+          result.id shouldBe user.id
+          result.email shouldBe user.email
+          result.nickname shouldBe user.nickname
+          result.gender shouldBe user.gender
+          result.phoneNumber shouldBe user.phoneNumber
+          result.introductionComment shouldBe user.introductionComment
+        }
+      }
+    }
+  }
 })

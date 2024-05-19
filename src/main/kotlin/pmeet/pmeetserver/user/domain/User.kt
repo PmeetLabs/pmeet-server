@@ -2,6 +2,7 @@ package pmeet.pmeetserver.user.domain
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
+import pmeet.pmeetserver.user.domain.enum.Gender
 
 @Document
 class User(
@@ -10,6 +11,9 @@ class User(
   val provider: String? = null,
   val email: String,
   var name: String,
+  var phoneNumber: String? = null,
+  var gender: Gender? = null,
+  var introductionComment: String? = null,
   var password: String? = null,
   var nickname: String,
   var nicknameNumber: Int? = null,
