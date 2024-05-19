@@ -18,5 +18,6 @@ data class UpdateUserRequestDto(
   val birthDate: LocalDate?,
   val gender: Gender?,
   val isEmployed: Boolean,
+  @field:Size(max = 50, message = "한 줄 소개는 최대 50자까지 입력 가능합니다.")
   val introductionComment: String?
 )

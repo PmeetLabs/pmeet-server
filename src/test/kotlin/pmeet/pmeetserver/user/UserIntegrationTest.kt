@@ -3,6 +3,7 @@ package pmeet.pmeetserver.user
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactive.awaitFirst
@@ -21,6 +22,7 @@ import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
+import pmeet.pmeetserver.user.dto.request.UpdateUserRequestDto
 import pmeet.pmeetserver.user.dto.response.UserResponseDto
 import pmeet.pmeetserver.user.dto.response.UserSummaryResponseDto
 import pmeet.pmeetserver.user.repository.UserRepository
@@ -121,6 +123,44 @@ internal class UserIntegrationTest : DescribeSpec() {
               userResponse.introductionComment shouldBe user.introductionComment
               userResponse.phoneNumber shouldBe user.phoneNumber
               userResponse.birthDate shouldBe user.birthDate
+            }
+        }
+      }
+    }
+
+    describe("PUT /api/v1/users/me") {
+      context("인증된 사용자의 정보를 변경할 때") {
+        it("사용자의 변경된 정보를 반환한다") {
+          val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+          val updateUserRequestDto = UpdateUserRequestDto(
+            profileImageUrl = "http://new.image.url",
+            name = "newName",
+            nickname = "newNickname",
+            phoneNumber = "010-1234-5678",
+            birthDate = LocalDate.of(2000, 1, 1),
+            gender = Gender.FEMALE,
+            isEmployed = true,
+            introductionComment = "newIntroductionComment"
+          )
+
+          webTestClient.mutateWith(mockAuthentication(mockAuthentication)).put()
+            .uri("/api/v1/users/me")
+            .contentType(MediaType.APPLICATION_JSON)
+            .bodyValue(updateUserRequestDto)
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<UserResponseDto>()
+            .consumeWith {
+              val userResponse = it.responseBody!!
+              userResponse.profileImageUrl shouldBe updateUserRequestDto.profileImageUrl
+              userResponse.name shouldBe updateUserRequestDto.name
+              userResponse.nickname shouldBe updateUserRequestDto.nickname
+              userResponse.phoneNumber shouldBe updateUserRequestDto.phoneNumber
+              userResponse.birthDate shouldBe updateUserRequestDto.birthDate
+              userResponse.gender shouldBe updateUserRequestDto.gender
+              userResponse.isEmployed shouldBe updateUserRequestDto.isEmployed
+              userResponse.introductionComment shouldBe updateUserRequestDto.introductionComment
             }
         }
       }

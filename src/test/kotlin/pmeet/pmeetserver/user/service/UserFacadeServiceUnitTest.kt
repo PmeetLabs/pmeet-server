@@ -9,6 +9,7 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -29,6 +30,7 @@ import pmeet.pmeetserver.user.dto.request.SendVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.request.SetPasswordRequestDto
 import pmeet.pmeetserver.user.dto.request.SignInRequestDto
 import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
+import pmeet.pmeetserver.user.dto.request.UpdateUserRequestDto
 import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.response.UserJwtDto
 
@@ -229,7 +231,8 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
 
   describe("getMySummaryInfo") {
     context("유저 ID가 주어지면") {
-      val userId = "testId"
+      val userId = user.id!!
+
       it("유저를 조회한 후 UserSummaryResponseDto 반환") {
         runTest {
           coEvery { userService.getUserById(userId) } returns user
@@ -246,7 +249,8 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
 
   describe("getMyInfo") {
     context("유저 ID가 주어지면") {
-      val userId = "testId"
+      val userId = user.id!!
+
       it("유저를 조회한 후 UserResponseDto 반환") {
         runTest {
           coEvery { userService.getUserById(userId) } returns user
@@ -260,6 +264,55 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
           result.phoneNumber shouldBe user.phoneNumber
           result.birthDate shouldBe user.birthDate
           result.introductionComment shouldBe user.introductionComment
+        }
+      }
+    }
+  }
+
+  describe("updateUser") {
+    context("유저 ID와 UpdateUserRequestDto가 주어지면") {
+      val userId = user.id!!
+
+      val updateUserRequestDto = UpdateUserRequestDto(
+        profileImageUrl = "http://new.image.url",
+        name = "newName",
+        nickname = "newNickname",
+        phoneNumber = "010-1234-5678",
+        birthDate = LocalDate.of(2000, 1, 1),
+        gender = Gender.FEMALE,
+        isEmployed = true,
+        introductionComment = "newIntroductionComment"
+      )
+
+      val updatedUser = User(
+        userId,
+        email = user.email,
+        profileImageUrl = updateUserRequestDto.profileImageUrl,
+        name = updateUserRequestDto.name,
+        nickname = updateUserRequestDto.nickname,
+        phoneNumber = updateUserRequestDto.phoneNumber,
+        birthDate = updateUserRequestDto.birthDate,
+        gender = updateUserRequestDto.gender,
+        isEmployed = updateUserRequestDto.isEmployed,
+        introductionComment = updateUserRequestDto.introductionComment
+      )
+
+      it("사용자 정보를 업데이트하고 UserResponseDto를 반환") {
+        runTest {
+          coEvery { userService.getUserById(userId) } returns user
+          coEvery { userService.update(any()) } returns updatedUser
+
+          val result = userFacadeService.updateUser(userId, updateUserRequestDto)
+
+          result.email shouldBe updatedUser.email
+          result.profileImageUrl shouldBe updateUserRequestDto.profileImageUrl
+          result.name shouldBe updateUserRequestDto.name
+          result.nickname shouldBe updateUserRequestDto.nickname
+          result.phoneNumber shouldBe updateUserRequestDto.phoneNumber
+          result.birthDate shouldBe updateUserRequestDto.birthDate
+          result.gender shouldBe updateUserRequestDto.gender
+          result.isEmployed shouldBe updateUserRequestDto.isEmployed
+          result.introductionComment shouldBe updateUserRequestDto.introductionComment
         }
       }
     }
