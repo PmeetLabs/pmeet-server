@@ -5,7 +5,12 @@ import pmeet.pmeetserver.user.domain.User
 import reactor.core.publisher.Mono
 
 interface UserRepository : ReactiveMongoRepository<User, String> {
-  fun findByEmail(email: String): Mono<User>
-  fun findByNickname(nickname: String): Mono<User>
-  fun findTopByOrderByNicknameNumberDesc(): Mono<User>
+
+  fun findByEmailAndIsDeletedFalse(email: String): Mono<User>
+
+  fun findByNicknameAndIsDeletedFalse(nickname: String): Mono<User>
+
+  fun findFirstByIsDeletedFalseOrderByNicknameNumberDesc(): Mono<User>
+
 }
+

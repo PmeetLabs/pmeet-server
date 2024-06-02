@@ -110,5 +110,13 @@ class UserFacadeService(
   suspend fun getMyInfo(userId: String): UserResponseDto {
     return UserResponseDto.from(userService.getUserById(userId))
   }
+
+  @Transactional
+  suspend fun deleteUser(userId: String): Boolean {
+    val user = userService.getUserById(userId)
+    user.delete();
+    userService.update(user)
+    return true
+  }
 }
 

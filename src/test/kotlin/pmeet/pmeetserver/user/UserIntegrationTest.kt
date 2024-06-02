@@ -3,7 +3,6 @@ package pmeet.pmeetserver.user
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactive.awaitFirst
@@ -26,6 +25,7 @@ import pmeet.pmeetserver.user.dto.request.UpdateUserRequestDto
 import pmeet.pmeetserver.user.dto.response.UserResponseDto
 import pmeet.pmeetserver.user.dto.response.UserSummaryResponseDto
 import pmeet.pmeetserver.user.repository.UserRepository
+import java.time.LocalDate
 
 
 @ExtendWith(SpringExtension::class)
@@ -69,7 +69,7 @@ internal class UserIntegrationTest : DescribeSpec() {
   override suspend fun beforeSpec(spec: Spec) {
     withContext(Dispatchers.IO) {
       userRepository.save(user).block()
-      userId = userRepository.findByNickname(user.nickname).awaitFirst().id!!
+      userId = userRepository.findByNicknameAndIsDeletedFalse(user.nickname).awaitFirst().id!!
     }
   }
 
@@ -162,6 +162,30 @@ internal class UserIntegrationTest : DescribeSpec() {
               userResponse.isEmployed shouldBe updateUserRequestDto.isEmployed
               userResponse.introductionComment shouldBe updateUserRequestDto.introductionComment
             }
+        }
+      }
+    }
+
+    describe("DELETE /api/v1/users/me") {
+      context("인증된 사용자의 정보를 삭제(Soft Delete)할 때") {
+        it("사용자의 정보를 삭제(Soft Delete)한다") {
+          val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+
+          webTestClient.mutateWith(mockAuthentication(mockAuthentication)).delete()
+            .uri("/api/v1/users/me")
+            .accept(MediaType.APPLICATION_JSON)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<Boolean>()
+            .consumeWith {
+              val response = it.responseBody!!
+              response shouldBe true
+            }
+
+          withContext(Dispatchers.IO) {
+            val deletedUser = userRepository.findById(userId).awaitFirst()
+            deletedUser.isDeleted shouldBe true
+          }
         }
       }
     }

@@ -1,9 +1,9 @@
 package pmeet.pmeetserver.user.domain
 
-import java.time.LocalDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import pmeet.pmeetserver.user.domain.enum.Gender
+import java.time.LocalDate
 
 @Document
 class User(
@@ -20,7 +20,8 @@ class User(
   var nickname: String,
   var nicknameNumber: Int? = null,
   var isEmployed: Boolean = false,
-  var profileImageUrl: String? = null
+  var profileImageUrl: String? = null,
+  var isDeleted: Boolean = false
 ) {
 
   fun changePassword(password: String) {
@@ -47,4 +48,9 @@ class User(
     this.isEmployed = isEmployed
     this.introductionComment = introductionComment
   }
+
+  fun delete() {
+    this.isDeleted = true
+  }
+
 }

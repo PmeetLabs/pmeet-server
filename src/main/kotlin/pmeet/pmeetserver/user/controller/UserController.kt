@@ -4,6 +4,7 @@ import jakarta.validation.Valid
 import kotlinx.coroutines.reactive.awaitSingle
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -42,4 +43,11 @@ class UserController(
   ): UserResponseDto {
     return userFacadeService.updateUser(userId.awaitSingle(), requestDto)
   }
+
+  @DeleteMapping("/me")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun delete(@AuthenticationPrincipal userId: Mono<String>): Boolean {
+    return userFacadeService.deleteUser(userId.awaitSingle())
+  }
+
 }

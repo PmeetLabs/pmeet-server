@@ -9,7 +9,6 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
-import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -18,7 +17,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.util.ReflectionTestUtils
-import pmeet.pmeetserver.user.service.mail.EmailService
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.common.utils.jwt.JwtUtil
@@ -33,6 +31,8 @@ import pmeet.pmeetserver.user.dto.request.SignUpRequestDto
 import pmeet.pmeetserver.user.dto.request.UpdateUserRequestDto
 import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.response.UserJwtDto
+import pmeet.pmeetserver.user.service.mail.EmailService
+import java.time.LocalDate
 
 @ExperimentalCoroutinesApi
 internal class UserFacadeServiceUnitTest : DescribeSpec({
@@ -191,13 +191,17 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
 
   describe("verifyVerificationCode") {
     context("VerifyVerificationCodeRequestDto가 주어지면") {
-      val verifyVerificationCodeRequestDto = VerifyVerificationCodeRequestDto("testEmail@test.com",
-        "correctCode")
+      val verifyVerificationCodeRequestDto = VerifyVerificationCodeRequestDto(
+        "testEmail@test.com",
+        "correctCode"
+      )
 
       it("인증 코드와 일치한 경우") {
         coEvery {
-          emailService.verifyVerificationCode(verifyVerificationCodeRequestDto.email,
-            verifyVerificationCodeRequestDto.verificationCode)
+          emailService.verifyVerificationCode(
+            verifyVerificationCodeRequestDto.email,
+            verifyVerificationCodeRequestDto.verificationCode
+          )
         } returns true
 
         val result = userFacadeService.verifyVerificationCode(verifyVerificationCodeRequestDto)
@@ -313,6 +317,24 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
           result.gender shouldBe updateUserRequestDto.gender
           result.isEmployed shouldBe updateUserRequestDto.isEmployed
           result.introductionComment shouldBe updateUserRequestDto.introductionComment
+        }
+      }
+    }
+  }
+
+  describe("deleteUser") {
+    context("유저 ID가 주어지면") {
+      val userId = user.id!!
+
+      it("유저를 삭제(Soft Delete)한 후 true 반환한다") {
+        runTest {
+          coEvery { userService.getUserById(userId) } returns user
+          coEvery { userService.update(any()) } returns user
+
+          val result = userFacadeService.deleteUser(userId)
+
+          result shouldBe true
+          user.isDeleted shouldBe true
         }
       }
     }

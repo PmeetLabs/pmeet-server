@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.common.ErrorCode
+import pmeet.pmeetserver.common.exception.BadRequestException
 import pmeet.pmeetserver.common.exception.EntityDuplicateException
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.user.domain.User
@@ -54,8 +55,8 @@ internal class UserServiceUnitTest : DescribeSpec({
         runTest {
 
           every { userRepository.save((any())) } answers { Mono.just(user) }
-          every { userRepository.findByEmail(user.email) } answers { Mono.empty() }
-          every { userRepository.findByNickname(user.nickname) } answers { Mono.empty() }
+          every { userRepository.findByEmailAndIsDeletedFalse(user.email) } answers { Mono.empty() }
+          every { userRepository.findByNicknameAndIsDeletedFalse(user.nickname) } answers { Mono.empty() }
 
           val result = userService.save(user)
 
@@ -65,7 +66,7 @@ internal class UserServiceUnitTest : DescribeSpec({
 
       it("이미 존재하는 메일의 경우 Exception") {
         runTest {
-          every { userRepository.findByEmail(user.email) } answers { Mono.just(user) }
+          every { userRepository.findByEmailAndIsDeletedFalse(user.email) } answers { Mono.just(user) }
 
           val exception = shouldThrow<EntityDuplicateException> {
             userService.save(user)
@@ -77,8 +78,8 @@ internal class UserServiceUnitTest : DescribeSpec({
 
       it("이미 존재하는 닉네임의 경우 Exception") {
         runTest {
-          every { userRepository.findByEmail(user.email) } answers { Mono.empty() }
-          every { userRepository.findByNickname(user.nickname) } answers { Mono.just(user) }
+          every { userRepository.findByEmailAndIsDeletedFalse(user.email) } answers { Mono.empty() }
+          every { userRepository.findByNicknameAndIsDeletedFalse(user.nickname) } answers { Mono.just(user) }
 
           val exception = shouldThrow<EntityDuplicateException> {
             userService.save(user)
@@ -94,7 +95,7 @@ internal class UserServiceUnitTest : DescribeSpec({
     context("닉네임이 주어지면") {
       it("유저 반환") {
         runTest {
-          every { userRepository.findByNickname(user.nickname) } answers { Mono.just(user) }
+          every { userRepository.findByNicknameAndIsDeletedFalse(user.nickname) } answers { Mono.just(user) }
 
           val result = userService.getUserByNickname(user.nickname)
 
@@ -103,7 +104,7 @@ internal class UserServiceUnitTest : DescribeSpec({
       }
       it("존재하는 유저가 없을 경우 Exception") {
         runTest {
-          every { userRepository.findByNickname(user.nickname) } answers { Mono.empty() }
+          every { userRepository.findByNicknameAndIsDeletedFalse(user.nickname) } answers { Mono.empty() }
 
           val exception = shouldThrow<EntityNotFoundException> {
             userService.getUserByNickname(user.nickname)
@@ -119,7 +120,7 @@ internal class UserServiceUnitTest : DescribeSpec({
     context("이메일이 주어지면") {
       it("유저 반환") {
         runTest {
-          every { userRepository.findByEmail(user.email) } answers { Mono.just(user) }
+          every { userRepository.findByEmailAndIsDeletedFalse(user.email) } answers { Mono.just(user) }
 
           val result = userService.getUserByEmail(user.email)
 
@@ -129,7 +130,7 @@ internal class UserServiceUnitTest : DescribeSpec({
 
       it("존재하지 않는 이메일의 경우 Exception") {
         runTest {
-          every { userRepository.findByEmail(any()) } answers { Mono.empty() }
+          every { userRepository.findByEmailAndIsDeletedFalse(any()) } answers { Mono.empty() }
 
           val exception = shouldThrow<EntityNotFoundException> {
             userService.getUserByEmail(user.email)
@@ -164,6 +165,19 @@ internal class UserServiceUnitTest : DescribeSpec({
           exception.errorCode shouldBe ErrorCode.USER_NOT_FOUND_BY_ID
         }
       }
+
+      it("탈퇴한 사용자의 경우 BadRequestException을 던진다") {
+        runTest {
+          every { userRepository.findById(user.id!!) } answers { Mono.just(user.apply { isDeleted = true }) }
+
+          val exception = shouldThrow<BadRequestException> {
+            userService.getUserById(user.id!!)
+          }
+
+          exception.errorCode shouldBe ErrorCode.IS_DELETED_USER
+        }
+      }
+
     }
   }
 
@@ -193,7 +207,7 @@ internal class UserServiceUnitTest : DescribeSpec({
     context("가장 높은 닉네임 번호를 가진 유저 찾기") {
       it("유저 반환") {
         runTest {
-          every { userRepository.findTopByOrderByNicknameNumberDesc() } answers { Mono.just(user) }
+          every { userRepository.findFirstByIsDeletedFalseOrderByNicknameNumberDesc() } answers { Mono.just(user) }
 
           val result = userService.findUserWithHighestNicknameNumber()
 
@@ -203,7 +217,7 @@ internal class UserServiceUnitTest : DescribeSpec({
 
       it("유저가 존재하지 않을 경우 null 반환") {
         runTest {
-          every { userRepository.findTopByOrderByNicknameNumberDesc() } answers { Mono.empty() }
+          every { userRepository.findFirstByIsDeletedFalseOrderByNicknameNumberDesc() } answers { Mono.empty() }
 
           val result = userService.findUserWithHighestNicknameNumber()
 

@@ -56,12 +56,30 @@ internal class UserRepositoryUnitTest(
       it("유저 반환") {
         runTest {
 
-          val result = userRepository.findByEmail(user.email).block()
+          val result = userRepository.findByEmailAndIsDeletedFalse(user.email).block()
 
           result?.email shouldBe user.email
           result?.name shouldBe user.name
           result?.nickname shouldBe user.nickname
           result?.password shouldBe user.password
+        }
+      }
+    }
+
+    context("탈퇴한 회원의 이메일이 주어지면") {
+      val deletedUser = User(
+        email = "deleted@email.com",
+        name = "deletedName",
+        password = "deletedPassword",
+        nickname = "deletedNickname",
+        isDeleted = true
+      )
+      it("null 반환") {
+        runTest {
+
+          val result = userRepository.findByEmailAndIsDeletedFalse(deletedUser.email).block()
+
+          result shouldBe null
         }
       }
     }
@@ -72,12 +90,29 @@ internal class UserRepositoryUnitTest(
       it("유저 반환") {
         runTest {
 
-          val result = userRepository.findByNickname(user.nickname).block()
+          val result = userRepository.findByNicknameAndIsDeletedFalse(user.nickname).block()
 
           result?.email shouldBe user.email
           result?.name shouldBe user.name
           result?.nickname shouldBe user.nickname
           result?.password shouldBe user.password
+        }
+      }
+    }
+    context("탈퇴한 회원의 닉네임이 주어지면") {
+      val deletedUser = User(
+        email = "deleted@email.com",
+        name = "deletedName",
+        password = "deletedPassword",
+        nickname = "deletedNickname",
+        isDeleted = true
+      )
+      it("null 반환") {
+        runTest {
+
+          val result = userRepository.findByNicknameAndIsDeletedFalse(deletedUser.nickname).block()
+
+          result shouldBe null
         }
       }
     }
@@ -88,7 +123,28 @@ internal class UserRepositoryUnitTest(
       it("유저 반환") {
         runTest {
 
-          val result = userRepository.findTopByOrderByNicknameNumberDesc().block()
+          val result = userRepository.findFirstByIsDeletedFalseOrderByNicknameNumberDesc().block()
+
+          result?.email shouldBe user.email
+          result?.name shouldBe user.name
+          result?.nickname shouldBe user.nickname
+          result?.password shouldBe user.password
+        }
+      }
+    }
+    context("탈퇴한 회원이 가장 큰 닉네임 숫자를 가진 유저일 때") {
+      val deletedUser = User(
+        email = "deleted@email.com",
+        name = "deletedName",
+        password = "deletedPassword",
+        nickname = "deletedNickname",
+        isDeleted = true,
+        nicknameNumber = 9999999
+      )
+      it("탈퇴한 회원을 반환하지 않음") {
+        runTest {
+
+          val result = userRepository.findFirstByIsDeletedFalseOrderByNicknameNumberDesc().block()
 
           result?.email shouldBe user.email
           result?.name shouldBe user.name
