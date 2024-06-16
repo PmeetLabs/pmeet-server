@@ -19,9 +19,12 @@ enum class ErrorCode(private val code: String, private val message: String) {
   IS_DELETED_USER("USER-40008", "탈퇴한 유저입니다."),
 
   // Job
-  JOB_DUPLICATE_BY_NAME("JOB-40000", "중복된 직무명입니다.")
-  ;
+  JOB_DUPLICATE_BY_NAME("JOB-40000", "중복된 직무명입니다."),
 
+  // TechStack
+  TECHSTACK_DUPLICATE_BY_NAME("TECHSTACH-40000", "중복된 기술스택입니다.")
+
+  ;
 
   fun getCode(): String {
     return this.code
