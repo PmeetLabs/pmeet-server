@@ -15,20 +15,10 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.user.controller.ResumeController
-import pmeet.pmeetserver.user.domain.enum.ExperienceYear
-import pmeet.pmeetserver.user.domain.enum.Gender
-import pmeet.pmeetserver.user.dto.job.response.JobResponseDto
-import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.ResumeJobExperienceRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.ResumeJobRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.ResumeProjectExperienceRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.ResumeTechStackRequestDto
-import pmeet.pmeetserver.user.dto.resume.response.ResumeJobExperienceResponseDto
-import pmeet.pmeetserver.user.dto.resume.response.ResumeProjectExperienceResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
-import pmeet.pmeetserver.user.dto.techStack.response.TechStackResponseDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
-import java.time.LocalDate
 
 @WebFluxTest(ResumeController::class)
 @Import(TestSecurityConfig::class)
@@ -155,122 +145,4 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
     }
   }
 
-  private fun createMockCreateResumeRequestDto(): CreateResumeRequestDto {
-    return CreateResumeRequestDto(
-      title = "Software Engineer",
-      userName = "John Doe",
-      userGender = Gender.MALE,
-      userBirthDate = LocalDate.of(1990, 1, 1),
-      userPhoneNumber = "010-1234-5678",
-      userEmail = "john.doe@example.com",
-      userProfileImageUrl = "http://example.com/profile.jpg",
-      desiredJobs = listOf(
-        ResumeJobRequestDto(
-          id = "job1",
-          name = "Backend Developer"
-        ),
-        ResumeJobRequestDto(
-          id = "job2",
-          name = "Frontend Developer"
-        )
-      ),
-      techStacks = listOf(
-        ResumeTechStackRequestDto(
-          id = "tech1",
-          name = "Kotlin"
-        ),
-        ResumeTechStackRequestDto(
-          id = "tech2",
-          name = "React"
-        )
-      ),
-      jobExperiences = listOf(
-        ResumeJobExperienceRequestDto(
-          companyName = "ABC Corp",
-          experiencePeriod = ExperienceYear.YEAR_03,
-          responsibilities = "Developed backend services"
-        ),
-        ResumeJobExperienceRequestDto(
-          companyName = "XYZ Inc",
-          experiencePeriod = ExperienceYear.YEAR_02,
-          responsibilities = "Worked on frontend development"
-        )
-      ),
-      projectExperiences = listOf(
-        ResumeProjectExperienceRequestDto(
-          projectName = "Project A",
-          experiencePeriod = ExperienceYear.YEAR_01,
-          responsibilities = "Led the project development"
-        ),
-        ResumeProjectExperienceRequestDto(
-          projectName = "Project B",
-          experiencePeriod = ExperienceYear.YEAR_02,
-          responsibilities = "Contributed to backend services"
-        )
-      ),
-      portfolioFileUrl = "http://example.com/portfolio.pdf",
-      portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
-      selfDescription = "Passionate software engineer with a focus on backend development."
-    )
-  }
-
-  private fun createMockResumeResponseDto(): ResumeResponseDto {
-    return ResumeResponseDto(
-      id = "resume-id",
-      title = "Software Engineer",
-      userName = "John Doe",
-      userGender = Gender.MALE,
-      userBirthDate = LocalDate.of(1990, 1, 1),
-      userPhoneNumber = "010-1234-5678",
-      userEmail = "john.doe@example.com",
-      userProfileImageUrl = "http://example.com/profile.jpg",
-      desiredJobs = listOf(
-        JobResponseDto(
-          id = "job1",
-          name = "Backend Developer"
-        ),
-        JobResponseDto(
-          id = "job2",
-          name = "Frontend Developer"
-        )
-      ),
-      techStacks = listOf(
-        TechStackResponseDto(
-          id = "tech1",
-          name = "Kotlin"
-        ),
-        TechStackResponseDto(
-          id = "tech2",
-          name = "React"
-        )
-      ),
-      jobExperiences = listOf(
-        ResumeJobExperienceResponseDto(
-          companyName = "ABC Corp",
-          experiencePeriod = ExperienceYear.YEAR_03,
-          responsibilities = "Developed backend services"
-        ),
-        ResumeJobExperienceResponseDto(
-          companyName = "XYZ Inc",
-          experiencePeriod = ExperienceYear.YEAR_02,
-          responsibilities = "Worked on frontend development"
-        )
-      ),
-      projectExperiences = listOf(
-        ResumeProjectExperienceResponseDto(
-          companyName = "Project A",
-          experiencePeriod = ExperienceYear.YEAR_01,
-          responsibilities = "Led the project development"
-        ),
-        ResumeProjectExperienceResponseDto(
-          companyName = "Project B",
-          experiencePeriod = ExperienceYear.YEAR_02,
-          responsibilities = "Contributed to backend services"
-        )
-      ),
-      portfolioFileUrl = "http://example.com/portfolio.pdf",
-      portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
-      selfDescription = "Passionate software engineer with a focus on backend development."
-    )
-  }
 }
