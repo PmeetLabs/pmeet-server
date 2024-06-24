@@ -6,4 +6,6 @@ import reactor.core.publisher.Mono
 
 interface ResumeRepository : ReactiveMongoRepository<Resume, String> {
 
+  fun countByUserId(userId: String): Mono<Long>
+
 }

@@ -22,8 +22,10 @@ enum class ErrorCode(private val code: String, private val message: String) {
   JOB_DUPLICATE_BY_NAME("JOB-40000", "중복된 직무명입니다."),
 
   // TechStack
-  TECHSTACK_DUPLICATE_BY_NAME("TECHSTACH-40000", "중복된 기술스택입니다.")
+  TECHSTACK_DUPLICATE_BY_NAME("TECHSTACH-40000", "중복된 기술스택입니다."),
 
+  // Resume
+  RESUME_NUMBER_EXCEEDED("RESUME-40000", "이력서는 5개까지만 생성 가능합니다.")
   ;
 
   fun getCode(): String {

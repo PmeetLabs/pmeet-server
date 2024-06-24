@@ -24,6 +24,8 @@ object ResumeGenerator {
   internal fun createMockCreateResumeRequestDto(): CreateResumeRequestDto {
     return CreateResumeRequestDto(
       title = "Software Engineer",
+      isActive = false,
+      userId = "John-id",
       userName = "John Doe",
       userGender = Gender.MALE,
       userBirthDate = LocalDate.of(1990, 1, 1),
@@ -84,6 +86,8 @@ object ResumeGenerator {
     return ResumeResponseDto(
       id = "resume-id",
       title = "Software Engineer",
+      isActive = false,
+      userId = "John-id",
       userName = "John Doe",
       userGender = Gender.MALE,
       userBirthDate = LocalDate.of(1990, 1, 1),
@@ -144,6 +148,7 @@ object ResumeGenerator {
     return Resume(
       id = "resume-id",
       title = "Software Engineer",
+      userId = "John-id",
       userName = "John Doe",
       userGender = Gender.MALE,
       userBirthDate = LocalDate.of(1990, 1, 1),

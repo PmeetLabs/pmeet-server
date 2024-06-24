@@ -44,6 +44,8 @@ data class ResumeProjectExperienceResponseDto(
 data class ResumeResponseDto(
   val id: String,
   val title: String,
+  val isActive: Boolean,
+  val userId: String,
   val userName: String,
   val userGender: Gender,
   val userBirthDate: LocalDate,
@@ -63,6 +65,8 @@ data class ResumeResponseDto(
       return ResumeResponseDto(
         id = resume.id!!,
         title = resume.title,
+        isActive = resume.isActive,
+        userId = resume.userId,
         userName = resume.userName,
         userGender = resume.userGender,
         userBirthDate = resume.userBirthDate,

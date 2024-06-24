@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.user.dto.resume.request
 
+import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
@@ -72,6 +73,9 @@ data class CreateResumeRequestDto(
     message = "제목은 한글, 영어, 숫자, 문장부호만 입력 가능합니다."
   )
   val title: String,
+  val isActive: Boolean,
+  @field:NotBlank(message = "생성자 아이디는 필수입니다.")
+  val userId: String,
   @field:NotBlank(message = "사용자 이름은 필수입니다.")
   val userName: String,
   @field:NotBlank(message = "사용자 성별은 필수입니다.")
@@ -81,19 +85,26 @@ data class CreateResumeRequestDto(
   @field:NotBlank(message = "사용자 전화 번호는 필수입니다.")
   val userPhoneNumber: String,
   @field:NotBlank(message = "사용자 이메일은 필수입니다.")
+  @field:Email(message = "유효한 이메일 주소를 입력해주세요.")
   val userEmail: String,
   val userProfileImageUrl: String?,
+  @field:Size(max = 5, message = "최대 5개의 희망 직무만 입력 가능합니다.")
   val desiredJobs: List<ResumeJobRequestDto>,
+  @field:Size(max = 5, message = "최대 5개의 기술 스택만 입력 가능합니다.")
   val techStacks: List<ResumeTechStackRequestDto>,
   val jobExperiences: List<ResumeJobExperienceRequestDto>,
   val projectExperiences: List<ResumeProjectExperienceRequestDto>,
   val portfolioFileUrl: String?,
+  @field:Size(max = 3, message = "최대 3개의 포트폴리오 링크만 입력 가능합니다.")
   val portfolioUrl: List<String>,
+  @field:Size(max = 500, message = "자기소개는 최대 500자까지 입력 가능합니다.")
   val selfDescription: String?
 ) {
   fun toEntity(): Resume {
     return Resume(
       title = this.title,
+      isActive = this.isActive,
+      userId = this.userId,
       userName = this.userName,
       userGender = this.userGender,
       userBirthDate = this.userBirthDate,

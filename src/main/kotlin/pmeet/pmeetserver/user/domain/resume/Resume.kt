@@ -25,6 +25,8 @@ class Resume(
   @Id
   val id: String? = null, // mongodb auto id generation
   val title: String,
+  val isActive: Boolean = false,
+  val userId: String,
   val userName: String,
   val userGender: Gender,
   val userBirthDate: LocalDate,

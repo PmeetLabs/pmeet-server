@@ -80,6 +80,7 @@ internal class ResumeRepositoryUnitTest(
 
     resume = Resume(
       title = "title",
+      userId = "john-id",
       userName = "userName",
       userGender = Gender.MALE,
       userBirthDate = LocalDate.of(2024, 6, 20),

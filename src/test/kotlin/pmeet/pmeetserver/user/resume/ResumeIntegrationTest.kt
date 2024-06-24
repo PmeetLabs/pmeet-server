@@ -124,6 +124,8 @@ class ResumeIntegrationTest : DescribeSpec() {
             val returnedResume = response.responseBody!!
 
             returnedResume.title shouldBe resumeResponse.title
+            returnedResume.isActive shouldBe resumeResponse.isActive
+            returnedResume.userId shouldBe resumeResponse.userId
             returnedResume.userName shouldBe resumeResponse.userName
             returnedResume.userGender shouldBe resumeResponse.userGender
             returnedResume.userBirthDate shouldBe resumeResponse.userBirthDate
@@ -169,6 +171,8 @@ class ResumeIntegrationTest : DescribeSpec() {
 
           returnedResume.id shouldBe resumeResponse.id
           returnedResume.title shouldBe resumeResponse.title
+          returnedResume.isActive shouldBe resumeResponse.isActive
+          returnedResume.userId shouldBe returnedResume.userId
           returnedResume.userName shouldBe resumeResponse.userName
           returnedResume.userGender shouldBe resumeResponse.userGender
           returnedResume.userBirthDate shouldBe resumeResponse.userBirthDate
