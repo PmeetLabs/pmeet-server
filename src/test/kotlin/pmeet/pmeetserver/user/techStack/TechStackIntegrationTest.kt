@@ -14,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
@@ -29,6 +30,7 @@ import pmeet.pmeetserver.util.RestSliceImpl
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 @ExperimentalCoroutinesApi
+@ActiveProfiles("test")
 class TechStackIntegrationTest : DescribeSpec() {
 
   override fun isolationMode(): IsolationMode? {

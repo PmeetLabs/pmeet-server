@@ -35,11 +35,13 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeReque
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import java.time.LocalDate
+import org.springframework.test.context.ActiveProfiles
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 @ExperimentalCoroutinesApi
+@ActiveProfiles("test")
 class ResumeIntegrationTest : DescribeSpec() {
 
   override fun isolationMode(): IsolationMode? {

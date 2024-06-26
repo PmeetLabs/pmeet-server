@@ -26,12 +26,14 @@ import pmeet.pmeetserver.user.dto.response.UserResponseDto
 import pmeet.pmeetserver.user.dto.response.UserSummaryResponseDto
 import pmeet.pmeetserver.user.repository.UserRepository
 import java.time.LocalDate
+import org.springframework.test.context.ActiveProfiles
 
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureWebTestClient
 @ExperimentalCoroutinesApi
+@ActiveProfiles("test")
 internal class UserIntegrationTest : DescribeSpec() {
   companion object {
     @Container

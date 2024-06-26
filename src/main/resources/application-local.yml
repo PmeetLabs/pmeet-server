@@ -1,0 +1,7 @@
+logging:
+  level:
+    root: debug
+
+spring:
+  config:
+    import: classpath:application-secret.yml

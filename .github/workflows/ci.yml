@@ -1,17 +1,16 @@
 # workflow의 이름을 정의한다.
-name: 'test-main'
+name: CI
 
 # workflow가 언제 동작할지 정의한다.
 # 이 workflow의 경우 main branch에 push 또는 pull_request 이벤트가 발생할 경우 동작한다.
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
   pull_request:
     branches: [ "main" ]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -27,8 +26,8 @@ jobs:
       - name: Add executable permission to gradlew
         run: chmod +x ./gradlew
 
-      - name: Build with Gradle
-        run: ./gradlew build -Pspring.profiles.active=test
+      - name: Build with Gradle except test
+        run: ./gradlew build --exclude-task test
 
       - name: Run tests with Gradle
         run: ./gradlew test
