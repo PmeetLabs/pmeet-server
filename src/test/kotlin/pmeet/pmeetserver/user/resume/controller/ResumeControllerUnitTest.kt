@@ -18,6 +18,7 @@ import pmeet.pmeetserver.user.controller.ResumeController
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
 
 @WebFluxTest(ResumeController::class)
@@ -143,6 +144,49 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         performRequest.expectStatus().isUnauthorized
       }
     }
-  }
 
+    describe("PUT api/v1/resumes") {
+      context("인증된 유저의 이력서 수정 요청이 들어오면") {
+        val userId = "1234"
+        val requestDto = createMockUpdateResumeRequestDto()
+        val responseDto = createMockResumeResponseDto()
+        coEvery { resumeFacadeService.updateResume(requestDto) } answers { responseDto }
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .put()
+          .uri("/api/v1/resumes")
+          .bodyValue(requestDto)
+          .exchange()
+
+        it("서비스를 통해 데이터를 업데이트한다") {
+          coVerify(exactly = 1) { resumeFacadeService.updateResume(requestDto) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("업데이트된 이력서 정보를 반환한다") {
+          performRequest.expectBody<ResumeResponseDto>().consumeWith { response ->
+            response.responseBody?.id shouldBe responseDto.id
+            response.responseBody?.title shouldBe responseDto.title
+          }
+        }
+      }
+
+      context("인증되지 않은 유저의 이력서 수정 요청이 들어오면") {
+        val resumeId = "resume-id"
+        val requestDto = createMockUpdateResumeRequestDto()
+        val performRequest = webTestClient
+          .put()
+          .uri("/api/v1/resumes")
+          .bodyValue(requestDto)
+          .exchange()
+        it("요청은 실패한다") {
+          performRequest.expectStatus().isUnauthorized
+        }
+      }
+    }
+  }
 }

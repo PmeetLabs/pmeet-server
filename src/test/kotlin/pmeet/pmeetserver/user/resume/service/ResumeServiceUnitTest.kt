@@ -22,6 +22,7 @@ import pmeet.pmeetserver.user.domain.resume.ProjectExperience
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
+import pmeet.pmeetserver.user.resume.ResumeGenerator
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import reactor.core.publisher.Mono
 import java.time.LocalDate
@@ -131,6 +132,46 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           }
 
           exception.errorCode shouldBe ErrorCode.RESUME_NUMBER_EXCEEDED
+        }
+      }
+    }
+  }
+
+  describe("update") {
+    context("이력서를 업데이트하는 경우") {
+      it("저장 후 이력서를 반환한다") {
+        runTest {
+          every { resumeRepository.findById("resume-id") } answers { Mono.just(resume) }
+
+          val resumeUpdateRequestDto = ResumeGenerator.createMockUpdateResumeRequestDto();
+
+          val result = resumeService.update(resumeUpdateRequestDto.toEntity(), resumeUpdateRequestDto.id)
+
+          result.title shouldBe resumeUpdateRequestDto.title
+          result.isActive shouldBe resumeUpdateRequestDto.isActive
+          result.userProfileImageUrl shouldBe resumeUpdateRequestDto.userProfileImageUrl
+          result.desiredJobs.first.name shouldBe resumeUpdateRequestDto.desiredJobs.first.name
+          result.techStacks.first.name shouldBe resumeUpdateRequestDto.techStacks.first.name
+          result.jobExperiences.first.companyName shouldBe resumeUpdateRequestDto.jobExperiences.first.companyName
+          result.projectExperiences.first.projectName shouldBe resumeUpdateRequestDto.projectExperiences.first.projectName
+          result.portfolioFileUrl shouldBe resumeUpdateRequestDto.portfolioFileUrl
+          result.portfolioUrl.first shouldBe resumeUpdateRequestDto.portfolioUrl.first
+          result.selfDescription shouldBe resumeUpdateRequestDto.selfDescription
+        }
+      }
+
+
+      it("존재하지 않는 ID로 업데이트 시도 시 NoSuchElementException 발생시킨다") {
+        runTest {
+          every { resumeRepository.findById("non-existent-id") } returns Mono.empty()
+
+          val resumeUpdateRequestDto = ResumeGenerator.createMockUpdateResumeRequestDto()
+
+          val exception = shouldThrow<BadRequestException> {
+            resumeService.update(resumeUpdateRequestDto.toEntity(), "non-existent-id")
+          }
+          exception.errorCode shouldBe ErrorCode.RESUME_NOT_FOUND
+
         }
       }
     }

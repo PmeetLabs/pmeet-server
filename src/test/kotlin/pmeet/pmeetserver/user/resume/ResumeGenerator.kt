@@ -13,6 +13,7 @@ import pmeet.pmeetserver.user.dto.resume.request.ResumeJobExperienceRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.ResumeJobRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.ResumeProjectExperienceRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.ResumeTechStackRequestDto
+import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeJobExperienceResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeProjectExperienceResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
@@ -194,6 +195,68 @@ object ResumeGenerator {
           responsibilities = "Led the project development"
         ),
         ProjectExperience(
+          projectName = "Project B",
+          experiencePeriod = ExperienceYear.YEAR_02,
+          responsibilities = "Contributed to backend services"
+        )
+      ),
+      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
+      selfDescription = "Passionate software engineer with a focus on backend development."
+    )
+  }
+
+  internal fun createMockUpdateResumeRequestDto(): UpdateResumeRequestDto {
+    return UpdateResumeRequestDto(
+      id = "resume-id",
+      title = "Engineer",
+      isActive = false,
+      userId = "John-id",
+      userName = "John Doe",
+      userGender = Gender.MALE,
+      userBirthDate = LocalDate.of(1990, 1, 1),
+      userPhoneNumber = "010-1234-5678",
+      userEmail = "john.doe@example.com",
+      userProfileImageUrl = "http://example.com/profile.jpg",
+      desiredJobs = listOf(
+        ResumeJobRequestDto(
+          id = "job1",
+          name = "Backend Developer"
+        ),
+        ResumeJobRequestDto(
+          id = "job2",
+          name = "Frontend Developer"
+        )
+      ),
+      techStacks = listOf(
+        ResumeTechStackRequestDto(
+          id = "tech1",
+          name = "Kotlin"
+        ),
+        ResumeTechStackRequestDto(
+          id = "tech2",
+          name = "React"
+        )
+      ),
+      jobExperiences = listOf(
+        ResumeJobExperienceRequestDto(
+          companyName = "ABC Corp",
+          experiencePeriod = ExperienceYear.YEAR_03,
+          responsibilities = "Developed backend services"
+        ),
+        ResumeJobExperienceRequestDto(
+          companyName = "XYZ Inc",
+          experiencePeriod = ExperienceYear.YEAR_02,
+          responsibilities = "Worked on frontend development"
+        )
+      ),
+      projectExperiences = listOf(
+        ResumeProjectExperienceRequestDto(
+          projectName = "Project A",
+          experiencePeriod = ExperienceYear.YEAR_01,
+          responsibilities = "Led the project development"
+        ),
+        ResumeProjectExperienceRequestDto(
           projectName = "Project B",
           experiencePeriod = ExperienceYear.YEAR_02,
           responsibilities = "Contributed to backend services"
