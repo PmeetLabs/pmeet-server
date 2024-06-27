@@ -25,7 +25,8 @@ enum class ErrorCode(private val code: String, private val message: String) {
   TECHSTACK_DUPLICATE_BY_NAME("TECHSTACH-40000", "중복된 기술스택입니다."),
 
   // Resume
-  RESUME_NUMBER_EXCEEDED("RESUME-40000", "이력서는 5개까지만 생성 가능합니다.")
+  RESUME_NUMBER_EXCEEDED("RESUME-40000", "이력서는 5개까지만 생성 가능합니다."),
+  RESUME_NOT_FOUND("RESUME-40001", "해당하는 ID 의 이력서를 찾을 수 없습니다.")
   ;
 
   fun getCode(): String {

@@ -40,5 +40,26 @@ class Resume(
   val portfolioFileUrl: String?,
   val portfolioUrl: List<String>,
   val selfDescription: String?
-  ) {
+) {
+  fun update(updatedResume: Resume): Resume {
+    return Resume(
+      id = this.id,
+      title = updatedResume.title,
+      isActive = updatedResume.isActive,
+      userId = this.userId,// 수정 불가 항목
+      userName = this.userName,// 수정 불가 항목
+      userGender = this.userGender,// 수정 불가 항목
+      userBirthDate = this.userBirthDate,// 수정 불가 항목
+      userPhoneNumber = this.userPhoneNumber,// 수정 불가 항목
+      userEmail = this.userEmail,// 수정 불가 항목
+      userProfileImageUrl = updatedResume.userProfileImageUrl,
+      desiredJobs = updatedResume.desiredJobs,
+      techStacks = updatedResume.techStacks,
+      jobExperiences = updatedResume.jobExperiences,
+      projectExperiences = updatedResume.projectExperiences,
+      portfolioFileUrl = updatedResume.portfolioFileUrl,
+      portfolioUrl = updatedResume.portfolioUrl,
+      selfDescription = updatedResume.selfDescription
+    )
+  }
 }

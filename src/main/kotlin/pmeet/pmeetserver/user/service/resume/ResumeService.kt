@@ -1,11 +1,11 @@
 package pmeet.pmeetserver.user.service.resume
 
 import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.BadRequestException
-import pmeet.pmeetserver.common.exception.EntityDuplicateException
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 
@@ -24,5 +24,12 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
   @Transactional(readOnly = true)
   suspend fun findByResumeId(resumeId: String): Resume {
     return resumeRepository.findById(resumeId).awaitSingle()
+  }
+
+  @Transactional
+  suspend fun update(resume: Resume, id: String): Resume {
+    val oldResume = resumeRepository.findById(id).awaitSingleOrNull()
+      ?: throw BadRequestException(ErrorCode.RESUME_NOT_FOUND)
+    return oldResume.update(resume)
   }
 }

@@ -1,5 +1,4 @@
 package pmeet.pmeetserver.user.dto.resume.request
-
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
@@ -8,7 +7,8 @@ import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.resume.Resume
 import java.time.LocalDate
 
-data class CreateResumeRequestDto(
+data class UpdateResumeRequestDto(
+  val id: String,
   @field:NotBlank(message = "제목은 필수입니다.")
   @field:Size(min = 1, max = 30, message = "제목은 1글자에서 30글자 사이여야 합니다.")
   @field:Pattern(
@@ -17,18 +17,11 @@ data class CreateResumeRequestDto(
   )
   val title: String,
   val isActive: Boolean,
-  @field:NotBlank(message = "생성자 아이디는 필수입니다.")
   val userId: String,
-  @field:NotBlank(message = "사용자 이름은 필수입니다.")
   val userName: String,
-  @field:NotBlank(message = "사용자 성별은 필수입니다.")
   val userGender: Gender,
-  @field:NotBlank(message = "사용자 생년월일은 필수입니다.")
   val userBirthDate: LocalDate,
-  @field:NotBlank(message = "사용자 전화 번호는 필수입니다.")
   val userPhoneNumber: String,
-  @field:NotBlank(message = "사용자 이메일은 필수입니다.")
-  @field:Email(message = "유효한 이메일 주소를 입력해주세요.")
   val userEmail: String,
   val userProfileImageUrl: String?,
   @field:Size(max = 5, message = "최대 5개의 희망 직무만 입력 가능합니다.")
