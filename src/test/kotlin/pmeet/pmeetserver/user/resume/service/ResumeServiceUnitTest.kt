@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.BadRequestException
+import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.user.domain.enum.ExperienceYear
 import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.job.Job
@@ -141,9 +142,9 @@ internal class ResumeServiceUnitTest : DescribeSpec({
     context("이력서를 업데이트하는 경우") {
       it("저장 후 이력서를 반환한다") {
         runTest {
-          every { resumeRepository.findById("resume-id") } answers { Mono.just(resume) }
-
           val resumeUpdateRequestDto = ResumeGenerator.createMockUpdateResumeRequestDto();
+          every { resumeRepository.findById("resume-id") } answers { Mono.just(resume) }
+          every { resumeRepository.save(any()) } answers { Mono.just(resumeUpdateRequestDto.toEntity()) }
 
           val result = resumeService.update(resumeUpdateRequestDto.toEntity(), resumeUpdateRequestDto.id)
 
@@ -161,13 +162,13 @@ internal class ResumeServiceUnitTest : DescribeSpec({
       }
 
 
-      it("존재하지 않는 ID로 업데이트 시도 시 NoSuchElementException 발생시킨다") {
+      it("존재하지 않는 ID로 업데이트 시도 시 EntityNotFoundException 발생시킨다") {
         runTest {
           every { resumeRepository.findById("non-existent-id") } returns Mono.empty()
 
           val resumeUpdateRequestDto = ResumeGenerator.createMockUpdateResumeRequestDto()
 
-          val exception = shouldThrow<BadRequestException> {
+          val exception = shouldThrow<EntityNotFoundException> {
             resumeService.update(resumeUpdateRequestDto.toEntity(), "non-existent-id")
           }
           exception.errorCode shouldBe ErrorCode.RESUME_NOT_FOUND
