@@ -146,9 +146,9 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
     }
 
     describe("PUT api/v1/resumes") {
-      context("인증된 유저의 이력서 수정 요청이 들어오면") {
-        val userId = "1234"
+      context("인증된 유저이자 이력서의 소유주의 이력서 수정 요청이 들어오면") {
         val requestDto = createMockUpdateResumeRequestDto()
+        val userId = requestDto.userId
         val responseDto = createMockResumeResponseDto()
         coEvery { resumeFacadeService.updateResume(requestDto) } answers { responseDto }
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
@@ -172,6 +172,22 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
             response.responseBody?.id shouldBe responseDto.id
             response.responseBody?.title shouldBe responseDto.title
           }
+        }
+      }
+
+      context("인증된 유저지만, 이력서의 소유주가 아니라면") {
+        val requestDto = createMockUpdateResumeRequestDto()
+        val userId = "not-owner"
+        val responseDto = createMockResumeResponseDto()
+        coEvery { resumeFacadeService.updateResume(requestDto) } answers { responseDto }
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .put()
+          .uri("/api/v1/resumes")
+          .bodyValue(requestDto)
+          .exchange()
+        it("요청은 실패한다") {
+          performRequest.expectStatus().isUnauthorized
         }
       }
 

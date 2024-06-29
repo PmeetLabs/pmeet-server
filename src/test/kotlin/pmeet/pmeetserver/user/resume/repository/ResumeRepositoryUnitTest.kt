@@ -135,6 +135,32 @@ internal class ResumeRepositoryUnitTest(
     }
   }
 
+  describe("findByIdAndUserId") {
+    context("이력서 아이디와 user id 가 주어지면") {
+      it("해당하는 아이디의 이력서를 반환한다") {
+        runTest {
+          val result = resumeRepository.findByIdAndUserId(resume.id ?: "", resume.userId).block()
+
+          result?.title shouldBe resume.title
+          result?.userId shouldBe resume.userId
+          result?.userName shouldBe resume.userName
+          result?.userGender shouldBe resume.userGender
+          result?.userBirthDate shouldBe resume.userBirthDate
+          result?.userPhoneNumber shouldBe resume.userPhoneNumber
+          result?.userEmail shouldBe resume.userEmail
+          result?.userProfileImageUrl shouldBe resume.userProfileImageUrl
+          result?.desiredJobs?.first?.name shouldBe resume.desiredJobs.first.name
+          result?.techStacks?.first?.name shouldBe resume.techStacks.first.name
+          result?.jobExperiences?.first?.companyName shouldBe resume.jobExperiences.first.companyName
+          result?.projectExperiences?.first?.projectName shouldBe resume.projectExperiences.first.projectName
+          result?.portfolioFileUrl shouldBe resume.portfolioFileUrl
+          result?.portfolioUrl?.first shouldBe resume.portfolioUrl.first
+          result?.selfDescription shouldBe resume.selfDescription
+        }
+      }
+    }
+  }
+
 }) {
   companion object {
     @Container

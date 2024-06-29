@@ -143,7 +143,7 @@ internal class ResumeServiceUnitTest : DescribeSpec({
       it("저장 후 이력서를 반환한다") {
         runTest {
           val resumeUpdateRequestDto = ResumeGenerator.createMockUpdateResumeRequestDto();
-          every { resumeRepository.findById("resume-id") } answers { Mono.just(resume) }
+          every { resumeRepository.findByIdAndUserId("resume-id", "John-id") } answers { Mono.just(resume) }
           every { resumeRepository.save(any()) } answers { Mono.just(resumeUpdateRequestDto.toEntity()) }
 
           val result = resumeService.update(resumeUpdateRequestDto.toEntity(), resumeUpdateRequestDto.id)
@@ -162,14 +162,28 @@ internal class ResumeServiceUnitTest : DescribeSpec({
       }
 
 
-      it("존재하지 않는 ID로 업데이트 시도 시 EntityNotFoundException 발생시킨다") {
+      it("존재하지 않는 resume ID로 업데이트 시도 시 EntityNotFoundException 발생시킨다") {
         runTest {
-          every { resumeRepository.findById("non-existent-id") } returns Mono.empty()
+          every { resumeRepository.findByIdAndUserId("non-existent-id", any()) } returns Mono.empty()
 
           val resumeUpdateRequestDto = ResumeGenerator.createMockUpdateResumeRequestDto()
 
           val exception = shouldThrow<EntityNotFoundException> {
             resumeService.update(resumeUpdateRequestDto.toEntity(), "non-existent-id")
+          }
+          exception.errorCode shouldBe ErrorCode.RESUME_NOT_FOUND
+
+        }
+      }
+
+      it("resume id 와 소유자 id 가 일치하는 resume 가 없는 경우 업데이트 시도 시 EntityNotFoundException 발생시킨다") {
+        runTest {
+          every { resumeRepository.findByIdAndUserId("resume-id", "John-id") } returns Mono.empty()
+
+          val resumeUpdateRequestDto = ResumeGenerator.createMockUpdateResumeRequestDto()
+
+          val exception = shouldThrow<EntityNotFoundException> {
+            resumeService.update(resumeUpdateRequestDto.toEntity(), "resume-id")
           }
           exception.errorCode shouldBe ErrorCode.RESUME_NOT_FOUND
 
