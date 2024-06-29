@@ -34,4 +34,9 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
     val updatedResume = oldResume.update(resume)
     return resumeRepository.save(updatedResume).awaitSingle()
   }
+
+  @Transactional
+  suspend fun delete(id: String, userId: String) {
+    resumeRepository.deleteByIdAndUserId(id, userId).awaitSingleOrNull()
+  }
 }

@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -186,6 +187,22 @@ internal class ResumeServiceUnitTest : DescribeSpec({
             resumeService.update(resumeUpdateRequestDto.toEntity(), "resume-id")
           }
           exception.errorCode shouldBe ErrorCode.RESUME_NOT_FOUND
+
+        }
+      }
+    }
+  }
+
+  describe("delete") {
+    context("이력서를 삭제하는 경우") {
+      it("이력서를 삭제한다") {
+        runTest {
+          val resumeDeleteRequestDto = ResumeGenerator.createMockDeleteResumeRequestDto();
+          every { resumeRepository.deleteByIdAndUserId(resumeDeleteRequestDto.id, resumeDeleteRequestDto.userId) } answers { Mono.empty() }
+
+          resumeService.delete(resumeDeleteRequestDto.id, resumeDeleteRequestDto.userId)
+
+          coVerify { resumeRepository.deleteByIdAndUserId(resumeDeleteRequestDto.id, resumeDeleteRequestDto.userId) }
 
         }
       }

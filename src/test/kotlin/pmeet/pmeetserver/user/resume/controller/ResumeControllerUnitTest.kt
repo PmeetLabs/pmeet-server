@@ -17,6 +17,7 @@ import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.user.controller.ResumeController
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockDeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
@@ -192,13 +193,67 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
       }
 
       context("인증되지 않은 유저의 이력서 수정 요청이 들어오면") {
-        val resumeId = "resume-id"
         val requestDto = createMockUpdateResumeRequestDto()
         val performRequest = webTestClient
           .put()
           .uri("/api/v1/resumes")
           .bodyValue(requestDto)
           .exchange()
+        it("요청은 실패한다") {
+          performRequest.expectStatus().isUnauthorized
+        }
+      }
+    }
+
+    describe("DELETE api/v1/resumes") {
+      context("인증된 유저이자 이력서의 소유주의 이력서 삭제 요청이 들어오면") {
+        val requestDto = createMockDeleteResumeRequestDto()
+        val mockResume = createMockResumeResponseDto()
+        val userId = requestDto.userId
+        coEvery { resumeFacadeService.findResumeById(requestDto.id) } answers { mockResume }
+        coEvery { resumeFacadeService.deleteResume(requestDto) } answers {  }
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/resumes?id=${requestDto.id}")
+          .exchange()
+
+        it("서비스를 통해 데이터를 업데이트한다") {
+          coVerify(exactly = 1) { resumeFacadeService.deleteResume(requestDto) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+      }
+
+      context("인증된 유저지만, 이력서의 소유주가 아니라면") {
+        val requestDto = createMockDeleteResumeRequestDto()
+        val userId = "not-owner"
+        val mockResume = createMockResumeResponseDto()
+        coEvery { resumeFacadeService.findResumeById(requestDto.id) } answers { mockResume }
+        coEvery { resumeFacadeService.deleteResume(requestDto) } answers {  }
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/resumes?id=${requestDto.id}")
+          .exchange()
+
+        it("요청은 실패한다") {
+          performRequest.expectStatus().isUnauthorized
+        }
+      }
+
+      context("인증되지 않은 유저의 이력서 삭제 요청이 들어오면") {
+        val requestDto = createMockDeleteResumeRequestDto()
+        coEvery { resumeFacadeService.deleteResume(requestDto) } answers {  }
+        val performRequest = webTestClient
+          .delete()
+          .uri("/api/v1/resumes?id=${requestDto.id}")
+          .exchange()
+
         it("요청은 실패한다") {
           performRequest.expectStatus().isUnauthorized
         }

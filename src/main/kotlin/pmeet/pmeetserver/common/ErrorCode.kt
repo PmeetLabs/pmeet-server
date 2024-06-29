@@ -27,7 +27,8 @@ enum class ErrorCode(private val code: String, private val message: String) {
   // Resume
   RESUME_NUMBER_EXCEEDED("RESUME-40000", "이력서는 5개까지만 생성 가능합니다."),
   RESUME_NOT_FOUND("RESUME-40001", "해당하는 ID 의 이력서를 찾을 수 없습니다."),
-  RESUME_UPDATE_UNAUTHORIZED("RESUME-40002", "해당하는 이력서를 수정할 권한이 없습니다.")
+  RESUME_UPDATE_UNAUTHORIZED("RESUME-40002", "해당하는 이력서를 수정할 권한이 없습니다."),
+  RESUME_DELETE_UNAUTHORIZED("RESUME-40003", "해당하는 이력서를 삭제할 권한이 없습니다.")
   ;
 
   fun getCode(): String {

@@ -9,6 +9,7 @@ import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.dto.job.response.JobResponseDto
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
+import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.ResumeJobExperienceRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.ResumeJobRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.ResumeProjectExperienceRequestDto
@@ -268,4 +269,10 @@ object ResumeGenerator {
     )
   }
 
+  internal fun createMockDeleteResumeRequestDto(): DeleteResumeRequestDto {
+    return DeleteResumeRequestDto(
+      id = "resume-id",
+      userId = "John-id",
+    )
+  }
 }
