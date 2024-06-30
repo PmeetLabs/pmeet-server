@@ -4,6 +4,8 @@ import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.coEvery
+import io.mockk.coVerify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
@@ -19,14 +21,9 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
-import pmeet.pmeetserver.user.domain.enum.ExperienceYear
-import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.job.Job
-import pmeet.pmeetserver.user.domain.resume.JobExperience
-import pmeet.pmeetserver.user.domain.resume.ProjectExperience
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
-import pmeet.pmeetserver.user.dto.job.response.JobResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.repository.job.JobRepository
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
@@ -34,8 +31,8 @@ import pmeet.pmeetserver.user.repository.techStack.TechStackRepository
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
-import java.time.LocalDate
 import org.springframework.test.context.ActiveProfiles
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -188,6 +185,61 @@ class ResumeIntegrationTest : DescribeSpec() {
           returnedResume.portfolioFileUrl shouldBe resumeResponse.portfolioFileUrl
           returnedResume.portfolioUrl shouldBe resumeResponse.portfolioUrl
           returnedResume.selfDescription shouldBe resumeResponse.selfDescription
+        }
+      }
+    }
+
+    describe("PUT /api/v1/resumes") {
+      context("인증된 유저의 이력서 수정 요청이 들어오면") {
+        val requestDto = createMockUpdateResumeRequestDto()
+        val userId = requestDto.userId
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val resumeResponse = requestDto.toEntity()
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .put()
+          .uri("/api/v1/resumes")
+          .accept(MediaType.APPLICATION_JSON)
+          .bodyValue(requestDto)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("생성된 이력서를 반환한다") {
+          performRequest.expectBody<ResumeResponseDto>().consumeWith { response ->
+            val returnedResume = response.responseBody!!
+
+            returnedResume.title shouldBe resumeResponse.title
+            returnedResume.isActive shouldBe resumeResponse.isActive
+            returnedResume.userProfileImageUrl shouldBe resumeResponse.userProfileImageUrl
+            returnedResume.desiredJobs.first.name shouldBe resumeResponse.desiredJobs.first.name
+            returnedResume.techStacks.first.name shouldBe resumeResponse.techStacks.first.name
+            returnedResume.jobExperiences.first.companyName shouldBe resumeResponse.jobExperiences.first.companyName
+            returnedResume.projectExperiences.first.projectName shouldBe resumeResponse.projectExperiences.first.projectName
+            returnedResume.portfolioFileUrl shouldBe resumeResponse.portfolioFileUrl
+            returnedResume.portfolioUrl shouldBe resumeResponse.portfolioUrl
+            returnedResume.selfDescription shouldBe resumeResponse.selfDescription
+          }
+        }
+      }
+    }
+
+
+    describe("DELETE api/v1/resumes") {
+      context("인증된 유저의 이력서 삭제 요청이 들어오면") {
+        val requestDto = ResumeGenerator.createMockDeleteResumeRequestDto()
+        val userId = requestDto.userId
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/resumes?id=${requestDto.id}")
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isNoContent
         }
       }
     }

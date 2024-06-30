@@ -26,14 +26,14 @@ data class ResumeJobExperienceResponseDto(
 }
 
 data class ResumeProjectExperienceResponseDto(
-  val companyName: String,
+  val projectName: String,
   val experiencePeriod: ExperienceYear,
   val responsibilities: String
 ) {
   companion object {
     fun from(projectExperience: ProjectExperience): ResumeProjectExperienceResponseDto {
       return ResumeProjectExperienceResponseDto(
-        companyName = projectExperience.projectName,
+        projectName = projectExperience.projectName,
         experiencePeriod = projectExperience.experiencePeriod,
         responsibilities = projectExperience.responsibilities
       )

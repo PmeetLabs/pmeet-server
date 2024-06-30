@@ -53,14 +53,14 @@ class ResumeController(private val resumeFacadeService: ResumeFacadeService) {
   }
 
   @DeleteMapping
-  @ResponseStatus(HttpStatus.OK)
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   suspend fun deleteResume(@AuthenticationPrincipal userId: Mono<String>, @RequestParam id: String): ResponseEntity<Void> {
     val requestUserId = userId.awaitSingle()
     if (!requestUserId.equals(resumeFacadeService.findResumeById(id).userId)) {
       throw UnauthorizedException(ErrorCode.RESUME_UPDATE_UNAUTHORIZED)
     }
     resumeFacadeService.deleteResume(DeleteResumeRequestDto(id, requestUserId))
-    return ResponseEntity.ok().build()
+    return ResponseEntity.noContent().build()
   }
 
 }

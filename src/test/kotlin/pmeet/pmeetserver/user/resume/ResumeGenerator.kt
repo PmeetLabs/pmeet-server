@@ -130,12 +130,12 @@ object ResumeGenerator {
       ),
       projectExperiences = listOf(
         ResumeProjectExperienceResponseDto(
-          companyName = "Project A",
+          projectName = "Project A",
           experiencePeriod = ExperienceYear.YEAR_01,
           responsibilities = "Led the project development"
         ),
         ResumeProjectExperienceResponseDto(
-          companyName = "Project B",
+          projectName = "Project B",
           experiencePeriod = ExperienceYear.YEAR_02,
           responsibilities = "Contributed to backend services"
         )

@@ -224,7 +224,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         }
 
         it("요청은 성공한다") {
-          performRequest.expectStatus().isOk
+          performRequest.expectStatus().isNoContent
         }
       }
 
