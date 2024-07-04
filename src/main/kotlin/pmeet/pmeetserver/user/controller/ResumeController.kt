@@ -13,8 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import pmeet.pmeetserver.common.ErrorCode
-import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
@@ -46,20 +44,14 @@ class ResumeController(private val resumeFacadeService: ResumeFacadeService) {
   @ResponseStatus(HttpStatus.OK)
   suspend fun updateResume(@AuthenticationPrincipal userId: Mono<String>, @RequestBody requestDto: UpdateResumeRequestDto): ResumeResponseDto {
     val requestUserId = userId.awaitSingle()
-    if (!requestUserId.equals(requestDto.userId)) {
-      throw UnauthorizedException(ErrorCode.RESUME_UPDATE_UNAUTHORIZED)
-    }
-    return resumeFacadeService.updateResume(requestDto)
+    return resumeFacadeService.updateResume(requestUserId, requestDto)
   }
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
   suspend fun deleteResume(@AuthenticationPrincipal userId: Mono<String>, @RequestParam id: String): ResponseEntity<Void> {
     val requestUserId = userId.awaitSingle()
-    if (!requestUserId.equals(resumeFacadeService.findResumeById(id).userId)) {
-      throw UnauthorizedException(ErrorCode.RESUME_UPDATE_UNAUTHORIZED)
-    }
-    resumeFacadeService.deleteResume(DeleteResumeRequestDto(id, requestUserId))
+    resumeFacadeService.deleteResume(requestUserId, DeleteResumeRequestDto(id, requestUserId))
     return ResponseEntity.noContent().build()
   }
 

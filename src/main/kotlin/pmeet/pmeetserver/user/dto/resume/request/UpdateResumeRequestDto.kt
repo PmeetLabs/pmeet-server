@@ -1,5 +1,4 @@
 package pmeet.pmeetserver.user.dto.resume.request
-import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
@@ -38,6 +37,7 @@ data class UpdateResumeRequestDto(
 ) {
   fun toEntity(): Resume {
     return Resume(
+      id = this.id,
       title = this.title,
       isActive = this.isActive,
       userId = this.userId,

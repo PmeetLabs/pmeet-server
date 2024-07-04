@@ -15,7 +15,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.BadRequestException
-import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.user.domain.enum.ExperienceYear
 import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.job.Job
@@ -25,6 +24,8 @@ import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.resume.ResumeGenerator
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import reactor.core.publisher.Mono
 import java.time.LocalDate
@@ -132,7 +133,6 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           val exception = shouldThrow<BadRequestException> {
             resumeService.save(resume)
           }
-
           exception.errorCode shouldBe ErrorCode.RESUME_NUMBER_EXCEEDED
         }
       }
@@ -143,11 +143,11 @@ internal class ResumeServiceUnitTest : DescribeSpec({
     context("이력서를 업데이트하는 경우") {
       it("저장 후 이력서를 반환한다") {
         runTest {
-          val resumeUpdateRequestDto = ResumeGenerator.createMockUpdateResumeRequestDto();
+          val resumeUpdateRequestDto = createMockUpdateResumeRequestDto();
           every { resumeRepository.findByIdAndUserId("resume-id", "John-id") } answers { Mono.just(resume) }
           every { resumeRepository.save(any()) } answers { Mono.just(resumeUpdateRequestDto.toEntity()) }
 
-          val result = resumeService.update(resumeUpdateRequestDto.toEntity(), resumeUpdateRequestDto.id)
+          val result = resumeService.update(resumeUpdateRequestDto.toEntity(), generateResume())
 
           result.title shouldBe resumeUpdateRequestDto.title
           result.isActive shouldBe resumeUpdateRequestDto.isActive
@@ -159,35 +159,6 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           result.portfolioFileUrl shouldBe resumeUpdateRequestDto.portfolioFileUrl
           result.portfolioUrl.first shouldBe resumeUpdateRequestDto.portfolioUrl.first
           result.selfDescription shouldBe resumeUpdateRequestDto.selfDescription
-        }
-      }
-
-
-      it("존재하지 않는 resume ID로 업데이트 시도 시 EntityNotFoundException 발생시킨다") {
-        runTest {
-          every { resumeRepository.findByIdAndUserId("non-existent-id", any()) } returns Mono.empty()
-
-          val resumeUpdateRequestDto = ResumeGenerator.createMockUpdateResumeRequestDto()
-
-          val exception = shouldThrow<EntityNotFoundException> {
-            resumeService.update(resumeUpdateRequestDto.toEntity(), "non-existent-id")
-          }
-          exception.errorCode shouldBe ErrorCode.RESUME_NOT_FOUND
-
-        }
-      }
-
-      it("resume id 와 소유자 id 가 일치하는 resume 가 없는 경우 업데이트 시도 시 EntityNotFoundException 발생시킨다") {
-        runTest {
-          every { resumeRepository.findByIdAndUserId("resume-id", "John-id") } returns Mono.empty()
-
-          val resumeUpdateRequestDto = ResumeGenerator.createMockUpdateResumeRequestDto()
-
-          val exception = shouldThrow<EntityNotFoundException> {
-            resumeService.update(resumeUpdateRequestDto.toEntity(), "resume-id")
-          }
-          exception.errorCode shouldBe ErrorCode.RESUME_NOT_FOUND
-
         }
       }
     }

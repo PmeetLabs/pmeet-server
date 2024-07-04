@@ -2,6 +2,8 @@ package pmeet.pmeetserver.user.service.resume
 
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import pmeet.pmeetserver.common.ErrorCode
+import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
@@ -24,13 +26,21 @@ class ResumeFacadeService(
   }
 
   @Transactional
-  suspend fun updateResume(requestDto: UpdateResumeRequestDto): ResumeResponseDto {
+  suspend fun updateResume(userId: String, requestDto: UpdateResumeRequestDto): ResumeResponseDto {
+    val originalResume = resumeService.findByResumeId(requestDto.id);
+    if (!originalResume.userId.equals(userId)) {
+      throw UnauthorizedException(ErrorCode.RESUME_UPDATE_UNAUTHORIZED)
+    }
     val resume = requestDto.toEntity()
-    return ResumeResponseDto.from(resumeService.update(resume, requestDto.id))
+    return ResumeResponseDto.from(resumeService.update(resume, originalResume))
   }
 
   @Transactional
-  suspend fun deleteResume(requestDto: DeleteResumeRequestDto) {
+  suspend fun deleteResume(userId: String, requestDto: DeleteResumeRequestDto) {
+    val originalResume = resumeService.findByResumeId(requestDto.id);
+    if (!originalResume.userId.equals(userId)) {
+      throw UnauthorizedException(ErrorCode.RESUME_DELETE_UNAUTHORIZED)
+    }
     resumeService.delete(requestDto.id, requestDto.userId)
   }
 }
