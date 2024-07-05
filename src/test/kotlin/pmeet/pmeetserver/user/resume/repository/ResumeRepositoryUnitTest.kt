@@ -3,6 +3,7 @@ package pmeet.pmeetserver.user.resume.repository
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -10,13 +11,11 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.support.ReactiveMongoRepositoryFactory
-import org.springframework.test.context.ContextConfiguration
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
-import pmeet.pmeetserver.config.MongoTestConfig
 import pmeet.pmeetserver.user.domain.enum.ExperienceYear
 import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.job.Job
@@ -29,12 +28,11 @@ import pmeet.pmeetserver.user.repository.job.JobRepository
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.repository.techStack.CustomTechStackRepositoryImpl
 import pmeet.pmeetserver.user.repository.techStack.TechStackRepository
-import java.time.LocalDate
 
 @ExperimentalCoroutinesApi
-@ContextConfiguration(classes = [MongoTestConfig::class])
+@DataMongoTest
 internal class ResumeRepositoryUnitTest(
-  @Autowired @Qualifier("testMongoTemplate") private val template: ReactiveMongoTemplate
+  @Autowired private val template: ReactiveMongoTemplate
 ) : DescribeSpec({
 
   isolationMode = IsolationMode.InstancePerLeaf

@@ -1,3 +1,5 @@
+package pmeet.pmeetserver.user.repository
+
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -8,21 +10,18 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.support.ReactiveMongoRepositoryFactory
-import org.springframework.test.context.ContextConfiguration
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
-import pmeet.pmeetserver.config.MongoTestConfig
 import pmeet.pmeetserver.user.domain.User
-import pmeet.pmeetserver.user.repository.UserRepository
 
 //@Transactional
 @ExperimentalCoroutinesApi
-@ContextConfiguration(classes = [MongoTestConfig::class])
+@DataMongoTest
 internal class UserRepositoryUnitTest(
-  @Autowired @Qualifier("testMongoTemplate") private val template: ReactiveMongoTemplate
+  @Autowired private val template: ReactiveMongoTemplate
 ) : DescribeSpec({
   isolationMode = IsolationMode.InstancePerLeaf
 

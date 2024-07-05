@@ -1,7 +1,5 @@
 spring:
   data:
-    mongodb:
-      uri: mongodb://test_user:test_pwd@localhost:27017/testdb?authSource=admin
     redis:
       host: localhost
       port: 6379
