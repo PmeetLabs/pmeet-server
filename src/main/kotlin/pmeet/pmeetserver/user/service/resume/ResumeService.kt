@@ -23,15 +23,14 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
   }
 
   @Transactional(readOnly = true)
-  suspend fun findByResumeId(resumeId: String): Resume {
+  suspend fun getByResumeId(resumeId: String): Resume {
     return resumeRepository.findById(resumeId).awaitSingleOrNull()
       ?: throw EntityNotFoundException(ErrorCode.RESUME_NOT_FOUND)
   }
 
   @Transactional
-  suspend fun update(resume: Resume, originalResume: Resume): Resume {
-    val updatedResume = originalResume.update(resume)
-    return resumeRepository.save(updatedResume).awaitSingle()
+  suspend fun update(updateResume: Resume): Resume {
+    return resumeRepository.save(updateResume).awaitSingle()
   }
 
   @Transactional

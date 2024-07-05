@@ -2,7 +2,6 @@ package pmeet.pmeetserver.user.controller
 
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -49,10 +48,9 @@ class ResumeController(private val resumeFacadeService: ResumeFacadeService) {
 
   @DeleteMapping
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  suspend fun deleteResume(@AuthenticationPrincipal userId: Mono<String>, @RequestParam id: String): ResponseEntity<Void> {
+  suspend fun deleteResume(@AuthenticationPrincipal userId: Mono<String>, @RequestParam(required = true) id: String) {
     val requestUserId = userId.awaitSingle()
-    resumeFacadeService.deleteResume(requestUserId, DeleteResumeRequestDto(id, requestUserId))
-    return ResponseEntity.noContent().build()
+    resumeFacadeService.deleteResume(DeleteResumeRequestDto(id, requestUserId))
   }
 
 }

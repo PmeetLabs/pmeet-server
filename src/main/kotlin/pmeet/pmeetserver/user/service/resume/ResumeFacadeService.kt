@@ -22,23 +22,23 @@ class ResumeFacadeService(
 
   @Transactional(readOnly = true)
   suspend fun findResumeById(resumeId: String): ResumeResponseDto {
-    return ResumeResponseDto.from(resumeService.findByResumeId(resumeId))
+    return ResumeResponseDto.from(resumeService.getByResumeId(resumeId))
   }
 
   @Transactional
   suspend fun updateResume(userId: String, requestDto: UpdateResumeRequestDto): ResumeResponseDto {
-    val originalResume = resumeService.findByResumeId(requestDto.id);
+    val originalResume = resumeService.getByResumeId(requestDto.id);
     if (!originalResume.userId.equals(userId)) {
       throw UnauthorizedException(ErrorCode.RESUME_UPDATE_UNAUTHORIZED)
     }
     val resume = requestDto.toEntity()
-    return ResumeResponseDto.from(resumeService.update(resume, originalResume))
+    return ResumeResponseDto.from(resumeService.update(originalResume.update(resume)))
   }
 
   @Transactional
-  suspend fun deleteResume(userId: String, requestDto: DeleteResumeRequestDto) {
-    val originalResume = resumeService.findByResumeId(requestDto.id);
-    if (!originalResume.userId.equals(userId)) {
+  suspend fun deleteResume(requestDto: DeleteResumeRequestDto) {
+    val originalResume = resumeService.getByResumeId(requestDto.id);
+    if (!originalResume.userId.equals(requestDto.userId)) {
       throw UnauthorizedException(ErrorCode.RESUME_DELETE_UNAUTHORIZED)
     }
     resumeService.delete(requestDto.id, requestDto.userId)

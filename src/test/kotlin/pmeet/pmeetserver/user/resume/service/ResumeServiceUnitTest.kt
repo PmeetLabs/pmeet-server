@@ -25,7 +25,6 @@ import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.resume.ResumeGenerator
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
-import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import reactor.core.publisher.Mono
 import java.time.LocalDate
@@ -147,7 +146,7 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           every { resumeRepository.findByIdAndUserId("resume-id", "John-id") } answers { Mono.just(resume) }
           every { resumeRepository.save(any()) } answers { Mono.just(resumeUpdateRequestDto.toEntity()) }
 
-          val result = resumeService.update(resumeUpdateRequestDto.toEntity(), generateResume())
+          val result = resumeService.update(resumeUpdateRequestDto.toEntity())
 
           result.title shouldBe resumeUpdateRequestDto.title
           result.isActive shouldBe resumeUpdateRequestDto.isActive

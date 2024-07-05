@@ -1,3 +1,5 @@
 package pmeet.pmeetserver.user.dto.resume.request
 
-data class DeleteResumeRequestDto(val id: String, val userId: String) {}
+import jakarta.validation.constraints.NotBlank
+
+data class DeleteResumeRequestDto(@NotBlank val id: String, val userId: String) {}

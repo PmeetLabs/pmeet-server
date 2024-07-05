@@ -17,6 +17,7 @@ import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.user.domain.resume.Resume
+import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockDeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
@@ -82,8 +83,8 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
       it("저장 후 이력서를 반환한다") {
         runTest {
           val updateRequest = createMockUpdateResumeRequestDto()
-          coEvery { resumeService.findByResumeId(any()) } answers { resume }
-          coEvery { resumeService.update(any(), any()) } answers { updateRequest.toEntity() }
+          coEvery { resumeService.getByResumeId(any()) } answers { resume }
+          coEvery { resumeService.update(any()) } answers { updateRequest.toEntity() }
 
           val result = resumeFacadeService.updateResume(updateRequest.userId, updateRequest)
           result.title shouldBe updateRequest.title
@@ -99,7 +100,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
       }
       it("존재하지 않는 resume ID로 업데이트 시도 시 EntityNotFoundException 발생시킨다") {
         runTest {
-          coEvery { resumeService.findByResumeId(any()) } throws EntityNotFoundException(ErrorCode.RESUME_NOT_FOUND)
+          coEvery { resumeService.getByResumeId(any()) } throws EntityNotFoundException(ErrorCode.RESUME_NOT_FOUND)
 
           val updateRequest = createMockUpdateResumeRequestDto()
 
@@ -111,7 +112,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
       }
       it("권한이 없는 userId 로 업데이트 시도 시 UnauthorizedException 발생시킨다") {
         runTest {
-          coEvery { resumeService.findByResumeId(any()) } answers { resume }
+          coEvery { resumeService.getByResumeId(any()) } answers { resume }
 
           val updateRequest = createMockUpdateResumeRequestDto()
 
@@ -129,16 +130,16 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
       it("이력서를 삭제한다.") {
         runTest {
           val deleteRequest = createMockDeleteResumeRequestDto()
-          coEvery { resumeService.findByResumeId(any()) } answers { resume }
+          coEvery { resumeService.getByResumeId(any()) } answers { resume }
 
-          resumeFacadeService.deleteResume(deleteRequest.userId, deleteRequest)
+          resumeFacadeService.deleteResume(deleteRequest)
 
           coVerify { resumeService.delete(deleteRequest.id, deleteRequest.userId) }
         }
       }
       it("존재하지 않는 resume ID로 업데이트 시도 시 EntityNotFoundException 발생시킨다") {
         runTest {
-          coEvery { resumeService.findByResumeId(any()) } throws EntityNotFoundException(ErrorCode.RESUME_NOT_FOUND)
+          coEvery { resumeService.getByResumeId(any()) } throws EntityNotFoundException(ErrorCode.RESUME_NOT_FOUND)
 
           val updateRequest = createMockUpdateResumeRequestDto()
 
@@ -151,12 +152,15 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
 
       it("권한이 없는 userId 로 삭제 시도 시 UnauthorizedException 발생시킨다") {
         runTest {
-          coEvery { resumeService.findByResumeId(any()) } answers { resume }
+          coEvery { resumeService.getByResumeId(any()) } answers { resume }
 
-          val deleteRequest = createMockDeleteResumeRequestDto()
+          val deleteRequest = DeleteResumeRequestDto(
+            id = "resume-id",
+            userId = "John-id-wrong",
+          )
 
           val exception = shouldThrow<UnauthorizedException> {
-            resumeFacadeService.deleteResume("no-auth-user", deleteRequest)
+            resumeFacadeService.deleteResume(deleteRequest)
           }
           exception.errorCode shouldBe ErrorCode.RESUME_DELETE_UNAUTHORIZED
         }
