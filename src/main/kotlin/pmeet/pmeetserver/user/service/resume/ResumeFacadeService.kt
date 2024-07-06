@@ -31,8 +31,17 @@ class ResumeFacadeService(
     if (!originalResume.userId.equals(userId)) {
       throw UnauthorizedException(ErrorCode.RESUME_UPDATE_UNAUTHORIZED)
     }
-    val resume = requestDto.toEntity()
-    return ResumeResponseDto.from(resumeService.update(originalResume.update(resume)))
+    val updateResume = originalResume.update(
+      title = requestDto.title,
+      userProfileImageUrl = requestDto.userProfileImageUrl,
+      desiredJobs = requestDto.desiredJobs.map { it.toEntity() },
+      techStacks = requestDto.techStacks.map { it.toEntity() },
+      jobExperiences = requestDto.jobExperiences.map { it.toEntity() },
+      projectExperiences = requestDto.projectExperiences.map { it.toEntity() },
+      portfolioFileUrl = requestDto.portfolioFileUrl,
+      portfolioUrl = requestDto.portfolioUrl,
+      selfDescription = requestDto.selfDescription)
+    return ResumeResponseDto.from(resumeService.update(updateResume))
   }
 
   @Transactional
@@ -41,6 +50,6 @@ class ResumeFacadeService(
     if (!originalResume.userId.equals(requestDto.userId)) {
       throw UnauthorizedException(ErrorCode.RESUME_DELETE_UNAUTHORIZED)
     }
-    resumeService.delete(requestDto.id, requestDto.userId)
+    resumeService.delete(originalResume)
   }
 }

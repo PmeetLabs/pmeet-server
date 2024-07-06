@@ -25,6 +25,7 @@ import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.resume.ResumeGenerator
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import reactor.core.publisher.Mono
 import java.time.LocalDate
@@ -144,9 +145,9 @@ internal class ResumeServiceUnitTest : DescribeSpec({
         runTest {
           val resumeUpdateRequestDto = createMockUpdateResumeRequestDto();
           every { resumeRepository.findByIdAndUserId("resume-id", "John-id") } answers { Mono.just(resume) }
-          every { resumeRepository.save(any()) } answers { Mono.just(resumeUpdateRequestDto.toEntity()) }
+          every { resumeRepository.save(any()) } answers { Mono.just(generateUpdatedResume()) }
 
-          val result = resumeService.update(resumeUpdateRequestDto.toEntity())
+          val result = resumeService.update(generateUpdatedResume())
 
           result.title shouldBe resumeUpdateRequestDto.title
           result.isActive shouldBe resumeUpdateRequestDto.isActive
@@ -168,11 +169,11 @@ internal class ResumeServiceUnitTest : DescribeSpec({
       it("이력서를 삭제한다") {
         runTest {
           val resumeDeleteRequestDto = ResumeGenerator.createMockDeleteResumeRequestDto();
-          every { resumeRepository.deleteByIdAndUserId(resumeDeleteRequestDto.id, resumeDeleteRequestDto.userId) } answers { Mono.empty() }
+          every { resumeRepository.deleteById(resumeDeleteRequestDto.id) } answers { Mono.empty() }
 
-          resumeService.delete(resumeDeleteRequestDto.id, resumeDeleteRequestDto.userId)
+          resumeService.delete(resume)
 
-          coVerify { resumeRepository.deleteByIdAndUserId(resumeDeleteRequestDto.id, resumeDeleteRequestDto.userId) }
+          coVerify { resume.id?.let { resumeRepository.deleteById(it) } }
 
         }
       }

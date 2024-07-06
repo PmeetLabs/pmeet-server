@@ -9,6 +9,4 @@ interface ResumeRepository : ReactiveMongoRepository<Resume, String> {
   fun countByUserId(userId: String): Mono<Long>
 
   fun findByIdAndUserId(id: String, userId: String): Mono<Resume>
-
-  fun deleteByIdAndUserId(id: String, userId: String): Mono<Void>
 }

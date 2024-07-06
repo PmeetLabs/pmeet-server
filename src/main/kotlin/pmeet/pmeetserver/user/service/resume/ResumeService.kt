@@ -34,7 +34,7 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
   }
 
   @Transactional
-  suspend fun delete(id: String, userId: String) {
-    resumeRepository.deleteByIdAndUserId(id, userId).awaitSingleOrNull()
+  suspend fun delete(deleteResume: Resume) {
+    deleteResume.id?.let { resumeRepository.deleteById(it).awaitSingleOrNull() }
   }
 }

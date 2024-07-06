@@ -2,9 +2,6 @@ package pmeet.pmeetserver.user.dto.resume.request
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
-import pmeet.pmeetserver.user.domain.enum.Gender
-import pmeet.pmeetserver.user.domain.resume.Resume
-import java.time.LocalDate
 
 data class UpdateResumeRequestDto(
   val id: String,
@@ -16,12 +13,6 @@ data class UpdateResumeRequestDto(
   )
   val title: String,
   val isActive: Boolean,
-  val userId: String,
-  val userName: String,
-  val userGender: Gender,
-  val userBirthDate: LocalDate,
-  val userPhoneNumber: String,
-  val userEmail: String,
   val userProfileImageUrl: String?,
   @field:Size(max = 5, message = "최대 5개의 희망 직무만 입력 가능합니다.")
   val desiredJobs: List<ResumeJobRequestDto>,
@@ -34,27 +25,4 @@ data class UpdateResumeRequestDto(
   val portfolioUrl: List<String>,
   @field:Size(max = 500, message = "자기소개는 최대 500자까지 입력 가능합니다.")
   val selfDescription: String?
-) {
-  fun toEntity(): Resume {
-    return Resume(
-      id = this.id,
-      title = this.title,
-      isActive = this.isActive,
-      userId = this.userId,
-      userName = this.userName,
-      userGender = this.userGender,
-      userBirthDate = this.userBirthDate,
-      userPhoneNumber = this.userPhoneNumber,
-      userEmail = this.userEmail,
-      userProfileImageUrl = this.userProfileImageUrl,
-      desiredJobs = this.desiredJobs.map { it.toEntity() },
-      techStacks = this.techStacks.map { it.toEntity() },
-      jobExperiences = this.jobExperiences.map { it.toEntity() },
-      projectExperiences = this.projectExperiences.map { it.toEntity() },
-      portfolioFileUrl = this.portfolioFileUrl,
-      portfolioUrl = this.portfolioUrl,
-      selfDescription = this.selfDescription
-    )
-  }
-
-}
+)

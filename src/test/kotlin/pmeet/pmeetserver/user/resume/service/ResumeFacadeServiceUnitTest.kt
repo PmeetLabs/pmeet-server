@@ -22,6 +22,7 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeReque
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockDeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
 import pmeet.pmeetserver.user.service.resume.ResumeService
 
@@ -84,9 +85,9 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
         runTest {
           val updateRequest = createMockUpdateResumeRequestDto()
           coEvery { resumeService.getByResumeId(any()) } answers { resume }
-          coEvery { resumeService.update(any()) } answers { updateRequest.toEntity() }
+          coEvery { resumeService.update(any()) } answers { generateUpdatedResume() }
 
-          val result = resumeFacadeService.updateResume(updateRequest.userId, updateRequest)
+          val result = resumeFacadeService.updateResume(resume.userId, updateRequest)
           result.title shouldBe updateRequest.title
           result.isActive shouldBe updateRequest.isActive
           result.desiredJobs.first().name shouldBe updateRequest.desiredJobs.first().name
@@ -105,7 +106,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           val updateRequest = createMockUpdateResumeRequestDto()
 
           val exception = shouldThrow<EntityNotFoundException> {
-            resumeFacadeService.updateResume(updateRequest.userId, updateRequest)
+            resumeFacadeService.updateResume("mock-id", updateRequest)
           }
           exception.errorCode shouldBe ErrorCode.RESUME_NOT_FOUND
         }
@@ -134,7 +135,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
 
           resumeFacadeService.deleteResume(deleteRequest)
 
-          coVerify { resumeService.delete(deleteRequest.id, deleteRequest.userId) }
+          coVerify { resumeService.delete(resume) }
         }
       }
       it("존재하지 않는 resume ID로 업데이트 시도 시 EntityNotFoundException 발생시킨다") {
@@ -144,7 +145,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           val updateRequest = createMockUpdateResumeRequestDto()
 
           val exception = shouldThrow<EntityNotFoundException> {
-            resumeFacadeService.updateResume(updateRequest.userId, updateRequest)
+            resumeFacadeService.updateResume(generateUpdatedResume().userId, updateRequest)
           }
           exception.errorCode shouldBe ErrorCode.RESUME_NOT_FOUND
         }

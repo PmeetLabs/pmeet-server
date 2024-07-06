@@ -4,8 +4,6 @@ import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.coEvery
-import io.mockk.coVerify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
@@ -16,6 +14,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
@@ -30,9 +29,9 @@ import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.repository.techStack.TechStackRepository
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
-import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
-import org.springframework.test.context.ActiveProfiles
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -192,9 +191,9 @@ class ResumeIntegrationTest : DescribeSpec() {
     describe("PUT /api/v1/resumes") {
       context("인증된 유저의 이력서 수정 요청이 들어오면") {
         val requestDto = createMockUpdateResumeRequestDto()
-        val userId = requestDto.userId
+        val userId = resume.userId
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
-        val resumeResponse = requestDto.toEntity()
+        val resumeResponse = generateUpdatedResume()
         val performRequest = webTestClient
           .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
           .put()

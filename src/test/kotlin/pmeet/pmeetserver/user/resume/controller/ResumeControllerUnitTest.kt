@@ -20,6 +20,7 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeReque
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockDeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
 
 @WebFluxTest(ResumeController::class)
@@ -149,7 +150,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
     describe("PUT api/v1/resumes") {
       context("인증된 유저이자 이력서의 소유주의 이력서 수정 요청이 들어오면") {
         val requestDto = createMockUpdateResumeRequestDto()
-        val userId = requestDto.userId
+        val userId = generateUpdatedResume().userId
         val responseDto = createMockResumeResponseDto()
         coEvery { resumeFacadeService.updateResume(userId, requestDto) } answers { responseDto }
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)

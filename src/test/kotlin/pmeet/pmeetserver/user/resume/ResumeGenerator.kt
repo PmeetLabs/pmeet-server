@@ -212,12 +212,6 @@ object ResumeGenerator {
       id = "resume-id",
       title = "Engineer",
       isActive = false,
-      userId = "John-id",
-      userName = "John Doe",
-      userGender = Gender.MALE,
-      userBirthDate = LocalDate.of(1990, 1, 1),
-      userPhoneNumber = "010-1234-5678",
-      userEmail = "john.doe@example.com",
       userProfileImageUrl = "http://example.com/profile.jpg",
       desiredJobs = listOf(
         ResumeJobRequestDto(
@@ -258,6 +252,68 @@ object ResumeGenerator {
           responsibilities = "Led the project development"
         ),
         ResumeProjectExperienceRequestDto(
+          projectName = "Project B",
+          experiencePeriod = ExperienceYear.YEAR_02,
+          responsibilities = "Contributed to backend services"
+        )
+      ),
+      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
+      selfDescription = "Passionate software engineer with a focus on backend development."
+    )
+  }
+
+  internal fun generateUpdatedResume(): Resume {
+    return Resume(
+      id = "resume-id",
+      title = "Engineer",
+      isActive = false,
+      userId = "John-id",
+      userName = "John Doe",
+      userGender = Gender.MALE,
+      userBirthDate = LocalDate.of(1990, 1, 1),
+      userPhoneNumber = "010-1234-5678",
+      userEmail = "john.doe@example.com",
+      userProfileImageUrl = "http://example.com/profile.jpg",
+      desiredJobs = listOf(
+        Job(
+          id = "job1",
+          name = "Backend Developer"
+        ),
+        Job(
+          id = "job2",
+          name = "Frontend Developer"
+        )
+      ),
+      techStacks = listOf(
+        TechStack(
+          id = "tech1",
+          name = "Kotlin"
+        ),
+        TechStack(
+          id = "tech2",
+          name = "React"
+        )
+      ),
+      jobExperiences = listOf(
+        JobExperience(
+          companyName = "ABC Corp",
+          experiencePeriod = ExperienceYear.YEAR_03,
+          responsibilities = "Developed backend services"
+        ),
+        JobExperience(
+          companyName = "XYZ Inc",
+          experiencePeriod = ExperienceYear.YEAR_02,
+          responsibilities = "Worked on frontend development"
+        )
+      ),
+      projectExperiences = listOf(
+        ProjectExperience(
+          projectName = "Project A",
+          experiencePeriod = ExperienceYear.YEAR_01,
+          responsibilities = "Led the project development"
+        ),
+        ProjectExperience(
           projectName = "Project B",
           experiencePeriod = ExperienceYear.YEAR_02,
           responsibilities = "Contributed to backend services"
