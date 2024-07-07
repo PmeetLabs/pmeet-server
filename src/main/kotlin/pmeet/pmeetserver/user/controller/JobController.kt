@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.user.controller
 
+import jakarta.validation.Valid
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Slice
 import org.springframework.http.HttpStatus
@@ -23,7 +24,7 @@ class JobController(
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   suspend fun createJob(
-    @RequestBody requestDto: CreateJobRequestDto
+    @RequestBody @Valid requestDto: CreateJobRequestDto
   ): JobResponseDto {
     return jobFacadeService.createJob(requestDto)
   }
