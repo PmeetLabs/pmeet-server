@@ -135,14 +135,22 @@ internal class JobControllerUnitTest : DescribeSpec() {
         }
       }
 
-      context("인증되지 않은 유저의 직무 생성 요청이 들어오면") {
-        val requestDto = CreateJobRequestDto("TestJob")
+      context("인증되지 않은 유저가 직무 이름으로 직무 검색 요청이 들어오면") {
+        val jobName = "TestJob"
+        val pageNumber = 0
+        val pageSize = 10
         val performRequest =
           webTestClient
-            .post()
-            .uri("/api/v1/jobs")
-            .bodyValue(requestDto)
+            .get()
+            .uri {
+              it.path("/api/v1/jobs/search")
+                .queryParam("name", jobName)
+                .queryParam("page", pageNumber)
+                .queryParam("size", pageSize)
+                .build()
+            }
             .exchange()
+
         it("요청은 실패한다") {
           performRequest.expectStatus().isUnauthorized
         }
