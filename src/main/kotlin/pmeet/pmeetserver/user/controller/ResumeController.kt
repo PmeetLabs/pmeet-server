@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.user.controller
 
+import jakarta.validation.Valid
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -26,7 +27,7 @@ class ResumeController(private val resumeFacadeService: ResumeFacadeService) {
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
   suspend fun createResume(
-    @RequestBody requestDto: CreateResumeRequestDto
+    @Valid @RequestBody requestDto: CreateResumeRequestDto
   ): ResumeResponseDto {
     return resumeFacadeService.createResume(requestDto)
   }
@@ -41,7 +42,7 @@ class ResumeController(private val resumeFacadeService: ResumeFacadeService) {
 
   @PutMapping
   @ResponseStatus(HttpStatus.OK)
-  suspend fun updateResume(@AuthenticationPrincipal userId: Mono<String>, @RequestBody requestDto: UpdateResumeRequestDto): ResumeResponseDto {
+  suspend fun updateResume(@AuthenticationPrincipal userId: Mono<String>, @Valid @RequestBody requestDto: UpdateResumeRequestDto): ResumeResponseDto {
     val requestUserId = userId.awaitSingle()
     return resumeFacadeService.updateResume(requestUserId, requestDto)
   }

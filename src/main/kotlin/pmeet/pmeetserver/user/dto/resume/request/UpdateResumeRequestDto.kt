@@ -8,7 +8,7 @@ data class UpdateResumeRequestDto(
   @field:NotBlank(message = "제목은 필수입니다.")
   @field:Size(min = 1, max = 30, message = "제목은 1글자에서 30글자 사이여야 합니다.")
   @field:Pattern(
-    regexp = "^[가-힣a-zA-Z0-9\\p{Punct}]*$",
+    regexp = "^[가-힣a-zA-Z0-9\\p{Punct}\\s]*$",
     message = "제목은 한글, 영어, 숫자, 문장부호만 입력 가능합니다."
   )
   val title: String,
