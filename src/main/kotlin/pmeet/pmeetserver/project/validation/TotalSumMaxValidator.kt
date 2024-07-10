@@ -10,7 +10,7 @@ class TotalSumMaxValidator : ConstraintValidator<TotalSumMax, Collection<*>> {
   private lateinit var element: String
 
   override fun initialize(constraintAnnotation: TotalSumMax) {
-    this.max = constraintAnnotation.value
+    this.max = constraintAnnotation.sum
     this.element = constraintAnnotation.element
   }
 

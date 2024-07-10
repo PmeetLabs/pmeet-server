@@ -30,7 +30,7 @@ data class CreateProjectRequestDto(
   val techStacks: List<String>? = mutableListOf(),
   @field:NotEmpty(message = "프로젝트 모집 정보는 필수입니다.")
   @field:Valid
-  @field:TotalSumMax(value = 30, element = "numberOfRecruitment", message = "모집 인원의 합은 30명을 초과할 수 없습니다.")
+  @field:TotalSumMax(sum = 30, element = "numberOfRecruitment", message = "모집 인원의 합은 30명을 초과할 수 없습니다.")
   val recruitments: List<RecruitmentRequestDto>,
   @field:NotBlank(message = "프로젝트 설명은 필수입니다.")
   @field:Size(min = 1, max = 2000, message = "프로젝트 설명은 1자에서 2000자 사이여야 합니다.")
