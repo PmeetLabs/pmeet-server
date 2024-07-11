@@ -61,4 +61,26 @@ class Resume(
     if (selfDescription != null) this.selfDescription = selfDescription
     return this;
   }
+
+  fun copy(): Resume {
+    return Resume(
+      id = null,
+      title = "[복사] $title",
+      isActive = false,
+      userId = userId,
+      userName = userName,
+      userGender = userGender,
+      userBirthDate = userBirthDate,
+      userPhoneNumber = userPhoneNumber,
+      userEmail = userEmail,
+      userProfileImageUrl = userProfileImageUrl,
+      desiredJobs = desiredJobs.toList(),
+      techStacks = techStacks.toList(),
+      jobExperiences = jobExperiences.toList(),
+      projectExperiences = projectExperiences.toList(),
+      portfolioFileUrl = portfolioFileUrl,
+      portfolioUrl = portfolioUrl.toList(),
+      selfDescription = selfDescription
+    )
+  }
 }

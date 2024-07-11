@@ -16,8 +16,10 @@ import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.user.controller.ResumeController
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCopyResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockDeleteResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeCopyResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
@@ -225,5 +227,54 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         }
       }
     }
+
+    describe("POST api/v1/resumes") {
+      context("인증된 유저이자 이력서의 소유주의 이력서 복사 요청이 들어오면") {
+        val requestDto = createMockCopyResumeRequestDto()
+        val mockOriginalResume = createMockResumeResponseDto()
+        val mockResume = createMockResumeCopyResponseDto()
+        val userId = mockOriginalResume.userId
+        coEvery { resumeFacadeService.findResumeById(requestDto.id) } answers { mockOriginalResume }
+        coEvery { resumeFacadeService.copyResume(userId, requestDto) } answers { mockResume }
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .post()
+          .uri("/api/v1/resumes/copy")
+          .bodyValue(requestDto)
+          .exchange()
+
+        it("서비스를 통해 이력서를 복사한다.") {
+          coVerify(exactly = 1) { resumeFacadeService.copyResume(userId, requestDto) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isCreated
+        }
+
+        it("복사된 이력서를 반환한다") {
+          performRequest.expectBody<ResumeResponseDto>().consumeWith { result ->
+            val returnedResume = result.responseBody!!
+
+            returnedResume.id shouldBe mockResume.id
+            returnedResume.title shouldBe mockResume.title
+            returnedResume.userName shouldBe mockResume.userName
+            returnedResume.userGender shouldBe mockResume.userGender
+            returnedResume.userBirthDate shouldBe mockResume.userBirthDate
+            returnedResume.userPhoneNumber shouldBe mockResume.userPhoneNumber
+            returnedResume.userEmail shouldBe mockResume.userEmail
+            returnedResume.userProfileImageUrl shouldBe mockResume.userProfileImageUrl
+            returnedResume.desiredJobs.first.name shouldBe mockResume.desiredJobs.first.name
+            returnedResume.techStacks.first.name shouldBe mockResume.techStacks.first.name
+            returnedResume.jobExperiences.first.companyName shouldBe mockResume.jobExperiences.first.companyName
+            returnedResume.projectExperiences.first.projectName shouldBe mockResume.projectExperiences.first.projectName
+            returnedResume.portfolioFileUrl shouldBe mockResume.portfolioFileUrl
+            returnedResume.portfolioUrl shouldBe mockResume.portfolioUrl
+            returnedResume.selfDescription shouldBe mockResume.selfDescription
+          }
+        }
+      }
+    }
+
   }
 }

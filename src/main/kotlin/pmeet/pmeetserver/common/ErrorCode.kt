@@ -30,8 +30,9 @@ enum class ErrorCode(private val code: String, private val message: String) {
 
   RESUME_UPDATE_FORBIDDEN("RESUME-40301", "해당하는 이력서를 수정할 권한이 없습니다."),
   RESUME_DELETE_FORBIDDEN("RESUME-40302", "해당하는 이력서를 삭제할 권한이 없습니다."),
+  RESUME_COPY_UNAUTHORIZED("RESUME-40003", "해당하는 이력서를 복사할 권한이 없습니다."),
+  RESUME_NOT_FOUND("RESUME-40400", "해당하는 ID의 이력서를 찾을 수 없습니다."),
 
-  RESUME_NOT_FOUND("RESUME-40400", "해당하는 ID의 이력서를 찾을 수 없습니다.")
   ;
 
   fun getCode(): String {

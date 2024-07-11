@@ -18,9 +18,11 @@ import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCopyResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockDeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateCopiedResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
@@ -164,6 +166,44 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
             resumeFacadeService.deleteResume(deleteRequest)
           }
           exception.errorCode shouldBe ErrorCode.RESUME_DELETE_FORBIDDEN
+        }
+      }
+    }
+  }
+
+  describe("copyResume") {
+    context("이력서를 복사하는 경우") {
+      it("저장 후 복사된 이력서를 반환한다") {
+        runTest {
+          val copyRequest = createMockCopyResumeRequestDto()
+          coEvery { resumeService.getByResumeId(any()) } answers { resume }
+          coEvery { resumeService.save(any()) } answers { generateCopiedResume() }
+
+          val originalResume = generateResume()
+
+          val result = resumeFacadeService.copyResume(resume.userId, copyRequest)
+          result.title shouldBe "[복사] ${originalResume.title.toString()}"
+          result.isActive shouldBe originalResume.isActive
+          result.desiredJobs.first().name shouldBe originalResume.desiredJobs.first().name
+          result.techStacks.first().name shouldBe originalResume.techStacks.first().name
+          result.jobExperiences.first().companyName shouldBe originalResume.jobExperiences.first().companyName
+          result.projectExperiences.first().projectName shouldBe originalResume.projectExperiences.first().projectName
+          result.portfolioFileUrl shouldBe originalResume.portfolioFileUrl
+          result.portfolioUrl.first() shouldBe originalResume.portfolioUrl.first()
+          result.selfDescription shouldBe originalResume.selfDescription
+        }
+      }
+
+      it("권한이 없는 userId 로 복사 시도 시 UnauthorizedException 발생시킨다") {
+        runTest {
+          coEvery { resumeService.getByResumeId(any()) } answers { resume }
+
+          val updateRequest = createMockCopyResumeRequestDto()
+
+          val exception = shouldThrow<UnauthorizedException> {
+            resumeFacadeService.copyResume("no-auth-user", updateRequest)
+          }
+          exception.errorCode shouldBe ErrorCode.RESUME_COPY_UNAUTHORIZED
         }
       }
     }

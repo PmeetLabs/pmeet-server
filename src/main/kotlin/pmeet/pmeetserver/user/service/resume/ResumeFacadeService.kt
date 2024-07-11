@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
+import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
@@ -52,5 +53,14 @@ class ResumeFacadeService(
       throw ForbiddenRequestException(ErrorCode.RESUME_DELETE_FORBIDDEN)
     }
     resumeService.delete(originalResume)
+  }
+
+  @Transactional
+  suspend fun copyResume(userId: String, requestDto: CopyResumeRequestDto): ResumeResponseDto{
+    val originalResume = resumeService.getByResumeId(requestDto.id);
+    if (!originalResume.userId.equals(userId)) {
+      throw ForbiddenRequestException(ErrorCode.RESUME_COPY_UNAUTHORIZED)
+    }
+    return ResumeResponseDto.from(resumeService.save(originalResume.copy()))
   }
 }

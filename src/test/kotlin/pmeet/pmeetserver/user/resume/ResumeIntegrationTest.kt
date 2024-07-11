@@ -27,7 +27,9 @@ import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.repository.job.JobRepository
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.repository.techStack.TechStackRepository
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCopyResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeCopyResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
@@ -239,6 +241,48 @@ class ResumeIntegrationTest : DescribeSpec() {
 
         it("요청은 성공한다") {
           performRequest.expectStatus().isNoContent
+        }
+      }
+    }
+
+    describe("POST /api/v1/resumes/copy") {
+      context("인증된 유저의 이력서 복사 요청이 들어오면") {
+        val requestDto = createMockCopyResumeRequestDto()
+        val resumeResponse = createMockResumeCopyResponseDto()
+        val userId = resumeResponse.userId
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .post()
+          .uri("/api/v1/resumes/copy")
+          .bodyValue(requestDto)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isCreated
+        }
+
+        it("생성된 이력서를 반환한다") {
+          performRequest.expectBody<ResumeResponseDto>().consumeWith { response ->
+            val returnedResume = response.responseBody!!
+
+            returnedResume.title shouldBe resumeResponse.title
+            returnedResume.isActive shouldBe resumeResponse.isActive
+            returnedResume.userId shouldBe resumeResponse.userId
+            returnedResume.userName shouldBe resumeResponse.userName
+            returnedResume.userGender shouldBe resumeResponse.userGender
+            returnedResume.userBirthDate shouldBe resumeResponse.userBirthDate
+            returnedResume.userPhoneNumber shouldBe resumeResponse.userPhoneNumber
+            returnedResume.userEmail shouldBe resumeResponse.userEmail
+            returnedResume.userProfileImageUrl shouldBe resumeResponse.userProfileImageUrl
+            returnedResume.desiredJobs shouldBe resumeResponse.desiredJobs
+            returnedResume.techStacks shouldBe resumeResponse.techStacks
+            returnedResume.jobExperiences shouldBe resumeResponse.jobExperiences
+            returnedResume.projectExperiences shouldBe resumeResponse.projectExperiences
+            returnedResume.portfolioFileUrl shouldBe resumeResponse.portfolioFileUrl
+            returnedResume.portfolioUrl shouldBe resumeResponse.portfolioUrl
+            returnedResume.selfDescription shouldBe resumeResponse.selfDescription
+          }
         }
       }
     }

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
@@ -52,6 +53,13 @@ class ResumeController(private val resumeFacadeService: ResumeFacadeService) {
   suspend fun deleteResume(@AuthenticationPrincipal userId: Mono<String>, @RequestParam(required = true) id: String) {
     val requestUserId = userId.awaitSingle()
     resumeFacadeService.deleteResume(DeleteResumeRequestDto(id, requestUserId))
+  }
+
+  @PostMapping("/copy")
+  @ResponseStatus(HttpStatus.CREATED)
+  suspend fun copyResume(@AuthenticationPrincipal userId: Mono<String>, @Valid @RequestBody requestDto: CopyResumeRequestDto): ResumeResponseDto {
+    val requestUserId = userId.awaitSingle()
+    return resumeFacadeService.copyResume(requestUserId, requestDto)
   }
 
 }

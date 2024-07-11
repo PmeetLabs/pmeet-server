@@ -8,6 +8,7 @@ import pmeet.pmeetserver.user.domain.resume.ProjectExperience
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.dto.job.response.JobResponseDto
+import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.ResumeJobExperienceRequestDto
@@ -20,6 +21,9 @@ import pmeet.pmeetserver.user.dto.resume.response.ResumeProjectExperienceRespons
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.dto.techStack.response.TechStackResponseDto
 import java.time.LocalDate
+import kotlin.reflect.full.declaredMemberProperties
+import kotlin.reflect.jvm.isAccessible
+import kotlin.reflect.jvm.javaField
 
 object ResumeGenerator {
 
@@ -146,6 +150,68 @@ object ResumeGenerator {
     )
   }
 
+  internal fun createMockResumeCopyResponseDto(): ResumeResponseDto {
+    return ResumeResponseDto(
+      id = "resume-id",
+      title = "[복사] Software Engineer",
+      isActive = false,
+      userId = "John-id",
+      userName = "John Doe",
+      userGender = Gender.MALE,
+      userBirthDate = LocalDate.of(1990, 1, 1),
+      userPhoneNumber = "010-1234-5678",
+      userEmail = "john.doe@example.com",
+      userProfileImageUrl = "http://example.com/profile.jpg",
+      desiredJobs = listOf(
+        JobResponseDto(
+          id = "job1",
+          name = "Backend Developer"
+        ),
+        JobResponseDto(
+          id = "job2",
+          name = "Frontend Developer"
+        )
+      ),
+      techStacks = listOf(
+        TechStackResponseDto(
+          id = "tech1",
+          name = "Kotlin"
+        ),
+        TechStackResponseDto(
+          id = "tech2",
+          name = "React"
+        )
+      ),
+      jobExperiences = listOf(
+        ResumeJobExperienceResponseDto(
+          companyName = "ABC Corp",
+          experiencePeriod = ExperienceYear.YEAR_03,
+          responsibilities = "Developed backend services"
+        ),
+        ResumeJobExperienceResponseDto(
+          companyName = "XYZ Inc",
+          experiencePeriod = ExperienceYear.YEAR_02,
+          responsibilities = "Worked on frontend development"
+        )
+      ),
+      projectExperiences = listOf(
+        ResumeProjectExperienceResponseDto(
+          projectName = "Project A",
+          experiencePeriod = ExperienceYear.YEAR_01,
+          responsibilities = "Led the project development"
+        ),
+        ResumeProjectExperienceResponseDto(
+          projectName = "Project B",
+          experiencePeriod = ExperienceYear.YEAR_02,
+          responsibilities = "Contributed to backend services"
+        )
+      ),
+      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
+      selfDescription = "Passionate software engineer with a focus on backend development."
+    )
+  }
+
   internal fun generateResume(): Resume {
     return Resume(
       id = "resume-id",
@@ -205,6 +271,28 @@ object ResumeGenerator {
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
       selfDescription = "Passionate software engineer with a focus on backend development."
     )
+  }
+
+  /**
+   * reflection 을 사용해 테스트용 resume 에 id 할당
+   */
+  private fun Resume.setId(newId: String): Resume {
+    val idProperty = this::class.declaredMemberProperties.find { it.name == "id" }
+    idProperty?.let {
+      it.isAccessible = true
+      val idField = it.javaField
+      idField?.set(this, newId)
+    }
+
+    return this
+  }
+
+  internal fun generateCopiedResume(): Resume {
+    val originalResume = generateResume()
+    val copiedResume = originalResume.copy()
+    copiedResume.setId("copied-resume-id")
+
+    return copiedResume
   }
 
   internal fun createMockUpdateResumeRequestDto(): UpdateResumeRequestDto {
@@ -329,6 +417,12 @@ object ResumeGenerator {
     return DeleteResumeRequestDto(
       id = "resume-id",
       userId = "John-id",
+    )
+  }
+
+  internal fun createMockCopyResumeRequestDto(): CopyResumeRequestDto {
+    return CopyResumeRequestDto(
+      id = "resume-id"
     )
   }
 }
