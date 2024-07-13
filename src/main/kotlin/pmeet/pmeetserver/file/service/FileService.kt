@@ -42,7 +42,7 @@ class FileService(
               .build()
           )
           .build().run {
-            return FileUrlResponseDto.from(presigner.presignPutObject(this).url().toExternalForm())
+            return FileUrlResponseDto.of(presigner.presignPutObject(this).url().toExternalForm(), objectName)
           }
       }
   }
@@ -61,7 +61,7 @@ class FileService(
               .build()
           )
           .build().run {
-            return FileUrlResponseDto.from(presigner.presignGetObject(this).url().toExternalForm())
+            return FileUrlResponseDto.of(presigner.presignGetObject(this).url().toExternalForm(), objectName)
           }
       }
   }
