@@ -25,20 +25,27 @@ class GlobalExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   suspend fun handleEntityDuplicateException(exception: EntityDuplicateException): ExceptionDto {
     logger.error(exception) { "error: ${exception.message}" }
-    return ExceptionDto(exception.errorCode, exception.message!!)
+    return ExceptionDto(exception.errorCode.getCode(), exception.message!!)
   }
 
   @ExceptionHandler(value = [EntityNotFoundException::class])
   @ResponseStatus(HttpStatus.NOT_FOUND)
   suspend fun handleEntityNotFoundException(exception: EntityNotFoundException): ExceptionDto {
     logger.error(exception) { "error: ${exception.message}" }
-    return ExceptionDto(exception.errorCode, exception.message!!)
+    return ExceptionDto(exception.errorCode.getCode(), exception.message!!)
   }
 
   @ExceptionHandler(value = [UnauthorizedException::class])
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   suspend fun handleUnauthorizedExceptionException(exception: UnauthorizedException): ExceptionDto {
     logger.error(exception) { "error: ${exception.message}" }
-    return ExceptionDto(exception.errorCode, exception.message!!)
+    return ExceptionDto(exception.errorCode.getCode(), exception.message!!)
+  }
+
+  @ExceptionHandler(value = [ForbiddenRequestException::class])
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  suspend fun handleForbiddenRequestException(exception: ForbiddenRequestException): ExceptionDto {
+    logger.error(exception) { "error: ${exception.message}" }
+    return ExceptionDto(exception.errorCode.getCode(), exception.message!!)
   }
 }
