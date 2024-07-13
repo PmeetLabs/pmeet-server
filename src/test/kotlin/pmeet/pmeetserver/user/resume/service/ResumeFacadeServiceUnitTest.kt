@@ -15,7 +15,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
-import pmeet.pmeetserver.common.exception.UnauthorizedException
+import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
@@ -111,16 +111,16 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           exception.errorCode shouldBe ErrorCode.RESUME_NOT_FOUND
         }
       }
-      it("권한이 없는 userId 로 업데이트 시도 시 UnauthorizedException 발생시킨다") {
+      it("권한이 없는 userId 로 업데이트 시도 시 ForbiddenRequestException 발생시킨다") {
         runTest {
           coEvery { resumeService.getByResumeId(any()) } answers { resume }
 
           val updateRequest = createMockUpdateResumeRequestDto()
 
-          val exception = shouldThrow<UnauthorizedException> {
+          val exception = shouldThrow<ForbiddenRequestException> {
             resumeFacadeService.updateResume("no-auth-user", updateRequest)
           }
-          exception.errorCode shouldBe ErrorCode.RESUME_UPDATE_UNAUTHORIZED
+          exception.errorCode shouldBe ErrorCode.RESUME_UPDATE_FORBIDDEN
         }
       }
     }
@@ -151,7 +151,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
         }
       }
 
-      it("권한이 없는 userId 로 삭제 시도 시 UnauthorizedException 발생시킨다") {
+      it("권한이 없는 userId 로 삭제 시도 시 ForbiddenRequestException 발생시킨다") {
         runTest {
           coEvery { resumeService.getByResumeId(any()) } answers { resume }
 
@@ -160,10 +160,10 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
             userId = "John-id-wrong",
           )
 
-          val exception = shouldThrow<UnauthorizedException> {
+          val exception = shouldThrow<ForbiddenRequestException> {
             resumeFacadeService.deleteResume(deleteRequest)
           }
-          exception.errorCode shouldBe ErrorCode.RESUME_DELETE_UNAUTHORIZED
+          exception.errorCode shouldBe ErrorCode.RESUME_DELETE_FORBIDDEN
         }
       }
     }

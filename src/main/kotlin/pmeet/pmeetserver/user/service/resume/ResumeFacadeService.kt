@@ -3,7 +3,7 @@ package pmeet.pmeetserver.user.service.resume
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
-import pmeet.pmeetserver.common.exception.UnauthorizedException
+import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
@@ -29,7 +29,7 @@ class ResumeFacadeService(
   suspend fun updateResume(userId: String, requestDto: UpdateResumeRequestDto): ResumeResponseDto {
     val originalResume = resumeService.getByResumeId(requestDto.id);
     if (!originalResume.userId.equals(userId)) {
-      throw UnauthorizedException(ErrorCode.RESUME_UPDATE_UNAUTHORIZED)
+      throw ForbiddenRequestException(ErrorCode.RESUME_UPDATE_FORBIDDEN)
     }
     val updateResume = originalResume.update(
       title = requestDto.title,
@@ -40,7 +40,8 @@ class ResumeFacadeService(
       projectExperiences = requestDto.projectExperiences.map { it.toEntity() },
       portfolioFileUrl = requestDto.portfolioFileUrl,
       portfolioUrl = requestDto.portfolioUrl,
-      selfDescription = requestDto.selfDescription)
+      selfDescription = requestDto.selfDescription
+    )
     return ResumeResponseDto.from(resumeService.update(updateResume))
   }
 
@@ -48,7 +49,7 @@ class ResumeFacadeService(
   suspend fun deleteResume(requestDto: DeleteResumeRequestDto) {
     val originalResume = resumeService.getByResumeId(requestDto.id);
     if (!originalResume.userId.equals(requestDto.userId)) {
-      throw UnauthorizedException(ErrorCode.RESUME_DELETE_UNAUTHORIZED)
+      throw ForbiddenRequestException(ErrorCode.RESUME_DELETE_FORBIDDEN)
     }
     resumeService.delete(originalResume)
   }

@@ -12,23 +12,26 @@ enum class ErrorCode(private val code: String, private val message: String) {
   // User
   USER_DUPLICATE_BY_EMAIL("USER-40000", "중복된 이메일입니다."),
   USER_DUPLICATE_BY_NICKNAME("USER-40001", "중복된 닉네임입니다."),
-  USER_NOT_FOUND_BY_EMAIL("USER-40002", "해당하는 이메일의 유저를 찾을 수 없습니다."),
   INVALID_PASSWORD("USER-40003", "비밀번호를 다시 입력해 주세요."),
-  USER_NOT_FOUND_BY_NICKNAME("USER-40006", "해당하는 닉네임의 유저를 찾을 수 없습니다."),
-  USER_NOT_FOUND_BY_ID("USER-40007", "해당하는 ID의 유저를 찾을 수 없습니다."),
-  IS_DELETED_USER("USER-40008", "탈퇴한 유저입니다."),
+  IS_DELETED_USER("USER-40004", "탈퇴한 유저입니다."),
+
+  USER_NOT_FOUND_BY_EMAIL("USER-40400", "해당하는 이메일의 유저를 찾을 수 없습니다."),
+  USER_NOT_FOUND_BY_NICKNAME("USER-40401", "해당하는 닉네임의 유저를 찾을 수 없습니다."),
+  USER_NOT_FOUND_BY_ID("USER-40402", "해당하는 ID의 유저를 찾을 수 없습니다."),
 
   // Job
   JOB_DUPLICATE_BY_NAME("JOB-40000", "중복된 직무명입니다."),
 
   // TechStack
-  TECHSTACK_DUPLICATE_BY_NAME("TECHSTACH-40000", "중복된 기술스택입니다."),
+  TECHSTACK_DUPLICATE_BY_NAME("TECHSTACK-40000", "중복된 기술스택입니다."),
 
   // Resume
   RESUME_NUMBER_EXCEEDED("RESUME-40000", "이력서는 5개까지만 생성 가능합니다."),
-  RESUME_NOT_FOUND("RESUME-40001", "해당하는 ID 의 이력서를 찾을 수 없습니다."),
-  RESUME_UPDATE_UNAUTHORIZED("RESUME-40002", "해당하는 이력서를 수정할 권한이 없습니다."),
-  RESUME_DELETE_UNAUTHORIZED("RESUME-40003", "해당하는 이력서를 삭제할 권한이 없습니다.")
+
+  RESUME_UPDATE_FORBIDDEN("RESUME-40301", "해당하는 이력서를 수정할 권한이 없습니다."),
+  RESUME_DELETE_FORBIDDEN("RESUME-40302", "해당하는 이력서를 삭제할 권한이 없습니다."),
+
+  RESUME_NOT_FOUND("RESUME-40400", "해당하는 ID의 이력서를 찾을 수 없습니다.")
   ;
 
   fun getCode(): String {
