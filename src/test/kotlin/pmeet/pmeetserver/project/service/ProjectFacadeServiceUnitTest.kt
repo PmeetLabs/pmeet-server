@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
+import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -12,10 +13,11 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
-import java.time.LocalDateTime
+import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
 
 @ExperimentalCoroutinesApi
 internal class ProjectFacadeServiceUnitTest : DescribeSpec({
@@ -25,16 +27,19 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   val testDispatcher = StandardTestDispatcher()
 
   val projectService = mockk<ProjectService>(relaxed = true)
+  val projectCommentService = mockk<ProjectCommentService>(relaxed = true)
 
   lateinit var projectFacadeService: ProjectFacadeService
 
   lateinit var project: Project
+  lateinit var projectComment: ProjectComment
   lateinit var userId: String
   lateinit var recruitments: List<Recruitment>
 
   beforeSpec {
     Dispatchers.setMain(testDispatcher)
-    projectFacadeService = ProjectFacadeService(projectService)
+    projectFacadeService = ProjectFacadeService(projectService, projectCommentService)
+
 
     userId = "testUserId"
     recruitments = listOf(
@@ -60,6 +65,13 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     )
     ReflectionTestUtils.setField(project, "id", "testId")
     ReflectionTestUtils.setField(project, "createdAt", LocalDateTime.of(2021, 5, 1, 0, 0, 0))
+
+    projectComment = ProjectComment(
+      projectId = project.id!!,
+      userId = userId,
+      content = "testContent"
+    )
+    ReflectionTestUtils.setField(projectComment, "id", "testCommentId")
   }
 
   afterSpec {
@@ -102,6 +114,29 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.isCompleted shouldBe project.isCompleted
           result.bookMarkers shouldBe project.bookMarkers
           result.createdAt shouldBe project.createdAt
+        }
+      }
+    }
+  }
+
+  describe("createProjectComment") {
+    context("createProjectCommentRequestDto가 주어지면") {
+      val requestDto = CreateProjectCommentRequestDto(
+        projectId = projectComment.projectId,
+        parentCommentId = projectComment.parentCommentId,
+        content = projectComment.content
+      )
+      it("ProjectCommentResponseDto를 반환한다") {
+        runTest {
+          coEvery { projectService.getProjectById(requestDto.projectId) } answers {project}
+          coEvery { projectCommentService.save(any()) } answers { projectComment }
+          val result = projectFacadeService.createProjectComment(userId, requestDto)
+
+          result.id shouldBe projectComment.id
+          result.parentCommentId shouldBe projectComment.parentCommentId
+          result.content shouldBe projectComment.content
+          result.userId shouldBe projectComment.userId
+          result.projectId shouldBe projectComment.projectId
         }
       }
     }

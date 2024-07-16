@@ -8,11 +8,13 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.service.ProjectFacadeService
 import reactor.core.publisher.Mono
 
+@RestController
 @RequestMapping("/api/v1/project-comments")
 class ProjectCommentController(
   private val projectFacadeService: ProjectFacadeService
@@ -20,7 +22,7 @@ class ProjectCommentController(
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
-  suspend fun createProject(
+  suspend fun createProjectComment(
     @AuthenticationPrincipal userId: Mono<String>,
     @RequestBody @Valid requestDto: CreateProjectCommentRequestDto
   ): ProjectCommentResponseDto {
