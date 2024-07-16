@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.user.resume
 
+import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.user.domain.enum.ExperienceYear
 import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.job.Job
@@ -273,25 +274,10 @@ object ResumeGenerator {
     )
   }
 
-  /**
-   * reflection 을 사용해 테스트용 resume 에 id 할당
-   */
-  private fun Resume.setId(newId: String): Resume {
-    val idProperty = this::class.declaredMemberProperties.find { it.name == "id" }
-    idProperty?.let {
-      it.isAccessible = true
-      val idField = it.javaField
-      idField?.set(this, newId)
-    }
-
-    return this
-  }
-
   internal fun generateCopiedResume(): Resume {
     val originalResume = generateResume()
     val copiedResume = originalResume.copy()
-    copiedResume.setId("copied-resume-id")
-
+    ReflectionTestUtils.setField(copiedResume, "id", "copied-resume-id")
     return copiedResume
   }
 

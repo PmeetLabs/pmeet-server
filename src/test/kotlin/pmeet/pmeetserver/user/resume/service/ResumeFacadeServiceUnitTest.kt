@@ -200,7 +200,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
 
           val updateRequest = createMockCopyResumeRequestDto()
 
-          val exception = shouldThrow<UnauthorizedException> {
+          val exception = shouldThrow<ForbiddenRequestException> {
             resumeFacadeService.copyResume("no-auth-user", updateRequest)
           }
           exception.errorCode shouldBe ErrorCode.RESUME_COPY_UNAUTHORIZED
