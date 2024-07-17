@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -175,6 +176,36 @@ internal class ResumeServiceUnitTest : DescribeSpec({
 
           coVerify { resume.id?.let { resumeRepository.deleteById(it) } }
 
+        }
+      }
+    }
+  }
+
+  describe("change status") {
+    context("이력서의 프미팅 게시 상태를 참으로 변경한다.") {
+      it("이력서의 프미팅 게시 여부가 참으로 변경된다.") {
+        runTest {
+          val capturedResumeSlot = slot<Resume>()
+          every { resumeRepository.save(capture(capturedResumeSlot)) } answers { Mono.just(capturedResumeSlot.captured) }
+
+          resumeService.changeActive(resume, true)
+
+          coVerify { resumeRepository.save(any()) }
+          assert(capturedResumeSlot.captured.isActive) { "isActive should be true" }
+        }
+      }
+    }
+
+    context("이력서의 프미팅 게시 상태를 거짓으로 변경한다.") {
+      it("이력서의 프미팅 게시 여부가 거짓으로 변경된다.") {
+        runTest {
+          val capturedResumeSlot = slot<Resume>()
+          every { resumeRepository.save(capture(capturedResumeSlot)) } answers { Mono.just(capturedResumeSlot.captured) }
+
+          resumeService.changeActive(resume, false)
+
+          coVerify { resumeRepository.save(any()) }
+          assert(!capturedResumeSlot.captured.isActive) { "isActive should be false" }
         }
       }
     }

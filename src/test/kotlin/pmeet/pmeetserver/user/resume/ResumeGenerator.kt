@@ -9,6 +9,7 @@ import pmeet.pmeetserver.user.domain.resume.ProjectExperience
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.dto.job.response.JobResponseDto
+import pmeet.pmeetserver.user.dto.resume.request.ChangeResumeActiveRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
@@ -22,9 +23,6 @@ import pmeet.pmeetserver.user.dto.resume.response.ResumeProjectExperienceRespons
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.dto.techStack.response.TechStackResponseDto
 import java.time.LocalDate
-import kotlin.reflect.full.declaredMemberProperties
-import kotlin.reflect.jvm.isAccessible
-import kotlin.reflect.jvm.javaField
 
 object ResumeGenerator {
 
@@ -409,6 +407,13 @@ object ResumeGenerator {
   internal fun createMockCopyResumeRequestDto(): CopyResumeRequestDto {
     return CopyResumeRequestDto(
       id = "resume-id"
+    )
+  }
+
+  internal fun createMockChangeResumeActiveRequestDto(targetActive: Boolean): ChangeResumeActiveRequestDto {
+    return ChangeResumeActiveRequestDto(
+      id = "resume-id",
+      targetActiveStatus = targetActive,
     )
   }
 }

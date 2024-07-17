@@ -18,6 +18,7 @@ import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockChangeResumeActiveRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCopyResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockDeleteResumeRequestDto
@@ -204,6 +205,34 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
             resumeFacadeService.copyResume("no-auth-user", updateRequest)
           }
           exception.errorCode shouldBe ErrorCode.RESUME_COPY_UNAUTHORIZED
+        }
+      }
+    }
+  }
+
+  describe("changeResumeActiveStatus") {
+    context("이력서의 프미팅 게시 여부를 ON 으로 변경하는 경우") {
+      it("이력서의 프미팅 게시여부가 ON 으로 변경된다.") {
+        runTest {
+          val requestDto = createMockChangeResumeActiveRequestDto(true)
+          coEvery { resumeService.getByResumeId(any()) } answers { resume }
+
+          resumeFacadeService.changeResumeActiveStatus(resume.userId, requestDto)
+
+          coVerify { resumeService.changeActive(resume, true) }
+        }
+      }
+
+      it("권한이 없는 userId 로 상태 변경 시도 시 ForbiddenRequestException 발생시킨다") {
+        runTest {
+          coEvery { resumeService.getByResumeId(any()) } answers { resume }
+
+          val requestDto = createMockChangeResumeActiveRequestDto(true)
+
+          val exception = shouldThrow<ForbiddenRequestException> {
+            resumeFacadeService.changeResumeActiveStatus("no-auth-user", requestDto)
+          }
+          exception.errorCode shouldBe ErrorCode.RESUME_ACTIVE_CHANGE_UNAUTHORIZED
         }
       }
     }

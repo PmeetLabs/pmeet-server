@@ -37,4 +37,10 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
   suspend fun delete(deleteResume: Resume) {
     deleteResume.id?.let { resumeRepository.deleteById(it).awaitSingleOrNull() }
   }
+
+  @Transactional
+  suspend fun changeActive(originalResume: Resume, targetStatus: Boolean) {
+    originalResume.isActive = targetStatus;
+    resumeRepository.save(originalResume).awaitSingle()
+  }
 }

@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
+import pmeet.pmeetserver.user.dto.resume.request.ChangeResumeActiveRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
@@ -60,6 +62,13 @@ class ResumeController(private val resumeFacadeService: ResumeFacadeService) {
   suspend fun copyResume(@AuthenticationPrincipal userId: Mono<String>, @Valid @RequestBody requestDto: CopyResumeRequestDto): ResumeResponseDto {
     val requestUserId = userId.awaitSingle()
     return resumeFacadeService.copyResume(requestUserId, requestDto)
+  }
+
+  @PatchMapping("/active")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun changeResumeActive(@AuthenticationPrincipal userId: Mono<String>, @Valid @RequestBody requestDto: ChangeResumeActiveRequestDto) {
+    val requestUserId = userId.awaitSingle()
+    resumeFacadeService.changeResumeActiveStatus(requestUserId, requestDto)
   }
 
 }

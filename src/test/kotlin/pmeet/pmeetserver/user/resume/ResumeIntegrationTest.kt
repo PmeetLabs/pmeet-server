@@ -286,6 +286,26 @@ class ResumeIntegrationTest : DescribeSpec() {
         }
       }
     }
+
+    describe("PATCH api/v1/resumes/active") {
+      context("인증된 유저이자 이력서의 소유주의 이력서 프미팅 게시 요청이 들어오면") {
+        val requestDto = ResumeGenerator.createMockChangeResumeActiveRequestDto(true)
+        val resumeResponse = createMockResumeCopyResponseDto()
+        val userId = resumeResponse.userId
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .patch()
+          .uri("/api/v1/resumes/active")
+          .bodyValue(requestDto)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+      }
+    }
+
   }
 
   companion object {
