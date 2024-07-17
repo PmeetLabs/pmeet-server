@@ -60,7 +60,7 @@ class ResumeFacadeService(
   suspend fun copyResume(userId: String, requestDto: CopyResumeRequestDto): ResumeResponseDto{
     val originalResume = resumeService.getByResumeId(requestDto.id);
     if (!originalResume.userId.equals(userId)) {
-      throw ForbiddenRequestException(ErrorCode.RESUME_COPY_UNAUTHORIZED)
+      throw ForbiddenRequestException(ErrorCode.RESUME_COPY_FORBIDDEN)
     }
     return ResumeResponseDto.from(resumeService.save(originalResume.copy()))
   }
@@ -69,7 +69,7 @@ class ResumeFacadeService(
   suspend fun changeResumeActiveStatus(userId: String, requestDto: ChangeResumeActiveRequestDto) {
     val originalResume = resumeService.getByResumeId(requestDto.id)
     if (!originalResume.userId.equals(userId)) {
-      throw ForbiddenRequestException(ErrorCode.RESUME_ACTIVE_CHANGE_UNAUTHORIZED)
+      throw ForbiddenRequestException(ErrorCode.RESUME_ACTIVE_CHANGE_FORBIDDEN)
     }
     resumeService.changeActive(originalResume, requestDto.targetActiveStatus)
   }

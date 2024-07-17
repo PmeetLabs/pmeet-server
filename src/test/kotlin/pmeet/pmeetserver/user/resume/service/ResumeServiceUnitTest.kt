@@ -191,7 +191,7 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           resumeService.changeActive(resume, true)
 
           coVerify { resumeRepository.save(any()) }
-          assert(capturedResumeSlot.captured.isActive) { "isActive should be true" }
+          capturedResumeSlot.captured.isActive shouldBe true
         }
       }
     }
@@ -205,7 +205,7 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           resumeService.changeActive(resume, false)
 
           coVerify { resumeRepository.save(any()) }
-          assert(!capturedResumeSlot.captured.isActive) { "isActive should be false" }
+          capturedResumeSlot.captured.isActive shouldBe false
         }
       }
     }

@@ -204,7 +204,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           val exception = shouldThrow<ForbiddenRequestException> {
             resumeFacadeService.copyResume("no-auth-user", updateRequest)
           }
-          exception.errorCode shouldBe ErrorCode.RESUME_COPY_UNAUTHORIZED
+          exception.errorCode shouldBe ErrorCode.RESUME_COPY_FORBIDDEN
         }
       }
     }
@@ -232,7 +232,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           val exception = shouldThrow<ForbiddenRequestException> {
             resumeFacadeService.changeResumeActiveStatus("no-auth-user", requestDto)
           }
-          exception.errorCode shouldBe ErrorCode.RESUME_ACTIVE_CHANGE_UNAUTHORIZED
+          exception.errorCode shouldBe ErrorCode.RESUME_ACTIVE_CHANGE_FORBIDDEN
         }
       }
     }
