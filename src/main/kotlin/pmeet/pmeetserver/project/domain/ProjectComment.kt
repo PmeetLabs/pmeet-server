@@ -12,6 +12,6 @@ class ProjectComment(
   val projectId: String, // 프로젝트 ID 참조
   val userId: String,
   var content: String,
-  var liker: List<String> = mutableListOf(), // 좋아요를 한 user id list
+  var likerIdList: List<String> = mutableListOf(), // 좋아요를 한 user id list
   val createdAt: LocalDateTime = LocalDateTime.now(),
 )

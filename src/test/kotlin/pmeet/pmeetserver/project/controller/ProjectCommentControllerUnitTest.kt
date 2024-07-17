@@ -43,7 +43,7 @@ internal class ProjectCommentControllerUnitTest : DescribeSpec() {
           projectId = "testProjectId",
           userId = userId,
           content = "testContent",
-          liker = listOf(),
+          likerIdList = listOf(),
           createdAt = LocalDateTime.of(2024, 7, 16, 0, 0, 0)
         )
 
@@ -72,7 +72,7 @@ internal class ProjectCommentControllerUnitTest : DescribeSpec() {
             response.responseBody?.projectId shouldBe responseDto.projectId
             response.responseBody?.userId shouldBe responseDto.userId
             response.responseBody?.content shouldBe responseDto.content
-            response.responseBody?.liker shouldBe responseDto.liker
+            response.responseBody?.likerIdList shouldBe responseDto.likerIdList
             response.responseBody?.createdAt shouldBe responseDto.createdAt
           }
         }

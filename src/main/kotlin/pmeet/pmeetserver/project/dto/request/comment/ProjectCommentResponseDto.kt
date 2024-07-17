@@ -9,7 +9,7 @@ data class ProjectCommentResponseDto(
   val projectId: String,
   val userId: String,
   val content: String,
-  val liker: List<String>,
+  val likerIdList: List<String>,
   val createdAt: LocalDateTime
 ) {
   companion object {
@@ -20,7 +20,7 @@ data class ProjectCommentResponseDto(
         projectId = comment.projectId,
         userId = comment.userId,
         content = comment.content,
-        liker = comment.liker,
+        likerIdList = comment.likerIdList,
         createdAt = comment.createdAt
       )
     }
