@@ -90,7 +90,7 @@ internal class ProjectCommentControllerUnitTest : DescribeSpec() {
           parentCommentId = null,
           projectId = "testProjectId",
           userId = userId,
-          content = "testContent",
+          content = "작성자가 삭제한 댓글입니다.",
           likerIdList = listOf(),
           createdAt = LocalDateTime.of(2024, 7, 16, 0, 0, 0),
           isDeleted = true

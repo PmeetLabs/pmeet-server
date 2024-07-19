@@ -18,5 +18,6 @@ class ProjectComment(
 ) {
   fun delete() {
     this.isDeleted = true
+    this.content = "작성자가 삭제한 댓글입니다."
   }
 }

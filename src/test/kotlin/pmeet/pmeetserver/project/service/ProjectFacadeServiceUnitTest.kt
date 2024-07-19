@@ -220,7 +220,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
 
           result.id shouldBe projectComment.id
           result.parentCommentId shouldBe projectComment.parentCommentId
-          result.content shouldBe projectComment.content
+          result.content shouldBe "작성자가 삭제한 댓글입니다."
           result.userId shouldBe projectComment.userId
           result.projectId shouldBe projectComment.projectId
           result.isDeleted shouldBe projectComment.isDeleted
