@@ -33,7 +33,8 @@ internal class ProjectCommentServiceUnitTest : DescribeSpec({
     projectComment = ProjectComment(
       projectId = "testProjectId",
       userId = userId,
-      content = "testContent"
+      content = "testContent",
+      isDeleted = false
     )
   }
 
@@ -54,6 +55,7 @@ internal class ProjectCommentServiceUnitTest : DescribeSpec({
           result.content shouldBe projectComment.content
           result.userId shouldBe projectComment.userId
           result.projectId shouldBe projectComment.projectId
+          result.isDeleted shouldBe false
         }
       }
     }

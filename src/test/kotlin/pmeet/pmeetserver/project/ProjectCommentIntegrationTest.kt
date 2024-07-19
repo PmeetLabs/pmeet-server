@@ -114,6 +114,7 @@ internal class ProjectCommentIntegrationTest : DescribeSpec() {
             responseBody?.content shouldBe requestDto.content
             responseBody?.likerIdList shouldBe mutableListOf()
             responseBody?.createdAt shouldNotBe null
+            responseBody?.isDeleted shouldBe false
           }
         }
       }

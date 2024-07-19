@@ -44,7 +44,8 @@ internal class ProjectCommentControllerUnitTest : DescribeSpec() {
           userId = userId,
           content = "testContent",
           likerIdList = listOf(),
-          createdAt = LocalDateTime.of(2024, 7, 16, 0, 0, 0)
+          createdAt = LocalDateTime.of(2024, 7, 16, 0, 0, 0),
+          isDeleted = false
         )
 
         coEvery { projectFacadeService.createProjectComment(userId, requestDto) } answers { responseDto }
@@ -74,6 +75,7 @@ internal class ProjectCommentControllerUnitTest : DescribeSpec() {
             response.responseBody?.content shouldBe responseDto.content
             response.responseBody?.likerIdList shouldBe responseDto.likerIdList
             response.responseBody?.createdAt shouldBe responseDto.createdAt
+            response.responseBody?.isDeleted shouldBe responseDto.isDeleted
           }
         }
       }

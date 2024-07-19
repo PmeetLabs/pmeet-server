@@ -73,7 +73,8 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     projectComment = ProjectComment(
       projectId = project.id!!,
       userId = userId,
-      content = "testContent"
+      content = "testContent",
+      isDeleted = false,
     )
     ReflectionTestUtils.setField(projectComment, "id", "testCommentId")
   }
@@ -141,6 +142,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.content shouldBe projectComment.content
           result.userId shouldBe projectComment.userId
           result.projectId shouldBe projectComment.projectId
+          result.isDeleted shouldBe projectComment.isDeleted
         }
       }
     }
