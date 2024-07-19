@@ -42,22 +42,6 @@ class ProjectFacadeService(
   }
 
   @Transactional
-  suspend fun createProjectComment(userId: String, requestDto: CreateProjectCommentRequestDto):
-    ProjectCommentResponseDto {
-
-    val project = projectService.getProjectById(requestDto.projectId)
-
-    val projectComment = ProjectComment(
-      parentCommentId = requestDto.parentCommentId,
-      projectId = project.id!!,
-      userId = userId,
-      content = requestDto.content
-    )
-
-    return ProjectCommentResponseDto.from(projectCommentService.save(projectComment))
-  }
-
-  @Transactional
   suspend fun updateProject(userId: String, requestDto: UpdateProjectRequestDto): ProjectResponseDto {
     val originalProject = projectService.getProjectById(requestDto.id)
 
@@ -76,5 +60,35 @@ class ProjectFacadeService(
     )
 
     return ProjectResponseDto.from(projectService.update(originalProject))
+  }
+
+  @Transactional
+  suspend fun createProjectComment(userId: String, requestDto: CreateProjectCommentRequestDto):
+    ProjectCommentResponseDto {
+
+    val project = projectService.getProjectById(requestDto.projectId)
+
+    val projectComment = ProjectComment(
+      parentCommentId = requestDto.parentCommentId,
+      projectId = project.id!!,
+      userId = userId,
+      content = requestDto.content
+    )
+
+    return ProjectCommentResponseDto.from(projectCommentService.save(projectComment))
+  }
+
+  @Transactional
+  suspend fun deleteProjectComment(userId: String, commentId: String): ProjectCommentResponseDto {
+
+    val comment = projectCommentService.getProjectCommentById(commentId)
+
+    if (comment.userId != userId) {
+      throw ForbiddenRequestException(ErrorCode.PROJECT_COMMENT_DELETE_FORBIDDEN)
+    }
+
+    comment.delete()
+
+    return ProjectCommentResponseDto.from(projectCommentService.save(comment))
   }
 }
