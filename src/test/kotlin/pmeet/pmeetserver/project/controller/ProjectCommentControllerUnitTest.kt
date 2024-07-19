@@ -29,7 +29,7 @@ internal class ProjectCommentControllerUnitTest : DescribeSpec() {
   lateinit var projectFacadeService: ProjectFacadeService
 
   init {
-    describe("POST /api/v1/project-comments") {
+    describe("createProjectComment") {
       context("인증된 유저의 댓글 생성 요청이 들어오면") {
         val userId = "testUserId"
         val requestDto = CreateProjectCommentRequestDto(
@@ -75,6 +75,47 @@ internal class ProjectCommentControllerUnitTest : DescribeSpec() {
             response.responseBody?.content shouldBe responseDto.content
             response.responseBody?.likerIdList shouldBe responseDto.likerIdList
             response.responseBody?.createdAt shouldBe responseDto.createdAt
+            response.responseBody?.isDeleted shouldBe responseDto.isDeleted
+          }
+        }
+      }
+    }
+
+    describe("deleteProjectComment") {
+      context("인증된 유저의 댓글 삭제 요청이 들어오면") {
+        val userId = "testUserId"
+        val commentId = "testCommentId"
+        val responseDto = ProjectCommentResponseDto(
+          id = "testCommentId",
+          parentCommentId = null,
+          projectId = "testProjectId",
+          userId = userId,
+          content = "testContent",
+          likerIdList = listOf(),
+          createdAt = LocalDateTime.of(2024, 7, 16, 0, 0, 0),
+          isDeleted = true
+        )
+
+        coEvery { projectFacadeService.deleteProjectComment(userId, commentId) } answers { responseDto }
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest =
+          webTestClient
+            .mutateWith(mockAuthentication(mockAuthentication))
+            .delete()
+            .uri("/api/v1/project-comments/${commentId}")
+            .exchange()
+
+        it("서비스를 통해 데이터를 삭제한다") {
+          coVerify(exactly = 1) { projectFacadeService.deleteProjectComment(userId, commentId) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("삭제된 댓글 정보를 반환한다") {
+          performRequest.expectBody<ProjectCommentResponseDto>().consumeWith { response ->
+            response.responseBody?.id shouldBe responseDto.id
             response.responseBody?.isDeleted shouldBe responseDto.isDeleted
           }
         }
