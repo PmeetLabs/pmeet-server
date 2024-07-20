@@ -26,6 +26,7 @@ import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
@@ -53,8 +54,10 @@ internal class ProjectCommentIntegrationTest : DescribeSpec() {
   lateinit var projectCommentRepository: ProjectCommentRepository
 
   lateinit var project: Project
+  lateinit var projectComment: ProjectComment
   lateinit var userId: String
   lateinit var projectId: String
+  lateinit var commentId: String
 
   override suspend fun beforeSpec(spec: Spec) {
     userId = "testUserId"
@@ -73,6 +76,15 @@ internal class ProjectCommentIntegrationTest : DescribeSpec() {
     withContext(Dispatchers.IO) {
       projectRepository.save(project).block()
       projectId = projectRepository.findByUserId(project.userId).awaitFirst().id!!
+
+      projectComment = ProjectComment(
+        projectId = projectId,
+        userId = userId,
+        content = "testContent",
+        isDeleted = false,
+      )
+      projectCommentRepository.save(projectComment).block()
+      commentId = projectCommentRepository.findByProjectId(projectId).awaitFirst().id!!
     }
   }
 
@@ -119,9 +131,32 @@ internal class ProjectCommentIntegrationTest : DescribeSpec() {
         }
       }
     }
-  }
 
-  // 추가추가
+    describe("DELETE /api/v1/project-comments/{commentId}") {
+      context("인증된 유저의 댓글 삭제 요청이 들어오면") {
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/project-comments/${commentId}")
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("삭제된 댓글 정보를 반환한다") {
+          performRequest.expectBody<ProjectCommentResponseDto>().consumeWith { response ->
+            val responseBody = response.responseBody
+            responseBody?.id shouldBe commentId
+            responseBody?.content shouldBe "작성자가 삭제한 댓글입니다."
+            responseBody?.isDeleted shouldBe true
+          }
+        }
+      }
+    }
+  }
 
   companion object {
     @Container

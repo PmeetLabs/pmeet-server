@@ -38,6 +38,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   lateinit var project: Project
   lateinit var projectComment: ProjectComment
   lateinit var userId: String
+  lateinit var forbiddenUserId: String
   lateinit var recruitments: List<Recruitment>
 
   beforeSpec {
@@ -45,6 +46,8 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     projectFacadeService = ProjectFacadeService(projectService, projectCommentService)
 
     userId = "testUserId"
+    forbiddenUserId = "forbiddenUserId"
+
     recruitments = listOf(
       Recruitment(
         jobName = "testJobName",
@@ -147,7 +150,9 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     context("Project의 Userid와 요청으로 들어온 userId가 같은 경우") {
       it("업데이트 후 ProjectResponseDto를 반환한다") {
         runTest {
+          coEvery { projectService.getProjectById(project.id!!) } answers { project }
           coEvery { projectService.update(any()) } answers { project }
+
           val result = projectFacadeService.updateProject(userId, requestDto)
 
           result.id shouldBe project.id
@@ -174,7 +179,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           coEvery { projectService.update(any()) } answers { project }
 
           val exception = shouldThrow<ForbiddenRequestException> {
-            projectFacadeService.updateProject("anotherUserId", requestDto)
+            projectFacadeService.updateProject(forbiddenUserId, requestDto)
           }
 
           exception.errorCode shouldBe ErrorCode.PROJECT_UPDATE_FORBIDDEN
@@ -229,11 +234,10 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
 
       it("권한이 없는 userId의 경우 ForbiddenRequestException 반환한다") {
         runTest {
-          userId = "forbiddenUserId"
           coEvery { projectCommentService.getProjectCommentById(commentId) } answers { projectComment }
 
           shouldThrow<ForbiddenRequestException> {
-            projectFacadeService.deleteProjectComment(userId, commentId)
+            projectFacadeService.deleteProjectComment(forbiddenUserId, commentId)
           }.errorCode shouldBe ErrorCode.PROJECT_COMMENT_DELETE_FORBIDDEN
         }
       }

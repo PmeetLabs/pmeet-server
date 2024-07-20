@@ -116,6 +116,7 @@ internal class ProjectCommentControllerUnitTest : DescribeSpec() {
         it("삭제된 댓글 정보를 반환한다") {
           performRequest.expectBody<ProjectCommentResponseDto>().consumeWith { response ->
             response.responseBody?.id shouldBe responseDto.id
+            response.responseBody?.content shouldBe responseDto.content
             response.responseBody?.isDeleted shouldBe responseDto.isDeleted
           }
         }
