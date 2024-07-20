@@ -29,4 +29,9 @@ class ProjectService(
   suspend fun update(project: Project): Project {
     return projectRepository.save(project).awaitSingle()
   }
+
+  @Transactional
+  suspend fun delete(project: Project) {
+    projectRepository.delete(project).awaitSingleOrNull()
+  }
 }

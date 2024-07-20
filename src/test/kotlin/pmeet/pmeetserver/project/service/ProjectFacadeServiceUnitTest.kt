@@ -1,9 +1,11 @@
 package pmeet.pmeetserver.project.service
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -26,7 +28,7 @@ import java.time.LocalDateTime
 @ExperimentalCoroutinesApi
 internal class ProjectFacadeServiceUnitTest : DescribeSpec({
 
-//  isolationMode = IsolationMode.InstancePerLeaf
+  isolationMode = IsolationMode.InstancePerLeaf
 
   val testDispatcher = StandardTestDispatcher()
 
@@ -166,11 +168,12 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
       ),
       description = "updateDescription"
     )
-    context("Project의 Userid와 요청으로 들어온 userId가 같은 경우") {
+    coEvery { projectService.getProjectById(project.id!!) } answers { project }
+    context("Project의 userId와 요청으로 들어온 userId가 같은 경우") {
       it("업데이트 후 ProjectResponseDto를 반환한다") {
         runTest {
           coEvery { projectService.update(any()) } answers { project }
-          val result = projectFacadeService.updateProject(userId, requestDto)
+          val result = projectFacadeService.updateProject(project.userId, requestDto)
 
           result.id shouldBe project.id
           result.title shouldBe requestDto.title
@@ -200,6 +203,43 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           }
 
           exception.errorCode shouldBe ErrorCode.PROJECT_UPDATE_FORBIDDEN
+        }
+      }
+    }
+  }
+
+  describe("deleteProject") {
+    val projectId = project.id!!
+    coEvery { projectService.getProjectById(projectId) } answers { project }
+    context("Project의 userId와 요청으로 들어온 userId가 같은 경우") {
+      it("Project를 삭제한다") {
+        runTest {
+          coEvery { projectService.delete(project) } answers { Unit }
+
+          projectFacadeService.deleteProject(project.userId, projectId)
+
+          coVerify(exactly = 1) { projectService.delete(project) }
+        }
+      }
+
+      it("ProjectComment를 삭제한다") {
+        runTest {
+          coEvery { projectCommentService.deleteAllByProjectId(projectId) } answers { Unit }
+
+          projectFacadeService.deleteProject(project.userId, projectId)
+
+          coVerify(exactly = 1) { projectCommentService.deleteAllByProjectId(projectId) }
+        }
+      }
+    }
+    context("Project Userid와 요청으로 들어온 userId가 다른 경우") {
+      it("ForBiddenRequestException을 던진다") {
+        runTest {
+          val exception = shouldThrow<ForbiddenRequestException> {
+            projectFacadeService.deleteProject("anotherUserId", projectId)
+          }
+
+          exception.errorCode shouldBe ErrorCode.PROJECT_DELETE_FORBIDDEN
         }
       }
     }

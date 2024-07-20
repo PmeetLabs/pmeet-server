@@ -211,5 +211,48 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
         }
       }
     }
+
+    describe("DELETE api/v1/projects/{projectId}") {
+      val projectId = "testProjectId"
+      context("인증된 유저의 Project 삭제 요청이 들어오면") {
+        val userId = "1234"
+        coEvery { projectFacadeService.deleteProject(userId, projectId) } answers { Unit }
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest =
+          webTestClient
+            .mutateWith(mockAuthentication(mockAuthentication))
+            .delete()
+            .uri {
+              it.path("/api/v1/projects")
+                .path("/$projectId")
+                .build()
+            }
+            .exchange()
+
+        it("서비스를 통해 데이터를 삭제한다") {
+          coVerify(exactly = 1) { projectFacadeService.deleteProject(userId, projectId) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isNoContent
+        }
+      }
+
+      context("인증되지 않은 유저의 Project 삭제 요청이 들어오면") {
+        val performRequest =
+          webTestClient
+            .delete()
+            .uri {
+              it.path("/api/v1/projects")
+                .path("/$projectId")
+                .build()
+            }
+            .exchange()
+
+        it("요청은 실패한다") {
+          performRequest.expectStatus().isUnauthorized
+        }
+      }
+    }
   }
 }

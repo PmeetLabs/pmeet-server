@@ -14,7 +14,6 @@ import org.springframework.data.mongodb.repository.support.ReactiveMongoReposito
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.project.domain.ProjectComment
-import pmeet.pmeetserver.user.repository.job.JobRepository
 
 @ExperimentalCoroutinesApi
 @DataMongoTest
@@ -60,12 +59,6 @@ internal class ProjectCommentRepositoryUnitTest(
 
   }
 }) {
-  @Autowired
-  private lateinit var projectCommentRepository: ProjectCommentRepository
-
-  @Autowired
-  private lateinit var jobRepository: JobRepository
-
   companion object {
     @Container
     val mongoDBContainer = MongoDBContainer("mongo:latest").apply {

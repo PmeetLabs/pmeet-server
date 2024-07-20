@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -172,6 +173,20 @@ internal class ProjectServiceUnitTest : DescribeSpec({
           result.bookMarkers shouldBe updatedProject.bookMarkers
           result.updatedAt shouldBe updatedProject.updatedAt
           result.createdAt shouldBe updatedProject.createdAt
+        }
+      }
+    }
+  }
+
+  describe("delete") {
+    context("삭제하고자 하는 Project Id가 주어지면") {
+      it("삭제한다") {
+        runTest {
+          every { projectRepository.delete(project) } answers { Mono.empty() }
+
+          projectService.delete(project)
+
+          verify(exactly = 1) { projectRepository.delete(project) }
         }
       }
     }

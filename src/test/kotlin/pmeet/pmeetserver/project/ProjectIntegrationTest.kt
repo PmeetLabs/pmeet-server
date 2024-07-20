@@ -22,11 +22,13 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
+import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 import pmeet.pmeetserver.project.repository.ProjectRepository
 import java.time.LocalDateTime
 
@@ -47,9 +49,13 @@ internal class ProjectIntegrationTest : DescribeSpec() {
   @Autowired
   lateinit var projectRepository: ProjectRepository
 
+  @Autowired
+  lateinit var projectCommentRepository: ProjectCommentRepository
+
   lateinit var project: Project
   lateinit var userId: String
   lateinit var recruitments: List<Recruitment>
+  lateinit var projectComment: ProjectComment
 
   override suspend fun beforeSpec(spec: Spec) {
     userId = "testUserId"
@@ -75,14 +81,25 @@ internal class ProjectIntegrationTest : DescribeSpec() {
       recruitments = recruitments,
       description = "testDescription"
     )
+
+    projectComment = ProjectComment(
+      id = "test-project-comment-id",
+      projectId = project.id!!,
+      userId = userId,
+      content = "testContent"
+    )
+
+
     withContext(Dispatchers.IO) {
       projectRepository.save(project).block()
+      projectCommentRepository.save(projectComment).block()
     }
   }
 
   override suspend fun afterSpec(spec: Spec) {
     withContext(Dispatchers.IO) {
       projectRepository.deleteAll().block()
+      projectCommentRepository.deleteAll().block()
     }
   }
 
@@ -195,6 +212,36 @@ internal class ProjectIntegrationTest : DescribeSpec() {
             response.responseBody?.bookMarkers shouldBe project.bookMarkers
             response.responseBody?.isCompleted shouldBe project.isCompleted
             response.responseBody?.createdAt shouldNotBe null
+          }
+        }
+      }
+    }
+
+    describe("DELETE api/v1/projects/{projectId}") {
+      context("인증된 유저의 Project 삭제 요청이 들어오면") {
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/projects/${project.id}")
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isNoContent
+        }
+
+        it("Project가 삭제된다") {
+          withContext(Dispatchers.IO) {
+            val deletedProject = projectRepository.findById(project.id!!).block()
+            deletedProject shouldBe null
+          }
+        }
+
+        it("ProjectComment가 삭제된다") {
+          withContext(Dispatchers.IO) {
+            val deletedProjectComment = projectCommentRepository.findById(projectComment.id!!).block()
+            deletedProjectComment shouldBe null
           }
         }
       }
