@@ -28,6 +28,11 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
       ?: throw EntityNotFoundException(ErrorCode.RESUME_NOT_FOUND)
   }
 
+  @Transactional(readOnly = true)
+  suspend fun getAllByUserId(userId: String): List<Resume> {
+    return resumeRepository.findAllByUserId(userId).collectList().awaitSingle()
+  }
+
   @Transactional
   suspend fun update(updateResume: Resume): Resume {
     return resumeRepository.save(updateResume).awaitSingle()

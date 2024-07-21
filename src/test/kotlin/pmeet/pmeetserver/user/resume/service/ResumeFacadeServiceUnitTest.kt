@@ -25,6 +25,7 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockDeleteResumeReque
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateCopiedResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
 import pmeet.pmeetserver.user.service.resume.ResumeService
@@ -40,6 +41,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
   lateinit var resumeFacadeService: ResumeFacadeService
 
   lateinit var resume: Resume
+  lateinit var resumeList: List<Resume>
 
   beforeSpec {
     Dispatchers.setMain(testDispatcher)
@@ -47,6 +49,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
     resumeFacadeService = ResumeFacadeService(resumeService)
 
     resume = generateResume()
+    resumeList = generateResumeList()
   }
 
   afterSpec {
@@ -102,6 +105,26 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           result.selfDescription shouldBe updateRequest.selfDescription
         }
       }
+
+      it("resume 의 update 메서드는 null 인 필드는 제외하고 이력서를 업데이트한다.") {
+        runTest {
+
+          resume = resume.update(title = "resume-title")
+          val originalResume = generateResume()
+
+          resume.isActive shouldBe originalResume.isActive
+          resume.desiredJobs.first().name shouldBe originalResume.desiredJobs.first().name
+          resume.techStacks.first().name shouldBe originalResume.techStacks.first().name
+          resume.jobExperiences.first().companyName shouldBe originalResume.jobExperiences.first().companyName
+          resume.projectExperiences.first().projectName shouldBe originalResume.projectExperiences.first().projectName
+          resume.portfolioFileUrl shouldBe originalResume.portfolioFileUrl
+          resume.portfolioUrl.first() shouldBe originalResume.portfolioUrl.first()
+          resume.selfDescription shouldBe originalResume.selfDescription
+
+
+        }
+      }
+
       it("존재하지 않는 resume ID로 업데이트 시도 시 EntityNotFoundException 발생시킨다") {
         runTest {
           coEvery { resumeService.getByResumeId(any()) } throws EntityNotFoundException(ErrorCode.RESUME_NOT_FOUND)
@@ -237,4 +260,18 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
       }
     }
   }
+
+  describe("findResumeListByUserId") {
+    context("사용자가 본인의 이력서 목록을 조회하는 경우") {
+      it("이력서 목록을 반환한다.") {
+        runTest {
+          coEvery { resumeService.getAllByUserId(any()) } answers { resumeList }
+          val result = resumeFacadeService.findResumeListByUserId(resumeList.first.userId)
+
+          result.size shouldBe resumeList.size
+        }
+      }
+    }
+  }
+
 })
