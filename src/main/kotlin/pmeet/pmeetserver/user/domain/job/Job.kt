@@ -6,7 +6,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 @Document
 class Job(
   @Id
-  val id: String? = null,
+  var id: String? = null,
   val name: String
 ) {
 }

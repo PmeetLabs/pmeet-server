@@ -8,7 +8,7 @@ import java.time.LocalDate
 @Document
 class User(
   @Id
-  val id: String? = null, // mongodb auto id generation
+  var id: String? = null, // mongodb auto id generation
   val provider: String? = null,
   val email: String,
   var name: String,

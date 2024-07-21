@@ -71,7 +71,7 @@ internal class UserIntegrationTest : DescribeSpec() {
   override suspend fun beforeSpec(spec: Spec) {
     withContext(Dispatchers.IO) {
       userRepository.save(user).block()
-      userId = userRepository.findByNicknameAndIsDeletedFalse(user.nickname).awaitFirst().id!!
+      userId = user.id!!
     }
   }
 

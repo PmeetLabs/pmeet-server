@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document
 @Document
 class ProjectComment(
   @Id
-  val id: String? = null,
+  var id: String? = null,
   val parentCommentId: String? = null,
   val projectId: String, // 프로젝트 ID 참조
   val userId: String,

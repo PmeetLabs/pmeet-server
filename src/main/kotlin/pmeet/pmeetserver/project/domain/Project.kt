@@ -14,7 +14,7 @@ data class Recruitment(
 class Project(
 
   @Id
-  val id: String? = null, // mongodb auto id generation
+  var id: String? = null, // mongodb auto id generation
   val userId: String,
   var title: String,
   var startDate: LocalDateTime,

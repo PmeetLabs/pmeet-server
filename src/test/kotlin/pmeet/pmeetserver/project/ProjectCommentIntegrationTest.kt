@@ -75,7 +75,7 @@ internal class ProjectCommentIntegrationTest : DescribeSpec() {
 
     withContext(Dispatchers.IO) {
       projectRepository.save(project).block()
-      projectId = projectRepository.findByUserId(project.userId).awaitFirst().id!!
+      projectId = project.id!!
 
       projectComment = ProjectComment(
         projectId = projectId,
@@ -84,7 +84,7 @@ internal class ProjectCommentIntegrationTest : DescribeSpec() {
         isDeleted = false,
       )
       projectCommentRepository.save(projectComment).block()
-      commentId = projectCommentRepository.findByProjectId(projectId).awaitFirst().id!!
+      commentId = projectComment.id!!
     }
   }
 

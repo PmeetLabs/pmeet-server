@@ -23,7 +23,7 @@ data class ProjectExperience(
 @Document
 class Resume(
   @Id
-  val id: String? = null, // mongodb auto id generation
+  var id: String? = null, // mongodb auto id generation
   var title: String,
   var isActive: Boolean = false,
   val userId: String,
