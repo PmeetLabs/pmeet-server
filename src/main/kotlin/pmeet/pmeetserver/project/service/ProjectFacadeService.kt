@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.project.service
 
+import java.time.LocalDateTime
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
@@ -12,12 +13,13 @@ import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
+import pmeet.pmeetserver.project.dto.request.comment.GetProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.request.tryout.ProjectTryoutResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.user.service.resume.ResumeService
-import java.time.LocalDateTime
 
 @Service
 class ProjectFacadeService(
@@ -134,5 +136,10 @@ class ProjectFacadeService(
     )
 
     return ProjectTryoutResponseDto.from(projectTryoutService.save(projectTryout))
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun getProjectCommentList(requestDto: GetProjectCommentRequestDto): List<ProjectCommentWithChildResponseDto> {
+    return projectCommentService.getProjectCommentWithChildByProjectId(requestDto.projectId)
   }
 }
