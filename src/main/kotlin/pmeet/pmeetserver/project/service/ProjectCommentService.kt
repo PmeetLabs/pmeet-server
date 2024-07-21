@@ -33,16 +33,6 @@ class ProjectCommentService(
 
   @Transactional(readOnly = true)
   suspend fun getProjectCommentWithChildByProjectId(projectId: String): List<ProjectCommentWithChildResponseDto> {
-    val parentComments =
-      projectCommentRepository.findByProjectIdAndParentCommentIdIsNullAndIsDeletedFalseOrderByCreatedAtDesc(projectId)
-        .collectList().awaitSingle()
-
-    return parentComments.map { parentComment ->
-      ProjectCommentWithChildResponseDto.from(
-        parentComment,
-        projectCommentRepository.findByParentCommentIdAndIsDeletedFalseOrderByCreatedAtDesc(parentComment.id!!)
-          .collectList().awaitSingle()
-      )
-    }
+    return projectCommentRepository.findCommentsByProjectIdWithChild(projectId).collectList().awaitSingle()
   }
 }
