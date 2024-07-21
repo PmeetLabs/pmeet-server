@@ -149,6 +149,10 @@ object ResumeGenerator {
     )
   }
 
+  internal fun createMockResumeResponseDtoList(): List<ResumeResponseDto> {
+    return generateResumeList().map { ResumeResponseDto.from(it) }
+  }
+
   internal fun createMockResumeCopyResponseDto(): ResumeResponseDto {
     return ResumeResponseDto(
       id = "resume-id",
@@ -270,6 +274,74 @@ object ResumeGenerator {
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
       selfDescription = "Passionate software engineer with a focus on backend development."
     )
+  }
+
+  internal fun generateResumeByResumeIdUserId(resumeId: String, userId: String): Resume {
+    return Resume(
+      id = resumeId,
+      title = "Software Engineer",
+      userId = userId,
+      userName = "John Doe",
+      userGender = Gender.MALE,
+      userBirthDate = LocalDate.of(1990, 1, 1),
+      userPhoneNumber = "010-1234-5678",
+      userEmail = "john.doe@example.com",
+      userProfileImageUrl = "http://example.com/profile.jpg",
+      desiredJobs = listOf(
+        Job(
+          id = "job1",
+          name = "Backend Developer"
+        ),
+        Job(
+          id = "job2",
+          name = "Frontend Developer"
+        )
+      ),
+      techStacks = listOf(
+        TechStack(
+          id = "tech1",
+          name = "Kotlin"
+        ),
+        TechStack(
+          id = "tech2",
+          name = "React"
+        )
+      ),
+      jobExperiences = listOf(
+        JobExperience(
+          companyName = "ABC Corp",
+          experiencePeriod = ExperienceYear.YEAR_03,
+          responsibilities = "Developed backend services"
+        ),
+        JobExperience(
+          companyName = "XYZ Inc",
+          experiencePeriod = ExperienceYear.YEAR_02,
+          responsibilities = "Worked on frontend development"
+        )
+      ),
+      projectExperiences = listOf(
+        ProjectExperience(
+          projectName = "Project A",
+          experiencePeriod = ExperienceYear.YEAR_01,
+          responsibilities = "Led the project development"
+        ),
+        ProjectExperience(
+          projectName = "Project B",
+          experiencePeriod = ExperienceYear.YEAR_02,
+          responsibilities = "Contributed to backend services"
+        )
+      ),
+      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
+      selfDescription = "Passionate software engineer with a focus on backend development."
+    )
+  }
+
+  internal fun generateResumeList(): List<Resume> {
+    val resume1 = generateResumeByResumeIdUserId("resume1", "user2")
+    val resume2 = generateResumeByResumeIdUserId("resume2", "user2")
+    val resume3 = generateResumeByResumeIdUserId("resume3", "user2")
+    return mutableListOf(resume1, resume2, resume3)
   }
 
   internal fun generateCopiedResume(): Resume {

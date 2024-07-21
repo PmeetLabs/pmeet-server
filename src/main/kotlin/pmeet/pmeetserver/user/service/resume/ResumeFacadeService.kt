@@ -27,6 +27,11 @@ class ResumeFacadeService(
     return ResumeResponseDto.from(resumeService.getByResumeId(resumeId))
   }
 
+  @Transactional(readOnly = true)
+  suspend fun findResumeListByUserId(userId: String): List<ResumeResponseDto> {
+    return resumeService.getAllByUserId(userId).map { ResumeResponseDto.from(it) }
+  }
+
   @Transactional
   suspend fun updateResume(userId: String, requestDto: UpdateResumeRequestDto): ResumeResponseDto {
     val originalResume = resumeService.getByResumeId(requestDto.id);

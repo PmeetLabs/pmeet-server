@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -23,7 +24,6 @@ import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
-import java.time.LocalDateTime
 
 @ExperimentalCoroutinesApi
 internal class ProjectFacadeServiceUnitTest : DescribeSpec({
@@ -40,14 +40,16 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   lateinit var project: Project
   lateinit var projectComment: ProjectComment
   lateinit var userId: String
+  lateinit var forbiddenUserId: String
   lateinit var recruitments: List<Recruitment>
 
   beforeSpec {
     Dispatchers.setMain(testDispatcher)
     projectFacadeService = ProjectFacadeService(projectService, projectCommentService)
 
-
     userId = "testUserId"
+    forbiddenUserId = "forbiddenUserId"
+
     recruitments = listOf(
       Recruitment(
         jobName = "testJobName",
@@ -75,7 +77,8 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     projectComment = ProjectComment(
       projectId = project.id!!,
       userId = userId,
-      content = "testContent"
+      content = "testContent",
+      isDeleted = false,
     )
     ReflectionTestUtils.setField(projectComment, "id", "testCommentId")
   }
@@ -103,6 +106,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
       it("ProjectResponseDto를 반환한다") {
         runTest {
           coEvery { projectService.save(any()) } answers { project }
+
           val result = projectFacadeService.createProject(userId, requestDto)
 
           result.id shouldBe project.id
@@ -120,29 +124,6 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.isCompleted shouldBe project.isCompleted
           result.bookMarkers shouldBe project.bookMarkers
           result.createdAt shouldBe project.createdAt
-        }
-      }
-    }
-  }
-
-  describe("createProjectComment") {
-    context("createProjectCommentRequestDto가 주어지면") {
-      val requestDto = CreateProjectCommentRequestDto(
-        projectId = projectComment.projectId,
-        parentCommentId = projectComment.parentCommentId,
-        content = projectComment.content
-      )
-      it("ProjectCommentResponseDto를 반환한다") {
-        runTest {
-          coEvery { projectService.getProjectById(requestDto.projectId) } answers { project }
-          coEvery { projectCommentService.save(any()) } answers { projectComment }
-          val result = projectFacadeService.createProjectComment(userId, requestDto)
-
-          result.id shouldBe projectComment.id
-          result.parentCommentId shouldBe projectComment.parentCommentId
-          result.content shouldBe projectComment.content
-          result.userId shouldBe projectComment.userId
-          result.projectId shouldBe projectComment.projectId
         }
       }
     }
@@ -199,7 +180,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           coEvery { projectService.update(any()) } answers { project }
 
           val exception = shouldThrow<ForbiddenRequestException> {
-            projectFacadeService.updateProject("anotherUserId", requestDto)
+            projectFacadeService.updateProject(forbiddenUserId, requestDto)
           }
 
           exception.errorCode shouldBe ErrorCode.PROJECT_UPDATE_FORBIDDEN
@@ -244,4 +225,61 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
       }
     }
   }
+
+  describe("createProjectComment") {
+    context("createProjectCommentRequestDto가 주어지면") {
+      val requestDto = CreateProjectCommentRequestDto(
+        projectId = projectComment.projectId,
+        parentCommentId = projectComment.parentCommentId,
+        content = projectComment.content
+      )
+      it("ProjectCommentResponseDto를 반환한다") {
+        runTest {
+          coEvery { projectService.getProjectById(requestDto.projectId) } answers { project }
+          coEvery { projectCommentService.save(any()) } answers { projectComment }
+
+          val result = projectFacadeService.createProjectComment(userId, requestDto)
+
+          result.id shouldBe projectComment.id
+          result.parentCommentId shouldBe projectComment.parentCommentId
+          result.content shouldBe projectComment.content
+          result.userId shouldBe projectComment.userId
+          result.projectId shouldBe projectComment.projectId
+          result.isDeleted shouldBe projectComment.isDeleted
+        }
+      }
+    }
+  }
+
+  describe("deleteProjectComment") {
+    context("commentId가 주어지면") {
+      val commentId = projectComment.id!!
+      it("ProjectCommentResponseDto를 반환한다") {
+        runTest {
+          coEvery { projectCommentService.getProjectCommentById(commentId) } answers { projectComment }
+          coEvery { projectCommentService.save(any()) } answers { projectComment }
+
+          val result = projectFacadeService.deleteProjectComment(userId, commentId)
+
+          result.id shouldBe projectComment.id
+          result.parentCommentId shouldBe projectComment.parentCommentId
+          result.content shouldBe "작성자가 삭제한 댓글입니다."
+          result.userId shouldBe projectComment.userId
+          result.projectId shouldBe projectComment.projectId
+          result.isDeleted shouldBe projectComment.isDeleted
+        }
+      }
+
+      it("권한이 없는 userId의 경우 ForbiddenRequestException 반환한다") {
+        runTest {
+          coEvery { projectCommentService.getProjectCommentById(commentId) } answers { projectComment }
+
+          shouldThrow<ForbiddenRequestException> {
+            projectFacadeService.deleteProjectComment(forbiddenUserId, commentId)
+          }.errorCode shouldBe ErrorCode.PROJECT_COMMENT_DELETE_FORBIDDEN
+        }
+      }
+    }
+  }
 })
+

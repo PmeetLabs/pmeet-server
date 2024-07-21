@@ -17,7 +17,6 @@ import kotlinx.coroutines.test.setMain
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.BadRequestException
 import pmeet.pmeetserver.user.domain.enum.ExperienceYear
-import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.domain.resume.JobExperience
 import pmeet.pmeetserver.user.domain.resume.ProjectExperience
@@ -26,10 +25,12 @@ import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.resume.ResumeGenerator
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeService
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
-import java.time.LocalDate
 
 @ExperimentalCoroutinesApi
 internal class ResumeServiceUnitTest : DescribeSpec({
@@ -46,6 +47,7 @@ internal class ResumeServiceUnitTest : DescribeSpec({
   lateinit var jobExperience: JobExperience
   lateinit var projectExperience: ProjectExperience
   lateinit var resume: Resume
+  lateinit var resumeList: List<Resume>
 
   beforeSpec {
     Dispatchers.setMain(testDispatcher)
@@ -70,25 +72,10 @@ internal class ResumeServiceUnitTest : DescribeSpec({
       responsibilities = "projectExperienceResponsibility",
     )
 
-    resume = Resume(
-      id = "resume-id",
-      title = "title",
-      isActive = false,
-      userId = "John-id",
-      userName = "userName",
-      userGender = Gender.MALE,
-      userBirthDate = LocalDate.of(2024, 6, 20),
-      userPhoneNumber = "010-1234-5678",
-      userEmail = "userEmail@example.com",
-      userProfileImageUrl = "userProfileImage.com",
-      desiredJobs = mutableListOf(job),
-      techStacks = mutableListOf(techStack),
-      jobExperiences = mutableListOf(jobExperience),
-      projectExperiences = mutableListOf(projectExperience),
-      portfolioFileUrl = "portfolioFile.com",
-      portfolioUrl = mutableListOf("portfolioUrl.com"),
-      selfDescription = "self description",
-    )
+    resume = generateResume()
+
+    resumeList = generateResumeList()
+
 
     Dispatchers.setMain(testDispatcher)
   }
@@ -205,6 +192,20 @@ internal class ResumeServiceUnitTest : DescribeSpec({
 
           coVerify { resumeRepository.save(any()) }
           capturedResumeSlot.captured.isActive shouldBe false
+        }
+      }
+    }
+  }
+
+  describe("getAllByUserId") {
+    context("본인 소유의 이력서를 조회하는 경우") {
+      it("이력서 목록을 조회한다") {
+        runTest {
+          every { resumeRepository.findAllByUserId("user2") } answers { Flux.fromIterable(resumeList) }
+
+          val result = resumeService.getAllByUserId("user2")
+
+          result.size shouldBe resumeList.size
         }
       }
     }

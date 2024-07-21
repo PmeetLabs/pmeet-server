@@ -22,6 +22,7 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeReque
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockDeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeCopyResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDtoList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
@@ -141,6 +142,58 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
           .get()
           .uri {
             it.path("/api/v1/resumes")
+              .queryParam("resumeId", resumeId)
+              .build()
+          }
+          .exchange()
+      it("요청은 실패한다") {
+        performRequest.expectStatus().isUnauthorized
+      }
+    }
+
+    describe("GET api/v1/resumes/list") {
+      context("인증된 유저가 이력서 목록 조회 요청이 들어오면") {
+        val userId = "user2"
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val resumeList = createMockResumeResponseDtoList()
+
+        coEvery { resumeFacadeService.findResumeListByUserId(userId) } answers { resumeList }
+
+        val performRequest =
+          webTestClient
+            .mutateWith(mockAuthentication(mockAuthentication))
+            .get()
+            .uri {
+              it.path("/api/v1/resumes/list")
+                .build()
+            }
+            .exchange()
+
+        it("서비스를 통해 데이터를 검색한다") {
+          coVerify(exactly = 1) { resumeFacadeService.findResumeListByUserId(userId) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("이력서를 반환한다") {
+          performRequest.expectBody<List<ResumeResponseDto>>().consumeWith { result ->
+            val returnedResumeList = result.responseBody!!
+
+            returnedResumeList.size shouldBe resumeList.size
+          }
+        }
+      }
+    }
+
+    context("인증되지 않은 유저의 이력서 목록 조회 요청이 들어오면") {
+      val resumeId = "resume-id"
+      val performRequest =
+        webTestClient
+          .get()
+          .uri {
+            it.path("/api/v1/resumes/list")
               .queryParam("resumeId", resumeId)
               .build()
           }

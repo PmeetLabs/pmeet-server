@@ -33,6 +33,7 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeCopyRespons
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 
 @ExtendWith(SpringExtension::class)
@@ -59,6 +60,7 @@ class ResumeIntegrationTest : DescribeSpec() {
   lateinit var resumeRepository: ResumeRepository
 
   lateinit var resume: Resume
+  lateinit var resumeList: List<Resume>
 
   override suspend fun beforeSpec(spec: Spec) {
     val job1 = Job(
@@ -83,12 +85,15 @@ class ResumeIntegrationTest : DescribeSpec() {
 
     resume = generateResume()
 
+    resumeList = generateResumeList()
+
     withContext(Dispatchers.IO) {
       jobRepository.save(job1).block()
       jobRepository.save(job2).block()
       techStackRepository.save(techStack1).block()
       techStackRepository.save(techStack2).block()
       resumeRepository.save(resume).block()
+      resumeRepository.saveAll(resumeList).collectList().block()
     }
   }
 
@@ -145,48 +150,96 @@ class ResumeIntegrationTest : DescribeSpec() {
     }
 
     describe("GET /api/v1/resumes") {
-      val userId = "1234"
-      val resumeId = "resume-id"
-      val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+      context("인증된 유저의 이력서 조회 요청이 들어오면") {
+        val userId = "1234"
+        val resumeId = "resume-id"
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
 
-      val resumeResponse = createMockResumeResponseDto()
+        val resumeResponse = createMockResumeResponseDto()
 
-      val performRequest = webTestClient
-        .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
-        .get()
-        .uri {
-          it.path("/api/v1/resumes")
-            .queryParam("resumeId", resumeId)
-            .build()
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .get()
+          .uri {
+            it.path("/api/v1/resumes")
+              .queryParam("resumeId", resumeId)
+              .build()
+          }
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
         }
-        .exchange()
 
-      it("요청은 성공한다") {
-        performRequest.expectStatus().isOk
+        it("이력서를 반환한다") {
+          performRequest.expectBody<ResumeResponseDto>().consumeWith { result ->
+            val returnedResume = result.responseBody!!
+
+            returnedResume.id shouldBe resumeResponse.id
+            returnedResume.title shouldBe resumeResponse.title
+            returnedResume.isActive shouldBe resumeResponse.isActive
+            returnedResume.userId shouldBe returnedResume.userId
+            returnedResume.userName shouldBe resumeResponse.userName
+            returnedResume.userGender shouldBe resumeResponse.userGender
+            returnedResume.userBirthDate shouldBe resumeResponse.userBirthDate
+            returnedResume.userPhoneNumber shouldBe resumeResponse.userPhoneNumber
+            returnedResume.userEmail shouldBe resumeResponse.userEmail
+            returnedResume.userProfileImageUrl shouldBe resumeResponse.userProfileImageUrl
+            returnedResume.desiredJobs shouldBe resumeResponse.desiredJobs
+            returnedResume.techStacks shouldBe resumeResponse.techStacks
+            returnedResume.jobExperiences shouldBe resumeResponse.jobExperiences
+            returnedResume.projectExperiences shouldBe resumeResponse.projectExperiences
+            returnedResume.portfolioFileUrl shouldBe resumeResponse.portfolioFileUrl
+            returnedResume.portfolioUrl shouldBe resumeResponse.portfolioUrl
+            returnedResume.selfDescription shouldBe resumeResponse.selfDescription
+          }
+        }
       }
+    }
 
-      it("이력서를 반환한다") {
-        performRequest.expectBody<ResumeResponseDto>().consumeWith { result ->
-          val returnedResume = result.responseBody!!
+    describe("GET api/v1/resumes/list") {
+      context("인증된 유저가 이력서 목록 조회 요청이 들어오면") {
+        val userId = "user2"
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val resumeList = ResumeGenerator.createMockResumeResponseDtoList()
 
-          returnedResume.id shouldBe resumeResponse.id
-          returnedResume.title shouldBe resumeResponse.title
-          returnedResume.isActive shouldBe resumeResponse.isActive
-          returnedResume.userId shouldBe returnedResume.userId
-          returnedResume.userName shouldBe resumeResponse.userName
-          returnedResume.userGender shouldBe resumeResponse.userGender
-          returnedResume.userBirthDate shouldBe resumeResponse.userBirthDate
-          returnedResume.userPhoneNumber shouldBe resumeResponse.userPhoneNumber
-          returnedResume.userEmail shouldBe resumeResponse.userEmail
-          returnedResume.userProfileImageUrl shouldBe resumeResponse.userProfileImageUrl
-          returnedResume.desiredJobs shouldBe resumeResponse.desiredJobs
-          returnedResume.techStacks shouldBe resumeResponse.techStacks
-          returnedResume.jobExperiences shouldBe resumeResponse.jobExperiences
-          returnedResume.projectExperiences shouldBe resumeResponse.projectExperiences
-          returnedResume.portfolioFileUrl shouldBe resumeResponse.portfolioFileUrl
-          returnedResume.portfolioUrl shouldBe resumeResponse.portfolioUrl
-          returnedResume.selfDescription shouldBe resumeResponse.selfDescription
+        val performRequest =
+          webTestClient
+            .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+            .get()
+            .uri {
+              it.path("/api/v1/resumes/list")
+                .build()
+            }
+            .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
         }
+
+        it("이력서를 반환한다") {
+          performRequest.expectBody<List<ResumeResponseDto>>().consumeWith { result ->
+            val returnedResumeList = result.responseBody!!
+
+            returnedResumeList.size shouldBe resumeList.size
+          }
+        }
+      }
+    }
+
+    context("인증되지 않은 유저의 이력서 목록 조회 요청이 들어오면") {
+      val resumeId = "resume-id"
+      val performRequest =
+        webTestClient
+          .get()
+          .uri {
+            it.path("/api/v1/resumes/list")
+              .queryParam("resumeId", resumeId)
+              .build()
+          }
+          .exchange()
+      it("요청은 실패한다") {
+        performRequest.expectStatus().isUnauthorized
       }
     }
 

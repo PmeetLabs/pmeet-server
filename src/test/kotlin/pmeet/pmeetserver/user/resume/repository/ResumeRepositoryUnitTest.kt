@@ -3,7 +3,6 @@ package pmeet.pmeetserver.user.resume.repository
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import java.time.LocalDate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -17,7 +16,6 @@ import org.springframework.data.mongodb.repository.support.ReactiveMongoReposito
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.user.domain.enum.ExperienceYear
-import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.domain.resume.JobExperience
 import pmeet.pmeetserver.user.domain.resume.ProjectExperience
@@ -28,6 +26,8 @@ import pmeet.pmeetserver.user.repository.job.JobRepository
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.repository.techStack.CustomTechStackRepositoryImpl
 import pmeet.pmeetserver.user.repository.techStack.TechStackRepository
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 
 @ExperimentalCoroutinesApi
 @DataMongoTest
@@ -52,6 +52,7 @@ internal class ResumeRepositoryUnitTest(
   lateinit var jobExperience: JobExperience
   lateinit var projectExperience: ProjectExperience
   lateinit var resume: Resume
+  lateinit var resumeList: List<Resume>
 
   beforeSpec {
     job = Job(
@@ -76,27 +77,13 @@ internal class ResumeRepositoryUnitTest(
       responsibilities = "projectExperienceResponsibility",
     )
 
-    resume = Resume(
-      title = "title",
-      userId = "john-id",
-      userName = "userName",
-      userGender = Gender.MALE,
-      userBirthDate = LocalDate.of(2024, 6, 20),
-      userPhoneNumber = "010-1234-5678",
-      userEmail = "userEmail@example.com",
-      userProfileImageUrl = "userProfileImage.com",
-      desiredJobs = mutableListOf(job),
-      techStacks = mutableListOf(techStack),
-      jobExperiences = mutableListOf(jobExperience),
-      projectExperiences = mutableListOf(projectExperience),
-      portfolioFileUrl = "portfolioFile.com",
-      portfolioUrl = mutableListOf("portfolioUrl.com"),
-      selfDescription = "self description",
-    )
+    resume = generateResume()
 
     val savedResume = resumeRepository.save(resume).block()
 
     resume = savedResume ?: resume
+
+    resumeList = resumeRepository.saveAll(generateResumeList()).collectList().block().orEmpty()
 
     Dispatchers.setMain(testDispatcher)
   }
@@ -154,6 +141,17 @@ internal class ResumeRepositoryUnitTest(
           result?.portfolioFileUrl shouldBe resume.portfolioFileUrl
           result?.portfolioUrl?.first shouldBe resume.portfolioUrl.first
           result?.selfDescription shouldBe resume.selfDescription
+        }
+      }
+    }
+  }
+
+  describe("findAllByUserId") {
+    context("user id 가 주어지면") {
+      it("user의 이력서 목록을 반환한다") {
+        runTest {
+          val result = resumeRepository.findAllByUserId("user2").collectList().block()
+          result?.size shouldBe resumeList.size
         }
       }
     }

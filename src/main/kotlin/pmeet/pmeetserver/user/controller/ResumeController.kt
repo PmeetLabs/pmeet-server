@@ -43,6 +43,15 @@ class ResumeController(private val resumeFacadeService: ResumeFacadeService) {
     return resumeFacadeService.findResumeById(resumeId)
   }
 
+  @GetMapping("/list")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun getResumeListByUserId(
+    @AuthenticationPrincipal userId: Mono<String>
+  ): List<ResumeResponseDto> {
+    val requestUserId = userId.awaitSingle()
+    return resumeFacadeService.findResumeListByUserId(requestUserId)
+  }
+
   @PutMapping
   @ResponseStatus(HttpStatus.OK)
   suspend fun updateResume(@AuthenticationPrincipal userId: Mono<String>, @Valid @RequestBody requestDto: UpdateResumeRequestDto): ResumeResponseDto {

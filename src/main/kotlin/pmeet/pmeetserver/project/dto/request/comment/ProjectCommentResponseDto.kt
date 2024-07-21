@@ -10,7 +10,8 @@ data class ProjectCommentResponseDto(
   val userId: String,
   val content: String,
   val likerIdList: List<String>,
-  val createdAt: LocalDateTime
+  val createdAt: LocalDateTime,
+  val isDeleted: Boolean
 ) {
   companion object {
     fun from(comment: ProjectComment): ProjectCommentResponseDto {
@@ -21,7 +22,8 @@ data class ProjectCommentResponseDto(
         userId = comment.userId,
         content = comment.content,
         likerIdList = comment.likerIdList,
-        createdAt = comment.createdAt
+        createdAt = comment.createdAt,
+        isDeleted = comment.isDeleted
       )
     }
   }

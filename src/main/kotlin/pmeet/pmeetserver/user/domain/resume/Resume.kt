@@ -42,12 +42,12 @@ class Resume(
   var selfDescription: String?
 ) {
   fun update(title: String? = null, userProfileImageUrl: String? = null,
-             desiredJobs: List<Job>? = emptyList(),
-             techStacks: List<TechStack>? = emptyList(),
-             jobExperiences: List<JobExperience>? = emptyList(),
-             projectExperiences: List<ProjectExperience>? = emptyList(),
+             desiredJobs: List<Job>? = null,
+             techStacks: List<TechStack>? = null,
+             jobExperiences: List<JobExperience>? = null,
+             projectExperiences: List<ProjectExperience>? = null,
              portfolioFileUrl: String? = null,
-             portfolioUrl: List<String>? = emptyList(),
+             portfolioUrl: List<String>? = null,
              selfDescription: String? = null
   ): Resume {
     if (title != null) this.title = title

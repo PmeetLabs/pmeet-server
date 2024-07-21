@@ -4,6 +4,8 @@ import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import pmeet.pmeetserver.common.ErrorCode
+import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 
@@ -20,5 +22,11 @@ class ProjectCommentService(
   @Transactional
   suspend fun deleteAllByProjectId(projectId: String) {
     projectCommentRepository.deleteByProjectId(projectId).awaitSingleOrNull()
+  }
+  
+  @Transactional(readOnly = true)
+  suspend fun getProjectCommentById(projectCommentId: String): ProjectComment {
+    return projectCommentRepository.findById(projectCommentId).awaitSingleOrNull()
+      ?: throw EntityNotFoundException(ErrorCode.PROJECT_COMMENT_NOT_FOUND)
   }
 }

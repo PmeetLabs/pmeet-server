@@ -14,4 +14,10 @@ class ProjectComment(
   var content: String,
   var likerIdList: List<String> = mutableListOf(), // 좋아요를 한 user id list
   val createdAt: LocalDateTime = LocalDateTime.now(),
-)
+  var isDeleted: Boolean = false
+) {
+  fun delete() {
+    this.isDeleted = true
+    this.content = "작성자가 삭제한 댓글입니다."
+  }
+}

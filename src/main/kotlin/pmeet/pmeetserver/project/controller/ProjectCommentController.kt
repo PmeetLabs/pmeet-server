@@ -4,6 +4,8 @@ import jakarta.validation.Valid
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -27,5 +29,14 @@ class ProjectCommentController(
     @RequestBody @Valid requestDto: CreateProjectCommentRequestDto
   ): ProjectCommentResponseDto {
     return projectFacadeService.createProjectComment(userId.awaitSingle(), requestDto)
+  }
+
+  @DeleteMapping("/{commentId}")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun deleteProjectComment(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @PathVariable commentId: String
+  ): ProjectCommentResponseDto {
+    return projectFacadeService.deleteProjectComment(userId.awaitSingle(), commentId)
   }
 }
