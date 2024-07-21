@@ -18,11 +18,16 @@ import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectComment
+import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
+import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
+import pmeet.pmeetserver.user.domain.resume.Resume
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
+import pmeet.pmeetserver.user.service.resume.ResumeService
 import java.time.LocalDateTime
 
 @ExperimentalCoroutinesApi
@@ -34,6 +39,8 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
 
   val projectService = mockk<ProjectService>(relaxed = true)
   val projectCommentService = mockk<ProjectCommentService>(relaxed = true)
+  val resumeService = mockk<ResumeService>(relaxed = true)
+  val projectTryoutService = mockk<ProjectTryoutService>(relaxed = true)
 
   lateinit var projectFacadeService: ProjectFacadeService
 
@@ -42,10 +49,17 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   lateinit var userId: String
   lateinit var forbiddenUserId: String
   lateinit var recruitments: List<Recruitment>
+  lateinit var resume: Resume
+  lateinit var projectTryout: ProjectTryout
 
   beforeSpec {
     Dispatchers.setMain(testDispatcher)
-    projectFacadeService = ProjectFacadeService(projectService, projectCommentService)
+    projectFacadeService = ProjectFacadeService(
+      projectService,
+      projectCommentService,
+      resumeService,
+      projectTryoutService
+    )
 
     userId = "testUserId"
     forbiddenUserId = "forbiddenUserId"
@@ -81,6 +95,16 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
       isDeleted = false,
     )
     ReflectionTestUtils.setField(projectComment, "id", "testCommentId")
+
+    resume = generateResume()
+
+    projectTryout = ProjectTryout(
+      projectId = "testProjectId",
+      userId = userId,
+      resumeId = resume.id!!,
+      createdAt = LocalDateTime.now()
+    )
+    ReflectionTestUtils.setField(projectTryout, "id", "testTryoutId")
   }
 
   afterSpec {
@@ -278,6 +302,29 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           }
 
           exception.errorCode shouldBe ErrorCode.PROJECT_DELETE_FORBIDDEN
+        }
+      }
+    }
+  }
+
+  describe("createProjectTryout") {
+    context("createProjectTryoutRequestDto 주어지면") {
+      val requestDto = CreateProjectTryoutRequestDto(
+        projectId = projectTryout.projectId,
+        resumeId = projectTryout.resumeId,
+      )
+
+      it("ProjectTryoutResponseDto 반환한다") {
+        runTest {
+          coEvery { resumeService.getByResumeId(projectTryout.resumeId) } answers { resume }
+          coEvery { projectTryoutService.save(any()) } answers { projectTryout }
+
+          val result = projectFacadeService.createProjectTryout(resume.userId, requestDto)
+
+          result.id shouldBe projectTryout.id
+          result.resumeId shouldBe projectTryout.resumeId
+          result.userId shouldBe projectTryout.userId
+          result.projectId shouldBe projectTryout.projectId
         }
       }
     }

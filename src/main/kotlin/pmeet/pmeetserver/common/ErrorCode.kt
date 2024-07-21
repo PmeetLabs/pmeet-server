@@ -32,6 +32,7 @@ enum class ErrorCode(private val code: String, private val message: String) {
   RESUME_DELETE_FORBIDDEN("RESUME-40302", "해당하는 이력서를 삭제할 권한이 없습니다."),
   RESUME_COPY_FORBIDDEN("RESUME-40303", "해당하는 이력서를 복사할 권한이 없습니다."),
   RESUME_ACTIVE_CHANGE_FORBIDDEN("RESUME-40304", "해당하는 이력서의 프미팅 상태를 변경할 권한이 없습니다."),
+  RESUME_TRYOUT_FORBIDDEN("RESUME-40305", "해당하는 이력서로 프로젝트에 지원할 권한이 없습니다."),
   RESUME_NOT_FOUND("RESUME-40400", "해당하는 ID의 이력서를 찾을 수 없습니다."),
 
   // Project

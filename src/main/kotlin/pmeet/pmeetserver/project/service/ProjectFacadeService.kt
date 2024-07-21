@@ -6,17 +6,24 @@ import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectComment
+import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
+import pmeet.pmeetserver.project.dto.request.tryout.ProjectTryoutResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
+import pmeet.pmeetserver.user.service.resume.ResumeService
+import java.time.LocalDateTime
 
 @Service
 class ProjectFacadeService(
   private val projectService: ProjectService,
   private val projectCommentService: ProjectCommentService,
+  private val resumeService: ResumeService,
+  private val projectTryoutService: ProjectTryoutService
 ) {
 
   @Transactional
@@ -102,5 +109,26 @@ class ProjectFacadeService(
 
     projectCommentService.deleteAllByProjectId(projectId)
     projectService.delete(project)
+  }
+
+  @Transactional
+  suspend fun createProjectTryout(
+    userId: String,
+    requestDto: CreateProjectTryoutRequestDto
+  ): ProjectTryoutResponseDto {
+    val resume = resumeService.getByResumeId(requestDto.resumeId)
+
+    if (resume.userId != userId) {
+      throw ForbiddenRequestException(ErrorCode.RESUME_TRYOUT_FORBIDDEN)
+    }
+
+    val projectTryout = ProjectTryout(
+      resumeId = requestDto.resumeId,
+      userId = userId,
+      projectId = requestDto.projectId,
+      createdAt = LocalDateTime.now()
+    )
+
+    return ProjectTryoutResponseDto.from(projectTryoutService.save(projectTryout))
   }
 }
