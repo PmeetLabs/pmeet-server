@@ -116,6 +116,7 @@ class ProjectFacadeService(
     }
 
     projectCommentService.deleteAllByProjectId(projectId)
+    projectTryoutService.deleteAllByProjectId(projectId)
     projectService.delete(project)
   }
 

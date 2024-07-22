@@ -27,7 +27,9 @@ import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectBookmark
 import pmeet.pmeetserver.project.domain.ProjectComment
+import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
+import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
@@ -39,6 +41,7 @@ import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 import pmeet.pmeetserver.project.repository.ProjectRepository
+import pmeet.pmeetserver.project.repository.ProjectTryoutRepository
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.repository.UserRepository
@@ -68,6 +71,9 @@ internal class ProjectIntegrationTest : DescribeSpec() {
   @Autowired
   lateinit var userRepository: UserRepository
 
+  @Autowired
+  lateinit var projectTryoutRepository: ProjectTryoutRepository
+
   lateinit var project: Project
   lateinit var projectId: String
   lateinit var userId: String
@@ -76,6 +82,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
   lateinit var user: User
   lateinit var deletedProjectComment: ProjectComment
   lateinit var childProjectComment: ProjectComment
+  lateinit var projectTryout: ProjectTryout
 
   override suspend fun beforeSpec(spec: Spec) {
     userId = "user-id"
@@ -134,6 +141,17 @@ internal class ProjectIntegrationTest : DescribeSpec() {
         isDeleted = true,
       )
       projectCommentRepository.save(deletedProjectComment).block()
+
+      projectTryout = ProjectTryout(
+        projectId = project.id!!,
+        userId = userId,
+        resumeId = "resumeId",
+        userName = "testUserName",
+        positionName = "testPosition",
+        tryoutStatus = ProjectTryoutStatus.INREVIEW,
+        createdAt = LocalDateTime.now()
+      )
+      projectTryoutRepository.save(projectTryout).block()
     }
   }
 
@@ -141,6 +159,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
     withContext(Dispatchers.IO) {
       projectRepository.deleteAll().block()
       projectCommentRepository.deleteAll().block()
+      projectTryoutRepository.deleteAll().block()
       userRepository.deleteAll().block()
     }
   }
@@ -327,6 +346,13 @@ internal class ProjectIntegrationTest : DescribeSpec() {
           withContext(Dispatchers.IO) {
             val deletedProjectComment = projectCommentRepository.findById(projectComment.id!!).block()
             deletedProjectComment shouldBe null
+          }
+        }
+
+        it("ProjectTryout이 삭제된다") {
+          withContext(Dispatchers.IO) {
+            val deletedProjectTryout = projectTryoutRepository.findById(projectTryout.id!!).block()
+            deletedProjectTryout shouldBe null
           }
         }
       }

@@ -44,8 +44,6 @@ internal class ProjectCommentRepositoryUnitTest(
       isDeleted = false
     )
     projectCommentRepository.save(projectComment).block()
-
-    Dispatchers.setMain(testDispatcher)
   }
 
   afterSpec {

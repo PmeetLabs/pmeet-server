@@ -348,6 +348,16 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           coVerify(exactly = 1) { projectCommentService.deleteAllByProjectId(projectId) }
         }
       }
+
+      it("ProjectTryout을 삭제한다") {
+        runTest {
+          coEvery { projectTryoutService.deleteAllByProjectId(projectId) } answers { Unit }
+
+          projectFacadeService.deleteProject(project.userId, projectId)
+
+          coVerify(exactly = 1) { projectTryoutService.deleteAllByProjectId(projectId) }
+        }
+      }
     }
     context("Project Userid와 요청으로 들어온 userId가 다른 경우") {
       it("ForBiddenRequestException을 던진다") {

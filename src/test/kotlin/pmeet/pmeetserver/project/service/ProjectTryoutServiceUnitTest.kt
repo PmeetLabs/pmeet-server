@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -63,6 +64,20 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
           result.userName shouldBe projectTryout.userName
           result.positionName shouldBe projectTryout.positionName
           result.projectId shouldBe projectTryout.projectId
+        }
+      }
+    }
+  }
+
+  describe("deleteAllByProjectId") {
+    context("프로젝트 ID가 주어지면") {
+      it("해당 프로젝트 지원 이력을 삭제한다") {
+        runTest {
+          every { projectTryoutRepository.deleteByProjectId(any()) } answers { Mono.empty() }
+
+          projectTryoutService.deleteAllByProjectId(projectTryout.projectId)
+
+          verify(exactly = 1) { projectTryoutRepository.deleteByProjectId(projectTryout.projectId) }
         }
       }
     }
