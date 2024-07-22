@@ -34,8 +34,14 @@ class CustomProjectRepositoryImpl(
     return aggregateProjects(isCompleted, criteria, pageable)
   }
 
+  /**
+   * 프로젝트 필터 조건인 Criteria 생성
+   *
+   * @param filterType ? 필터 타입(ALL, TITLE, JOB_NAME)
+   * @param filterValue ? 필터 값
+   */
   private fun createCriteria(filterType: ProjectFilterType?, filterValue: String?): Criteria {
-    return if (filterType == null || filterValue == null) {
+    return if (filterType == null || filterValue == null) { // 필터가 없거나 값이 없는 경우 전체 조회
       Criteria()
     } else {
       when (filterType) {
@@ -50,11 +56,25 @@ class CustomProjectRepositoryImpl(
     }
   }
 
+  /**
+   * 프로젝트 목록을 조회하기 위한 Aggregation을 수행
+   *
+   * @param isCompleted 완료 여부
+   * @param criteria 검색 조건
+   * @param pageable 페이징 정보
+   */
   private fun aggregateProjects(isCompleted: Boolean, criteria: Criteria, pageable: Pageable): Flux<Project> {
     val aggregation = generateSearchAggregation(isCompleted, criteria, pageable)
     return mongoTemplate.aggregate(aggregation, DOCUMENT_NAME, Project::class.java)
   }
 
+  /**
+   * 프로젝트 검색을 위한 Aggregation 생성
+   *
+   * @param isCompleted 완료 여부
+   * @param criteria 검색 조건
+   * @param pageable 페이징 정보
+   */
   private fun generateSearchAggregation(isCompleted: Boolean, criteria: Criteria, pageable: Pageable): Aggregation {
     val newCriteria = Criteria.where(PROPERTY_NAME_IS_COMPLETED).`is`(isCompleted).andOperator(criteria)
 

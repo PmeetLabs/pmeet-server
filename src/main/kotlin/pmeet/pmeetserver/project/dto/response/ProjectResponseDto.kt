@@ -20,11 +20,12 @@ data class ProjectResponseDto(
   val recruitments: List<RecruitmentResponseDto>,
   val description: String,
   val isCompleted: Boolean,
-  val bookMarkers: List<String>,
-  val createdAt: LocalDateTime
+  val bookMarked: Boolean,
+  val createdAt: LocalDateTime,
+  val updatedAt: LocalDateTime
 ) {
   companion object {
-    fun from(project: Project): ProjectResponseDto {
+    fun from(project: Project, userId: String): ProjectResponseDto {
       return ProjectResponseDto(
         id = project.id!!,
         userId = project.userId,
@@ -36,8 +37,9 @@ data class ProjectResponseDto(
         recruitments = project.recruitments.map { RecruitmentResponseDto(it.jobName, it.numberOfRecruitment) },
         description = project.description,
         isCompleted = project.isCompleted,
-        bookMarkers = project.bookMarkers,
-        createdAt = project.createdAt
+        bookMarked = project.bookMarkers.any { it.userId == userId },
+        createdAt = project.createdAt,
+        updatedAt = project.updatedAt
       )
     }
   }

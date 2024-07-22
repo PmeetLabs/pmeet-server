@@ -31,7 +31,7 @@ data class SearchProjectResponseDto(
         jobNames = project.recruitments.map { it.jobName },
         description = project.description,
         isCompleted = project.isCompleted,
-        bookMarked = project.bookMarkers.contains(userId),
+        bookMarked = project.bookMarkers.any { it.userId == userId },
         createdAt = project.createdAt,
         updatedAt = project.updatedAt
       )

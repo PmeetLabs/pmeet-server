@@ -18,6 +18,7 @@ import org.springframework.test.util.ReflectionTestUtils
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.ProjectBookMark
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
@@ -216,7 +217,7 @@ internal class ProjectRepositoryUnitTest(
             description = "testDescription$i"
           )
           for (j in 1..i) {
-            project.bookMarkers.add("testUserId$j")
+            project.bookMarkers.add(ProjectBookMark("testUserId$j", LocalDateTime.now()))
           }
           projectRepository.save(project).block()
         }
@@ -249,7 +250,7 @@ internal class ProjectRepositoryUnitTest(
             description = "testDescription$i"
           )
           for (j in 1..i) {
-            project.bookMarkers.add("testUserId$j")
+            project.bookMarkers.add(ProjectBookMark("testUserId$j", LocalDateTime.now()))
           }
           projectRepository.save(project).block()
         }

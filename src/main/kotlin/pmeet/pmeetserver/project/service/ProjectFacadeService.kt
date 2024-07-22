@@ -50,7 +50,7 @@ class ProjectFacadeService(
       description = requestDto.description
     )
 
-    return ProjectResponseDto.from(projectService.save(project))
+    return ProjectResponseDto.from(projectService.save(project), userId)
   }
 
   @Transactional
@@ -71,7 +71,7 @@ class ProjectFacadeService(
       description = requestDto.description
     )
 
-    return ProjectResponseDto.from(projectService.update(originalProject))
+    return ProjectResponseDto.from(projectService.update(originalProject), userId)
   }
 
   @Transactional

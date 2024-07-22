@@ -19,6 +19,7 @@ import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.ProjectBookMark
 import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
@@ -94,7 +95,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     )
     ReflectionTestUtils.setField(project, "id", "testId")
     ReflectionTestUtils.setField(project, "createdAt", LocalDateTime.of(2021, 5, 1, 0, 0, 0))
-
+    ReflectionTestUtils.setField(project, "updatedAt", LocalDateTime.of(2021, 6, 1, 0, 0, 0))
     projectComment = ProjectComment(
       projectId = project.id!!,
       userId = userId,
@@ -156,8 +157,9 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           }
           result.description shouldBe requestDto.description
           result.isCompleted shouldBe project.isCompleted
-          result.bookMarkers shouldBe project.bookMarkers
+          result.bookMarked shouldBe false
           result.createdAt shouldBe project.createdAt
+          result.updatedAt shouldBe project.updatedAt
         }
       }
     }
@@ -204,8 +206,9 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           }
           result.description shouldBe requestDto.description
           result.isCompleted shouldBe project.isCompleted
-          result.bookMarkers shouldBe project.bookMarkers
+          result.bookMarked shouldBe false
           result.createdAt shouldBe project.createdAt
+          result.updatedAt shouldBe project.updatedAt
         }
       }
     }
@@ -423,10 +426,10 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
             description = "testDescription"
           )
           if (i == 1) {
-            newProject.bookMarkers.add(requesterUserId)
+            newProject.bookMarkers.add(ProjectBookMark(requesterUserId, LocalDateTime.now()))
           }
           for (j in 1..i) {
-            newProject.bookMarkers.add("$userId$i")
+            newProject.bookMarkers.add(ProjectBookMark("$userId$i", LocalDateTime.now()))
           }
           projects.add(newProject)
         }

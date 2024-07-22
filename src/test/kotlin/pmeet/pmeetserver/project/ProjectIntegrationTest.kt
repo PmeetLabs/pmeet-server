@@ -24,6 +24,7 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.ProjectBookMark
 import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
@@ -167,9 +168,10 @@ internal class ProjectIntegrationTest : DescribeSpec() {
             }
             response.responseBody?.description shouldBe requestDto.description
             response.responseBody?.userId shouldBe project.userId
-            response.responseBody?.bookMarkers shouldBe project.bookMarkers
+            response.responseBody?.bookMarked shouldBe false
             response.responseBody?.isCompleted shouldBe project.isCompleted
             response.responseBody?.createdAt shouldNotBe null
+            response.responseBody?.updatedAt shouldNotBe null
           }
         }
       }
@@ -224,9 +226,10 @@ internal class ProjectIntegrationTest : DescribeSpec() {
             }
             response.responseBody?.description shouldBe requestDto.description
             response.responseBody?.userId shouldBe project.userId
-            response.responseBody?.bookMarkers shouldBe project.bookMarkers
+            response.responseBody?.bookMarked shouldBe false
             response.responseBody?.isCompleted shouldBe project.isCompleted
             response.responseBody?.createdAt shouldNotBe null
+            response.responseBody?.updatedAt shouldNotBe null
           }
         }
       }
@@ -631,10 +634,10 @@ internal class ProjectIntegrationTest : DescribeSpec() {
             description = "testDescription"
           )
           if (i == 20) {
-            newProject.bookMarkers.add(userId)
+            newProject.bookMarkers.add(ProjectBookMark(userId, LocalDateTime.now()))
           }
           for (j in 1..i) {
-            newProject.bookMarkers.add("testUserId$j")
+            newProject.bookMarkers.add(ProjectBookMark("testUserId$j", LocalDateTime.now()))
           }
           withContext(Dispatchers.IO) {
             projectRepository.save(newProject).block()

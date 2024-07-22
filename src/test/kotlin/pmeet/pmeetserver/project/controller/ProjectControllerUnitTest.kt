@@ -73,9 +73,10 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
           recruitments = requestDto.recruitments.map { RecruitmentResponseDto(it.jobName, it.numberOfRecruitment) },
           description = requestDto.description,
           userId = userId,
-          bookMarkers = mutableListOf(),
+          bookMarked = false,
           isCompleted = false,
-          createdAt = LocalDateTime.of(2021, 5, 1, 0, 0, 0)
+          createdAt = LocalDateTime.of(2021, 5, 1, 0, 0, 0),
+          updatedAt = LocalDateTime.of(2021, 6, 1, 0, 0, 0)
         )
 
         coEvery { projectFacadeService.createProject(userId, requestDto) } answers { responseDto }
@@ -111,9 +112,10 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
             }
             response.responseBody?.description shouldBe responseDto.description
             response.responseBody?.userId shouldBe responseDto.userId
-            response.responseBody?.bookMarkers shouldBe responseDto.bookMarkers
+            response.responseBody?.bookMarked shouldBe responseDto.bookMarked
             response.responseBody?.isCompleted shouldBe responseDto.isCompleted
             response.responseBody?.createdAt shouldBe responseDto.createdAt
+            response.responseBody?.updatedAt shouldBe responseDto.updatedAt
           }
         }
       }
@@ -164,9 +166,10 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
           recruitments = requestDto.recruitments.map { RecruitmentResponseDto(it.jobName, it.numberOfRecruitment) },
           description = requestDto.description,
           userId = userId,
-          bookMarkers = mutableListOf(),
+          bookMarked = false,
           isCompleted = false,
-          createdAt = LocalDateTime.of(2021, 5, 1, 0, 0, 0)
+          createdAt = LocalDateTime.of(2021, 5, 1, 0, 0, 0),
+          updatedAt = LocalDateTime.of(2021, 6, 1, 0, 0, 0)
         )
 
         coEvery { projectFacadeService.updateProject(userId, requestDto) } answers { responseDto }
@@ -202,9 +205,10 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
             }
             response.responseBody?.description shouldBe responseDto.description
             response.responseBody?.userId shouldBe responseDto.userId
-            response.responseBody?.bookMarkers shouldBe responseDto.bookMarkers
+            response.responseBody?.bookMarked shouldBe responseDto.bookMarked
             response.responseBody?.isCompleted shouldBe responseDto.isCompleted
             response.responseBody?.createdAt shouldBe responseDto.createdAt
+            response.responseBody?.updatedAt shouldBe responseDto.updatedAt
           }
         }
       }
