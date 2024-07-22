@@ -23,7 +23,6 @@ internal class ProjectCommentRepositoryUnitTest(
   @Autowired private val template: ReactiveMongoTemplate
 ) : DescribeSpec({
 
-//  isolationMode = IsolationMode.InstancePerLeaf
   isolationMode = IsolationMode.InstancePerLeaf
 
   val testDispatcher = StandardTestDispatcher()
@@ -37,13 +36,7 @@ internal class ProjectCommentRepositoryUnitTest(
 
   beforeSpec {
     Dispatchers.setMain(testDispatcher)
-    projectComment = ProjectComment(
-      id = "testId",
-      projectId = "testProjectId",
-      userId = "testUserId",
-      content = "testContent"
-    )
-    projectCommentRepository.save(projectComment).block()
+
     projectComment = ProjectComment(
       projectId = "testProjectId",
       userId = "testUserId",
@@ -76,16 +69,24 @@ internal class ProjectCommentRepositoryUnitTest(
     context("projectId가 주어지면") {
       it("댓글(답글 포함) 반환") {
         runTest {
-          val projectComment2 = ProjectComment(
+          val deletedProjectComment1 = ProjectComment(
             projectId = "testProjectId",
             userId = "testUserId",
-            content = "testContent2",
-            isDeleted = false
+            content = "deleted1",
+            isDeleted = true
           )
-          projectCommentRepository.save(projectComment2).block()
+          projectCommentRepository.save(deletedProjectComment1).block()
+
+          val deletedProjectComment2 = ProjectComment(
+            projectId = "testProjectId",
+            userId = "testUserId",
+            content = "deleted2",
+            isDeleted = true
+          )
+          projectCommentRepository.save(deletedProjectComment2).block()
 
           val childProjectComment1 = ProjectComment(
-            parentCommentId = projectComment2.id!!,
+            parentCommentId = deletedProjectComment1.id!!,
             projectId = "testProjectId",
             userId = "testUserId",
             content = "child",
@@ -93,10 +94,38 @@ internal class ProjectCommentRepositoryUnitTest(
           )
           projectCommentRepository.save(childProjectComment1).block()
 
+          val deletedChildProjectComment1 = ProjectComment(
+            parentCommentId = deletedProjectComment1.id!!,
+            projectId = "testProjectId",
+            userId = "testUserId",
+            content = "deletedChild",
+            isDeleted = true
+          )
+          projectCommentRepository.save(deletedChildProjectComment1).block()
+
           val result =
             projectCommentRepository.findCommentsByProjectIdWithChild(projectComment.projectId).collectList().block()
 
           result?.size shouldBe 2
+          result?.get(0)?.id shouldBe deletedProjectComment1.id
+          result?.get(0)?.content shouldBe deletedProjectComment1.content
+          result?.get(0)?.projectId shouldBe deletedProjectComment1.projectId
+          result?.get(0)?.isDeleted shouldBe deletedProjectComment1.isDeleted
+          result?.get(0)?.parentCommentId shouldBe deletedProjectComment1.parentCommentId
+
+          result?.get(0)?.childComments?.size shouldBe 1
+          result?.get(0)?.childComments?.get(0)?.id shouldBe childProjectComment1.id
+          result?.get(0)?.childComments?.get(0)?.content shouldBe childProjectComment1.content
+          result?.get(0)?.childComments?.get(0)?.projectId shouldBe childProjectComment1.projectId
+          result?.get(0)?.childComments?.get(0)?.isDeleted shouldBe childProjectComment1.isDeleted
+          result?.get(0)?.childComments?.get(0)?.parentCommentId shouldBe childProjectComment1.parentCommentId
+
+          result?.get(1)?.id shouldBe projectComment.id
+          result?.get(1)?.content shouldBe projectComment.content
+          result?.get(1)?.projectId shouldBe projectComment.projectId
+          result?.get(1)?.isDeleted shouldBe projectComment.isDeleted
+          result?.get(1)?.parentCommentId shouldBe projectComment.parentCommentId
+          result?.get(1)?.childComments shouldBe emptyList()
         }
       }
     }

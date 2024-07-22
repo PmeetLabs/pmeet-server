@@ -5,6 +5,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
+import java.time.LocalDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.context.annotation.Import
@@ -16,10 +17,11 @@ import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
+import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.RecruitmentResponseDto
 import pmeet.pmeetserver.project.service.ProjectFacadeService
-import java.time.LocalDateTime
 
 @WebFluxTest(ProjectController::class)
 @Import(TestSecurityConfig::class)
@@ -251,6 +253,72 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
 
         it("요청은 실패한다") {
           performRequest.expectStatus().isUnauthorized
+        }
+      }
+    }
+
+    describe("getProjectCommentList") {
+      context("댓글 조회 요청이 들어오면") {
+        val userId = "userId"
+        val projectId = "testProjectId"
+        val responseDto = listOf(
+          ProjectCommentWithChildResponseDto(
+            id = "testCommentId",
+            parentCommentId = null,
+            projectId = "testProjectId",
+            userId = userId,
+            content = "testContent",
+            likerIdList = listOf(),
+            createdAt = LocalDateTime.of(2024, 7, 16, 0, 0, 0),
+            isDeleted = false,
+            childComments = listOf(
+              ProjectCommentResponseDto(
+                id = "childCommentId",
+                parentCommentId = "testCommentId",
+                projectId = "testProjectId",
+                userId = userId,
+                content = "testContent",
+                likerIdList = listOf(),
+                createdAt = LocalDateTime.of(2024, 7, 16, 0, 0, 0),
+                isDeleted = false,
+              )
+            )
+          )
+        )
+
+        coEvery { projectFacadeService.getProjectCommentList(projectId) } answers { responseDto }
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest =
+          webTestClient
+            .mutateWith(mockAuthentication(mockAuthentication))
+            .get()
+            .uri("/api/v1/projects/$projectId/comments")
+            .exchange()
+
+        it("서비스를 통해 데이터를 조회한다.") {
+          coVerify(exactly = 1) { projectFacadeService.getProjectCommentList(projectId) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("조회한 댓글 정보를 반환한다") {
+          performRequest.expectBody<List<ProjectCommentWithChildResponseDto>>().consumeWith { response ->
+            response.responseBody?.get(0)?.id shouldBe responseDto[0].id
+            response.responseBody?.get(0)?.parentCommentId shouldBe responseDto[0].parentCommentId
+            response.responseBody?.get(0)?.projectId shouldBe responseDto[0].projectId
+            response.responseBody?.get(0)?.userId shouldBe responseDto[0].userId
+            response.responseBody?.get(0)?.content shouldBe responseDto[0].content
+            response.responseBody?.get(0)?.isDeleted shouldBe responseDto[0].isDeleted
+
+            response.responseBody?.get(0)?.childComments?.get(0)?.id shouldBe responseDto[0].childComments[0].id
+            response.responseBody?.get(0)?.childComments?.get(0)?.content shouldBe responseDto[0].childComments[0].content
+            response.responseBody?.get(0)?.childComments?.get(0)?.userId shouldBe responseDto[0].childComments[0].userId
+            response.responseBody?.get(0)?.childComments?.get(0)?.parentCommentId shouldBe responseDto[0].childComments[0].parentCommentId
+            response.responseBody?.get(0)?.childComments?.get(0)?.projectId shouldBe responseDto[0].childComments[0].projectId
+            response.responseBody?.get(0)?.childComments?.get(0)?.isDeleted shouldBe responseDto[0].childComments[0].isDeleted
+          }
         }
       }
     }

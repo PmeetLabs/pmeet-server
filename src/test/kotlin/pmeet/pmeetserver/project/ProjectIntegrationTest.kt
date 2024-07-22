@@ -5,6 +5,7 @@ import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.withContext
@@ -27,10 +28,10 @@ import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
+import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 import pmeet.pmeetserver.project.repository.ProjectRepository
-import java.time.LocalDateTime
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -56,6 +57,8 @@ internal class ProjectIntegrationTest : DescribeSpec() {
   lateinit var userId: String
   lateinit var recruitments: List<Recruitment>
   lateinit var projectComment: ProjectComment
+  lateinit var deletedProjectComment: ProjectComment
+  lateinit var childProjectComment: ProjectComment
 
   override suspend fun beforeSpec(spec: Spec) {
     userId = "testUserId"
@@ -83,12 +86,22 @@ internal class ProjectIntegrationTest : DescribeSpec() {
 
     withContext(Dispatchers.IO) {
       projectRepository.save(project).block()
+
       projectComment = ProjectComment(
         projectId = project.id!!,
         userId = userId,
-        content = "testContent"
+        content = "testContent",
+        isDeleted = false,
       )
       projectCommentRepository.save(projectComment).block()
+
+      deletedProjectComment = ProjectComment(
+        projectId = project.id!!,
+        userId = userId,
+        content = "childContent",
+        isDeleted = true,
+      )
+      projectCommentRepository.save(deletedProjectComment).block()
     }
   }
 
@@ -238,6 +251,76 @@ internal class ProjectIntegrationTest : DescribeSpec() {
           withContext(Dispatchers.IO) {
             val deletedProjectComment = projectCommentRepository.findById(projectComment.id!!).block()
             deletedProjectComment shouldBe null
+          }
+        }
+      }
+    }
+
+    describe("GET api/v1/projects/{projectId}/comments") {
+      context("Project Comment 전체 조회 요청이 들어오면") {
+        val deletedProjectComment1 = ProjectComment(
+          projectId = "testProjectId",
+          userId = "testUserId",
+          content = "deleted1",
+          isDeleted = true
+        )
+        projectCommentRepository.save(deletedProjectComment1).block()
+
+        val deletedProjectComment2 = ProjectComment(
+          projectId = "testProjectId",
+          userId = "testUserId",
+          content = "deleted2",
+          isDeleted = true
+        )
+        projectCommentRepository.save(deletedProjectComment2).block()
+
+        val childProjectComment1 = ProjectComment(
+          parentCommentId = deletedProjectComment1.id!!,
+          projectId = "testProjectId",
+          userId = "testUserId",
+          content = "child",
+          isDeleted = false
+        )
+        projectCommentRepository.save(childProjectComment1).block()
+
+        val deletedChildProjectComment1 = ProjectComment(
+          parentCommentId = deletedProjectComment1.id!!,
+          projectId = "testProjectId",
+          userId = "testUserId",
+          content = "deletedChild",
+          isDeleted = true
+        )
+        projectCommentRepository.save(deletedChildProjectComment1).block()
+
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val projectId = "testProjectId"
+
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .get()
+          .uri("/api/v1/projects/$projectId/comments")
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("생성된 Project 정보를 반환한다") {
+          performRequest.expectBody<List<ProjectCommentWithChildResponseDto>>().consumeWith { response ->
+            response.responseBody?.get(0)?.id shouldBe deletedProjectComment1.id
+            response.responseBody?.get(0)?.parentCommentId shouldBe deletedProjectComment1.parentCommentId
+            response.responseBody?.get(0)?.projectId shouldBe deletedProjectComment1.projectId
+            response.responseBody?.get(0)?.userId shouldBe deletedProjectComment1.userId
+            response.responseBody?.get(0)?.content shouldBe deletedProjectComment1.content
+            response.responseBody?.get(0)?.isDeleted shouldBe deletedProjectComment1.isDeleted
+
+            response.responseBody?.get(0)?.childComments?.get(0)?.id shouldBe childProjectComment1.id
+            response.responseBody?.get(0)?.childComments?.get(0)?.content shouldBe childProjectComment1.content
+            response.responseBody?.get(0)?.childComments?.get(0)?.userId shouldBe childProjectComment1.userId
+            response.responseBody?.get(0)?.childComments?.get(0)?.parentCommentId shouldBe childProjectComment1.parentCommentId
+            response.responseBody?.get(0)?.childComments?.get(0)?.projectId shouldBe childProjectComment1.projectId
+            response.responseBody?.get(0)?.childComments?.get(0)?.isDeleted shouldBe childProjectComment1.isDeleted
           }
         }
       }

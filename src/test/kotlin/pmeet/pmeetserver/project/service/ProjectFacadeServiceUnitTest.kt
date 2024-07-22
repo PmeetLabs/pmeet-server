@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -25,11 +26,12 @@ import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
+import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.service.resume.ResumeService
-import java.time.LocalDateTime
 
 @ExperimentalCoroutinesApi
 internal class ProjectFacadeServiceUnitTest : DescribeSpec({
@@ -332,6 +334,57 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.userName shouldBe projectTryout.userName
           result.positionName shouldBe projectTryout.positionName
           result.projectId shouldBe projectTryout.projectId
+        }
+      }
+    }
+  }
+
+  describe("getProjectCommentList") {
+    val projectId = project.id!!
+    val responseDto = listOf(
+      ProjectCommentWithChildResponseDto(
+        id = "testCommentId",
+        parentCommentId = null,
+        projectId = "testProjectId",
+        userId = userId,
+        content = "testContent",
+        likerIdList = listOf(),
+        createdAt = LocalDateTime.of(2024, 7, 16, 0, 0, 0),
+        isDeleted = false,
+        childComments = listOf(
+          ProjectCommentResponseDto(
+            id = "childCommentId",
+            parentCommentId = "testCommentId",
+            projectId = "testProjectId",
+            userId = userId,
+            content = "testContent",
+            likerIdList = listOf(),
+            createdAt = LocalDateTime.of(2024, 7, 16, 0, 0, 0),
+            isDeleted = false,
+          )
+        )
+      )
+    )
+
+    coEvery { projectCommentService.getProjectCommentWithChildByProjectId(projectId) } answers { responseDto }
+    context("projectId를 입력받으면") {
+      it("ProjectCommentWithChildResponseDto를 조회한다.") {
+        runTest {
+          val result = projectFacadeService.getProjectCommentList(projectId)
+
+          result[0].id shouldBe responseDto[0].id
+          result[0].parentCommentId shouldBe responseDto[0].parentCommentId
+          result[0].projectId shouldBe responseDto[0].projectId
+          result[0].userId shouldBe responseDto[0].userId
+          result[0].content shouldBe responseDto[0].content
+          result[0].isDeleted shouldBe responseDto[0].isDeleted
+
+          result[0].childComments[0].id shouldBe responseDto[0].childComments[0].id
+          result[0].childComments[0].content shouldBe responseDto[0].childComments[0].content
+          result[0].childComments[0].userId shouldBe responseDto[0].childComments[0].userId
+          result[0].childComments[0].parentCommentId shouldBe responseDto[0].childComments[0].parentCommentId
+          result[0].childComments[0].projectId shouldBe responseDto[0].childComments[0].projectId
+          result[0].childComments[0].isDeleted shouldBe responseDto[0].childComments[0].isDeleted
         }
       }
     }

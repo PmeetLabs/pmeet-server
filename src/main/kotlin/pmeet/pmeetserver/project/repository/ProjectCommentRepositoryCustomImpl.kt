@@ -78,8 +78,6 @@ class ProjectCommentRepositoryCustomImpl(
 
     return mongoTemplate.aggregate(aggregation, "projectComment", Document::class.java)
       .map { doc ->
-        println("doc = ${doc}")
-
         ProjectCommentWithChildResponseDto(
           id = doc.getObjectId("_id")!!.toString(),
           parentCommentId = doc.getString("parentCommentId"),

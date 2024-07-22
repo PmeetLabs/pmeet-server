@@ -5,6 +5,7 @@ import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
+import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.service.ProjectFacadeService
 import reactor.core.publisher.Mono
@@ -49,5 +51,13 @@ class ProjectController(
     @PathVariable projectId: String
   ) {
     projectFacadeService.deleteProject(userId.awaitSingle(), projectId)
+  }
+
+  @GetMapping("/{projectId}/comments")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun getProjectCommentList(
+    @PathVariable projectId: String
+  ): List<ProjectCommentWithChildResponseDto> {
+    return projectFacadeService.getProjectCommentList(projectId)
   }
 }

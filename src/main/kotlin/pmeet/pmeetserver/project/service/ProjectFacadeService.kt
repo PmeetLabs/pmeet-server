@@ -13,7 +13,6 @@ import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
-import pmeet.pmeetserver.project.dto.request.comment.GetProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
@@ -139,7 +138,7 @@ class ProjectFacadeService(
   }
 
   @Transactional(readOnly = true)
-  suspend fun getProjectCommentList(requestDto: GetProjectCommentRequestDto): List<ProjectCommentWithChildResponseDto> {
-    return projectCommentService.getProjectCommentWithChildByProjectId(requestDto.projectId)
+  suspend fun getProjectCommentList(projectId: String): List<ProjectCommentWithChildResponseDto> {
+    return projectCommentService.getProjectCommentWithChildByProjectId(projectId)
   }
 }
