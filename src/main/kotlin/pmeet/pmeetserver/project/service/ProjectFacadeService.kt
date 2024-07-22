@@ -1,6 +1,6 @@
 package pmeet.pmeetserver.project.service
 
-import java.time.LocalDateTime
+import org.springframework.data.domain.Slice
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
@@ -11,6 +11,7 @@ import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
+import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
@@ -18,7 +19,9 @@ import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResp
 import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.request.tryout.ProjectTryoutResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.user.service.resume.ResumeService
+import java.time.LocalDateTime
 
 @Service
 class ProjectFacadeService(
@@ -140,5 +143,15 @@ class ProjectFacadeService(
   @Transactional(readOnly = true)
   suspend fun getProjectCommentList(projectId: String): List<ProjectCommentWithChildResponseDto> {
     return projectCommentService.getProjectCommentWithChildByProjectId(projectId)
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun searchProjectSlice(userId: String, requestDto: SearchProjectRequestDto): Slice<SearchProjectResponseDto> {
+    return projectService.searchSliceByFilter(
+      requestDto.isCompleted,
+      requestDto.filterType,
+      requestDto.filterValue,
+      requestDto.pageable
+    ).map { SearchProjectResponseDto.of(it, userId) }
   }
 }

@@ -7,13 +7,14 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
-import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.springframework.data.domain.SliceImpl
+import org.springframework.data.domain.Sort
 import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
@@ -24,14 +25,17 @@ import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
+import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
+import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.service.resume.ResumeService
+import java.time.LocalDateTime
 
 @ExperimentalCoroutinesApi
 internal class ProjectFacadeServiceUnitTest : DescribeSpec({
@@ -385,6 +389,64 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result[0].childComments[0].parentCommentId shouldBe responseDto[0].childComments[0].parentCommentId
           result[0].childComments[0].projectId shouldBe responseDto[0].childComments[0].projectId
           result[0].childComments[0].isDeleted shouldBe responseDto[0].childComments[0].isDeleted
+        }
+      }
+    }
+  }
+
+  describe("searchProjectSlice") {
+    context("userId와 SearchProjectRequestDto가 주어지면") {
+      val pageNumber = 0
+      val pageSize = 10
+      val requestDto = SearchProjectRequestDto.of(
+        isCompleted = true,
+        filterType = null,
+        filterValue = null,
+        page = pageNumber,
+        size = pageSize,
+        sortBy = ProjectSortProperty.BOOK_MARKERS,
+        direction = Sort.Direction.ASC
+      )
+      it("Slice<SearchProjectResponseDto>를 반환한다") {
+        val requesterUserId = "requesterId"
+        val projects: MutableList<Project> = mutableListOf();
+        for (i in 1..20) {
+          val newProject = Project(
+            id = "testId$i",
+            userId = userId,
+            title = "testTitle$i",
+            startDate = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
+            endDate = LocalDateTime.of(2021, 12, 31, 23, 59, 59),
+            thumbNailUrl = "testThumbNailUrl",
+            techStacks = listOf("testTechStack1", "testTechStack2"),
+            recruitments = recruitments,
+            description = "testDescription"
+          )
+          if (i == 1) {
+            newProject.bookMarkers.add(requesterUserId)
+          }
+          for (j in 1..i) {
+            newProject.bookMarkers.add("$userId$i")
+          }
+          projects.add(newProject)
+        }
+        runTest {
+          coEvery {
+            projectService.searchSliceByFilter(
+              any(),
+              any(),
+              any(),
+              any()
+            )
+          } answers { SliceImpl(projects.subList(0, pageSize), requestDto.pageable, true) }
+
+          val result = projectFacadeService.searchProjectSlice(requesterUserId, requestDto)
+
+          result.size shouldBe pageSize
+          result.isFirst shouldBe true
+          result.isLast shouldBe false
+          result.content.first().bookMarked shouldBe true
+          result.content.last().bookMarked shouldBe false
         }
       }
     }

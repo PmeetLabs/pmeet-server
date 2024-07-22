@@ -1,6 +1,7 @@
 package pmeet.pmeetserver.project.service
 
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -12,19 +13,23 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.Recruitment
+import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import pmeet.pmeetserver.project.repository.ProjectRepository
+import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
 
 @ExperimentalCoroutinesApi
 internal class ProjectServiceUnitTest : DescribeSpec({
 
-//  isolationMode = IsolationMode.InstancePerLeaf
+  isolationMode = IsolationMode.InstancePerLeaf
 
   val testDispatcher = StandardTestDispatcher()
 
@@ -187,6 +192,55 @@ internal class ProjectServiceUnitTest : DescribeSpec({
           projectService.delete(project)
 
           verify(exactly = 1) { projectRepository.delete(project) }
+        }
+      }
+    }
+  }
+
+  describe("searchSliceByFilter") {
+    context("검색 조건이 주어지면") {
+      it("Slice<Project>를 반환한다") {
+        val pageNumber = 0
+        val pageSize = 10
+        val projects: MutableList<Project> = mutableListOf();
+        for (i in 1..20) {
+          val newProject = Project(
+            userId = userId,
+            title = "testTitle$i",
+            startDate = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
+            endDate = LocalDateTime.of(2021, 12, 31, 23, 59, 59),
+            thumbNailUrl = "testThumbNailUrl",
+            techStacks = listOf("testTechStack1", "testTechStack2"),
+            recruitments = recruitments,
+            description = "testDescription"
+          )
+          projects.add(newProject)
+        }
+        runTest {
+          every {
+            projectRepository.findAllByFilter(
+              any(),
+              any(),
+              any(),
+              any()
+            )
+          } answers { Flux.fromIterable(projects.subList(0, pageSize + 1)) }
+
+          val result = projectService.searchSliceByFilter(
+            isCompleted = false,
+            filterType = null,
+            filterValue = null,
+            pageable = PageRequest.of(
+              pageNumber,
+              pageSize,
+              Sort.by(Sort.Direction.DESC, ProjectSortProperty.BOOK_MARKERS.property)
+            )
+          )
+
+          result.size shouldBe pageSize
+          result.content shouldBe projects.subList(0, pageSize)
+          result.isLast shouldBe false
+          result.isFirst shouldBe true
         }
       }
     }

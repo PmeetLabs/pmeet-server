@@ -20,11 +20,11 @@ class Project(
   var startDate: LocalDateTime,
   var endDate: LocalDateTime,
   var thumbNailUrl: String? = null,
-  var techStacks: List<String>? = mutableListOf(),
+  var techStacks: List<String>? = listOf(),
   var recruitments: List<Recruitment>,
   var description: String,
   var isCompleted: Boolean = false,
-  var bookMarkers: List<String> = mutableListOf(), // 북마크를 한 유저 ID 리스트
+  var bookMarkers: MutableList<String> = mutableListOf(), // 북마크를 한 유저 ID 리스트
   val createdAt: LocalDateTime = LocalDateTime.now(),
   var updatedAt: LocalDateTime = LocalDateTime.now() // 조회 시 정렬을 위해 now()로 초기화
 ) {

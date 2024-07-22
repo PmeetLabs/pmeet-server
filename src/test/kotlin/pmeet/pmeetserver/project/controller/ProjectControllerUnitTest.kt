@@ -5,10 +5,11 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
-import java.time.LocalDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.context.annotation.Import
+import org.springframework.data.domain.SliceImpl
+import org.springframework.data.domain.Sort
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication
 import org.springframework.test.web.reactive.server.WebTestClient
@@ -16,12 +17,19 @@ import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
+import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.RecruitmentResponseDto
+import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
+import pmeet.pmeetserver.project.enums.ProjectFilterType
+import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import pmeet.pmeetserver.project.service.ProjectFacadeService
+import pmeet.pmeetserver.util.RestSliceImpl
+import java.time.LocalDateTime
+
 
 @WebFluxTest(ProjectController::class)
 @Import(TestSecurityConfig::class)
@@ -96,8 +104,8 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
             response.responseBody?.endDate shouldBe responseDto.endDate
             response.responseBody?.thumbNailUrl shouldBe responseDto.thumbNailUrl
             response.responseBody?.techStacks shouldBe responseDto.techStacks
-            response.responseBody?.recruitments!!.size shouldBe responseDto.recruitments.size
-            response.responseBody?.recruitments!!.forEachIndexed { index, recruitmentResponseDto ->
+            response.responseBody?.recruitments?.size shouldBe responseDto.recruitments.size
+            response.responseBody?.recruitments?.forEachIndexed { index, recruitmentResponseDto ->
               recruitmentResponseDto.jobName shouldBe responseDto.recruitments[index].jobName
               recruitmentResponseDto.numberOfRecruitment shouldBe responseDto.recruitments[index].numberOfRecruitment
             }
@@ -187,8 +195,8 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
             response.responseBody?.endDate shouldBe responseDto.endDate
             response.responseBody?.thumbNailUrl shouldBe responseDto.thumbNailUrl
             response.responseBody?.techStacks shouldBe responseDto.techStacks
-            response.responseBody?.recruitments!!.size shouldBe responseDto.recruitments.size
-            response.responseBody?.recruitments!!.forEachIndexed { index, recruitmentResponseDto ->
+            response.responseBody?.recruitments?.size shouldBe responseDto.recruitments.size
+            response.responseBody?.recruitments?.forEachIndexed { index, recruitmentResponseDto ->
               recruitmentResponseDto.jobName shouldBe responseDto.recruitments[index].jobName
               recruitmentResponseDto.numberOfRecruitment shouldBe responseDto.recruitments[index].numberOfRecruitment
             }
@@ -322,5 +330,120 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
         }
       }
     }
+
+    describe("GET /api/v1/projects/search-slice") {
+      context("인증된 유저의 Project 검색 요청이 들어오면") {
+        val userId = "1234"
+        val filterType = ProjectFilterType.TITLE
+        val filterValue = "test"
+        val isCompleted = false
+        val pageNumber = 0
+        val pageSize = 8
+        val sortBy = ProjectSortProperty.BOOK_MARKERS
+        val direction = Sort.Direction.DESC
+        val requestDto =
+          SearchProjectRequestDto.of(isCompleted, filterType, filterValue, pageNumber, pageSize, sortBy, direction)
+
+        val responseDtos = mutableListOf<SearchProjectResponseDto>()
+        for (i in 1..20) {
+          val responseDto = SearchProjectResponseDto(
+            id = "testId$i",
+            title = "testTitle$i",
+            startDate = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
+            endDate = LocalDateTime.of(2021, 12, 31, 23, 59, 59),
+            thumbNailUrl = "testThumbNailUrl$i",
+            techStacks = listOf("testTechStack$i", "testTechStack${i + 20}"),
+            jobNames = listOf(
+              "testJobName$i", "testJobName${i + 20}"
+            ),
+            description = "testDescription$i",
+            userId = "userId$i",
+            bookMarked = true,
+            isCompleted = false,
+            createdAt = LocalDateTime.of(2021, 5, 1, 0, 0, 0),
+            updatedAt = LocalDateTime.of(2021, 5, 1, 0, 0, 0)
+          )
+          responseDtos.add(responseDto)
+        }
+        coEvery { projectFacadeService.searchProjectSlice(userId, requestDto) } answers {
+          SliceImpl(responseDtos.subList(0, pageSize), requestDto.pageable, true)
+        }
+
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .get()
+          .uri { uriBuilder ->
+            uriBuilder.path("/api/v1/projects/search-slice")
+              .queryParam("isCompleted", isCompleted)
+              .queryParam("filterType", filterType)
+              .queryParam("filterValue", filterValue)
+              .queryParam("page", pageNumber)
+              .queryParam("size", pageSize)
+              .queryParam("sortBy", sortBy)
+              .queryParam("direction", direction)
+              .build()
+          }
+          .exchange()
+
+        it("서비스를 통해 데이터를 검색한다") {
+          coVerify(exactly = 1) { projectFacadeService.searchProjectSlice(userId, requestDto) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("검색된 Project 정보를 반환한다") {
+          performRequest.expectBody<RestSliceImpl<SearchProjectResponseDto>>().consumeWith { response ->
+            response.responseBody?.content?.size shouldBe pageSize
+            response.responseBody?.content?.forEachIndexed { index, searchProjectResponseDto ->
+              searchProjectResponseDto.id shouldBe responseDtos[index].id
+              searchProjectResponseDto.title shouldBe responseDtos[index].title
+              searchProjectResponseDto.startDate shouldBe responseDtos[index].startDate
+              searchProjectResponseDto.endDate shouldBe responseDtos[index].endDate
+              searchProjectResponseDto.thumbNailUrl shouldBe responseDtos[index].thumbNailUrl
+              searchProjectResponseDto.techStacks shouldBe responseDtos[index].techStacks
+              searchProjectResponseDto.jobNames shouldBe responseDtos[index].jobNames
+              searchProjectResponseDto.description shouldBe responseDtos[index].description
+              searchProjectResponseDto.userId shouldBe responseDtos[index].userId
+              searchProjectResponseDto.bookMarked shouldBe responseDtos[index].bookMarked
+              searchProjectResponseDto.isCompleted shouldBe responseDtos[index].isCompleted
+              searchProjectResponseDto.createdAt shouldBe responseDtos[index].createdAt
+              searchProjectResponseDto.updatedAt shouldBe responseDtos[index].updatedAt
+            }
+          }
+        }
+      }
+
+      context("인증되지 않은 유저의 검색 요청이 들어오면") {
+        val filterType = ProjectFilterType.TITLE
+        val filterValue = "test"
+        val isCompleted = false
+        val pageNumber = 0
+        val pageSize = 8
+        val sortBy = ProjectSortProperty.BOOK_MARKERS
+        val direction = Sort.Direction.DESC
+        val performRequest = webTestClient
+          .get()
+          .uri { uriBuilder ->
+            uriBuilder.path("/api/v1/projects/search-slice")
+              .queryParam("isCompleted", isCompleted)
+              .queryParam("filterType", filterType)
+              .queryParam("filterValue", filterValue)
+              .queryParam("page", pageNumber)
+              .queryParam("size", pageSize)
+              .queryParam("sortBy", sortBy)
+              .queryParam("direction", direction)
+              .build()
+          }
+          .exchange()
+
+        it("요청은 실패한다") {
+          performRequest.expectStatus().isUnauthorized
+        }
+      }
+    }
   }
 }
+
