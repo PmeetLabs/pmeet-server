@@ -13,6 +13,7 @@ import org.springframework.security.test.web.reactive.server.SecurityMockServerC
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
+import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.request.tryout.ProjectTryoutResponseDto
 import pmeet.pmeetserver.project.service.ProjectFacadeService
@@ -36,7 +37,8 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
         val userId = resume.userId
         val requestDto = CreateProjectTryoutRequestDto(
           projectId = "testProjectId",
-          resumeId = resume.id!!
+          resumeId = resume.id!!,
+          positionName = "positionName",
         )
         val createdAt = LocalDateTime.now()
         val responseDto = ProjectTryoutResponseDto(
@@ -44,6 +46,9 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
           resumeId = resume.id!!,
           userId = userId,
           projectId = "testProjectId",
+          userName = "userName",
+          positionName = "positionName",
+          tryoutStatus = ProjectTryoutStatus.INREVIEW,
           createdAt = createdAt
         )
 
@@ -70,11 +75,13 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
           performRequest.expectStatus().isCreated
         }
 
-        it("생성된 댓글 정보를 반환한다") {
+        it("생성된 게시글과 지원서 정보를 반환한다") {
           performRequest.expectBody<ProjectTryoutResponseDto>().consumeWith { response ->
             response.responseBody?.id shouldBe responseDto.id
             response.responseBody?.projectId shouldBe responseDto.projectId
             response.responseBody?.userId shouldBe responseDto.userId
+            response.responseBody?.userName shouldBe responseDto.userName
+            response.responseBody?.tryoutStatus shouldBe responseDto.tryoutStatus
             response.responseBody?.createdAt shouldBe responseDto.createdAt
           }
         }

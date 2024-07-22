@@ -20,6 +20,7 @@ import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
+import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
@@ -101,7 +102,10 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     projectTryout = ProjectTryout(
       projectId = "testProjectId",
       userId = userId,
-      resumeId = resume.id!!,
+      resumeId = "resumeId",
+      userName = "testUserName",
+      positionName = "testPosition",
+      tryoutStatus = ProjectTryoutStatus.INREVIEW,
       createdAt = LocalDateTime.now()
     )
     ReflectionTestUtils.setField(projectTryout, "id", "testTryoutId")
@@ -310,13 +314,14 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   describe("createProjectTryout") {
     context("createProjectTryoutRequestDto 주어지면") {
       val requestDto = CreateProjectTryoutRequestDto(
-        projectId = projectTryout.projectId,
-        resumeId = projectTryout.resumeId,
+        projectId = "testProjectId",
+        resumeId = resume.id!!,
+        positionName = "positionName",
       )
 
       it("ProjectTryoutResponseDto 반환한다") {
         runTest {
-          coEvery { resumeService.getByResumeId(projectTryout.resumeId) } answers { resume }
+          coEvery { resumeService.getByResumeId(any()) } answers { resume }
           coEvery { projectTryoutService.save(any()) } answers { projectTryout }
 
           val result = projectFacadeService.createProjectTryout(resume.userId, requestDto)
@@ -324,6 +329,8 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.id shouldBe projectTryout.id
           result.resumeId shouldBe projectTryout.resumeId
           result.userId shouldBe projectTryout.userId
+          result.userName shouldBe projectTryout.userName
+          result.positionName shouldBe projectTryout.positionName
           result.projectId shouldBe projectTryout.projectId
         }
       }

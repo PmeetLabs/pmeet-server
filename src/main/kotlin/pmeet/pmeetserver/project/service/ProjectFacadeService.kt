@@ -8,6 +8,7 @@ import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
+import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
@@ -125,6 +126,9 @@ class ProjectFacadeService(
     val projectTryout = ProjectTryout(
       resumeId = requestDto.resumeId,
       userId = userId,
+      userName = resume.userName,
+      positionName = requestDto.positionName,
+      tryoutStatus = ProjectTryoutStatus.INREVIEW,
       projectId = requestDto.projectId,
       createdAt = LocalDateTime.now()
     )
