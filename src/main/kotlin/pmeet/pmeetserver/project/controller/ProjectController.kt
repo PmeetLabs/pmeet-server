@@ -89,9 +89,8 @@ class ProjectController(
   suspend fun addBookmarkProject(
     @AuthenticationPrincipal userId: Mono<String>,
     @PathVariable projectId: String
-  ): Boolean {
+  ) {
     projectFacadeService.addBookmark(userId.awaitSingle(), projectId)
-    return true
   }
 
   @DeleteMapping("/{projectId}/bookmark")
@@ -99,8 +98,7 @@ class ProjectController(
   suspend fun deleteBookmarkProject(
     @AuthenticationPrincipal userId: Mono<String>,
     @PathVariable projectId: String
-  ): Boolean {
+  ) {
     projectFacadeService.deleteBookmark(userId.awaitSingle(), projectId)
-    return true
   }
 }

@@ -468,12 +468,6 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
         it("요청은 성공한다") {
           performRequest.expectStatus().isOk
         }
-
-        it("북마크 추가 성공 여부를 반환한다") {
-          performRequest.expectBody<Boolean>().consumeWith { response ->
-            response.responseBody shouldBe true
-          }
-        }
       }
 
       context("인증되지 않은 유저의 Project 북마크 추가 요청이 들어오면") {
@@ -506,12 +500,6 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
 
         it("요청은 성공한다") {
           performRequest.expectStatus().isNoContent
-        }
-
-        it("북마크 삭제 성공 여부를 반환한다") {
-          performRequest.expectBody<Boolean>().consumeWith { response ->
-            response.responseBody shouldBe true
-          }
         }
       }
 

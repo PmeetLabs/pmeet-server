@@ -807,12 +807,6 @@ internal class ProjectIntegrationTest : DescribeSpec() {
           performRequest.expectStatus().isOk
         }
 
-        it("북마크 추가 여부를 반환한다") {
-          performRequest.expectBody<Boolean>().consumeWith { response ->
-            response.responseBody shouldBe true
-          }
-        }
-
         it("projectId에 해당하는 Project의 북마크가 추가된다") {
           withContext(Dispatchers.IO) {
             val bookmarkedProject = projectRepository.findById(projectId).awaitSingleOrNull()
@@ -836,12 +830,6 @@ internal class ProjectIntegrationTest : DescribeSpec() {
 
         it("요청은 성공한다") {
           performRequest.expectStatus().isOk
-        }
-
-        it("북마크 추가 여부를 반환한다") {
-          performRequest.expectBody<Boolean>().consumeWith { response ->
-            response.responseBody shouldBe true
-          }
         }
 
         it("북마크 추가 시간을 갱신한다") {
@@ -870,12 +858,6 @@ internal class ProjectIntegrationTest : DescribeSpec() {
           performRequest.expectStatus().isNoContent
         }
 
-        it("북마크 삭제 여부를 반환한다") {
-          performRequest.expectBody<Boolean>().consumeWith { response ->
-            response.responseBody shouldBe true
-          }
-        }
-
         it("projectId에 해당하는 Project의 북마크가 삭제된다") {
           withContext(Dispatchers.IO) {
             val bookmarkedProject = projectRepository.findById(projectId).awaitSingleOrNull()
@@ -895,12 +877,6 @@ internal class ProjectIntegrationTest : DescribeSpec() {
 
         it("요청은 성공한다") {
           performRequest.expectStatus().isNoContent
-        }
-
-        it("북마크 삭제 여부를 반환한다") {
-          performRequest.expectBody<Boolean>().consumeWith { response ->
-            response.responseBody shouldBe true
-          }
         }
 
         it("북마크는 삭제된 상태를 유지한다") {
