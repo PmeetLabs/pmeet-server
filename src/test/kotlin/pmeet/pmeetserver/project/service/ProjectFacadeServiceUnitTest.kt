@@ -477,12 +477,41 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           coEvery { projectService.getProjectById(projectId) } answers { project }
           coEvery { projectService.update(any()) } answers { project }
 
-          projectFacadeService.addBookmark(userId, projectId)
+          val localDateTime = LocalDateTime.of(2021, 1, 1, 0, 0, 0)
+          project.bookMarkers.add(ProjectBookMark(userId, localDateTime))
           projectFacadeService.addBookmark(userId, projectId)
 
           project.bookMarkers.size shouldBe 1
           project.bookMarkers[0].userId shouldBe userId
-          project.bookMarkers[0].addedAt shouldNotBe null
+          project.bookMarkers[0].addedAt shouldNotBe localDateTime
+        }
+      }
+    }
+  }
+
+  describe("deleteBookmark") {
+    context("userId와 projectId가 주어지면") {
+      val projectId = project.id!!
+      it("북마크를 삭제한다") {
+        runTest {
+          coEvery { projectService.getProjectById(projectId) } answers { project }
+          coEvery { projectService.update(any()) } answers { project }
+
+          project.bookMarkers.add(ProjectBookMark(userId, LocalDateTime.now()))
+          projectFacadeService.deleteBookmark(userId, projectId)
+
+          project.bookMarkers.size shouldBe 0
+        }
+      }
+
+      it("북마크가 없는 경우 아무것도 하지 않는다") {
+        runTest {
+          coEvery { projectService.getProjectById(projectId) } answers { project }
+          coEvery { projectService.update(any()) } answers { project }
+
+          projectFacadeService.deleteBookmark(userId, projectId)
+
+          project.bookMarkers.size shouldBe 0
         }
       }
     }

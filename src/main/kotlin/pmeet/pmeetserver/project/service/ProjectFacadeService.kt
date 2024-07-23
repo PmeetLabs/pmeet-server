@@ -161,4 +161,11 @@ class ProjectFacadeService(
     project.addBookmark(userId)
     projectService.update(project)
   }
+
+  @Transactional
+  suspend fun deleteBookmark(userId: String, projectId: String) {
+    val project = projectService.getProjectById(projectId)
+    project.deleteBookmark(userId)
+    projectService.update(project)
+  }
 }

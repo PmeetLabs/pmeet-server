@@ -487,6 +487,45 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
         }
       }
     }
+
+    describe("DELETE /api/v1/projects/{projectId}/bookmark") {
+      val projectId = "testProjectId"
+      context("인증된 유저의 Project 북마크 삭제 요청이 들어오면") {
+        val userId = "1234"
+        coEvery { projectFacadeService.deleteBookmark(userId, projectId) } answers { Unit }
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/projects/$projectId/bookmark")
+          .exchange()
+
+        it("서비스를 통해 북마크를 삭제한다") {
+          coVerify(exactly = 1) { projectFacadeService.deleteBookmark(userId, projectId) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isNoContent
+        }
+
+        it("북마크 삭제 성공 여부를 반환한다") {
+          performRequest.expectBody<Boolean>().consumeWith { response ->
+            response.responseBody shouldBe true
+          }
+        }
+      }
+
+      context("인증되지 않은 유저의 Project 북마크 삭제 요청이 들어오면") {
+        val performRequest = webTestClient
+          .delete()
+          .uri("/api/v1/projects/$projectId/bookmark")
+          .exchange()
+
+        it("요청은 실패한다") {
+          performRequest.expectStatus().isUnauthorized
+        }
+      }
+    }
   }
 }
 

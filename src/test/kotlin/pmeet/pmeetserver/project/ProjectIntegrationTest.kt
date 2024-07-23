@@ -823,6 +823,36 @@ internal class ProjectIntegrationTest : DescribeSpec() {
         }
       }
     }
+
+    describe("DELETE /api/v1/projects/{projectId}/bookmark") {
+      context("인증된 유저가 Project 북마크를 삭제하면") {
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val projectId = project.id!!
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/projects/$projectId/bookmark")
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isNoContent
+        }
+
+        it("북마크 삭제 여부를 반환한다") {
+          performRequest.expectBody<Boolean>().consumeWith { response ->
+            response.responseBody shouldBe true
+          }
+        }
+
+        it("projectId에 해당하는 Project의 북마크가 삭제된다") {
+          withContext(Dispatchers.IO) {
+            val bookmarkedProject = projectRepository.findById(projectId).awaitSingleOrNull()
+            bookmarkedProject?.bookMarkers?.size shouldBe 0
+          }
+        }
+      }
+    }
   }
 
   companion object {

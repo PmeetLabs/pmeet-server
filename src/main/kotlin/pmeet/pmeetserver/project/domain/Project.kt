@@ -61,4 +61,8 @@ class Project(
       ?: bookMarkers.add(newBookMark)
   }
 
+  fun deleteBookmark(userId: String) {
+    bookMarkers.removeIf { it.userId == userId }
+  }
+
 }

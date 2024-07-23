@@ -93,4 +93,14 @@ class ProjectController(
     projectFacadeService.addBookmark(userId.awaitSingle(), projectId)
     return true
   }
+
+  @DeleteMapping("/{projectId}/bookmark")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun deleteBookmarkProject(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @PathVariable projectId: String
+  ): Boolean {
+    projectFacadeService.deleteBookmark(userId.awaitSingle(), projectId)
+    return true
+  }
 }
