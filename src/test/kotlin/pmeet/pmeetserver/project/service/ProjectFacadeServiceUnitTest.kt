@@ -30,6 +30,9 @@ import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
+import pmeet.pmeetserver.user.domain.User
+import pmeet.pmeetserver.user.domain.enum.Gender
+import pmeet.pmeetserver.user.service.UserService
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
@@ -50,6 +53,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   val projectCommentService = mockk<ProjectCommentService>(relaxed = true)
   val resumeService = mockk<ResumeService>(relaxed = true)
   val projectTryoutService = mockk<ProjectTryoutService>(relaxed = true)
+  val userService = mockk<UserService>(relaxed = true)
 
   lateinit var projectFacadeService: ProjectFacadeService
 
@@ -60,6 +64,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   lateinit var recruitments: List<Recruitment>
   lateinit var resume: Resume
   lateinit var projectTryout: ProjectTryout
+  lateinit var user: User
 
   beforeSpec {
     Dispatchers.setMain(testDispatcher)
@@ -67,11 +72,22 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
       projectService,
       projectCommentService,
       resumeService,
-      projectTryoutService
+      projectTryoutService,
+      userService
     )
 
     userId = "testUserId"
     forbiddenUserId = "forbiddenUserId"
+
+    user = User(
+      id = userId,
+      email = "testEmail@test.com",
+      name = "testName",
+      nickname = "nickname",
+      phoneNumber = "phone",
+      gender = Gender.MALE,
+      profileImageUrl = "image-url"
+    )
 
     recruitments = listOf(
       Recruitment(
@@ -121,6 +137,30 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
 
   afterSpec {
     Dispatchers.resetMain()
+  }
+
+  describe("getProjectByProjectId") {
+    context("projectId가 주어지면") {
+      it("ProjectWithUserResponseDto를 반환한다") {
+        runTest {
+          coEvery { projectService.getProjectById(any()) } answers { project }
+          coEvery { userService.getUserById(project.userId) } answers { user }
+
+          val result = projectFacadeService.getProjectByProjectId(projectId = project.id!!)
+
+          result.id shouldBe project.id
+          result.userId shouldBe project.userId
+          result.title shouldBe project.title
+          result.startDate shouldBe project.startDate
+          result.endDate shouldBe project.endDate
+          result.thumbNailUrl shouldBe project.thumbNailUrl
+          result.description shouldBe project.description
+          result.isCompleted shouldBe project.isCompleted
+          result.userInfo.id shouldBe user.id
+          result.techStacks shouldBe project.techStacks
+        }
+      }
+    }
   }
 
   describe("createProject") {

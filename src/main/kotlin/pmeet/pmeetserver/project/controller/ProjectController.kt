@@ -24,6 +24,7 @@ import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
+import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.service.ProjectFacadeService
 import reactor.core.publisher.Mono
 
@@ -32,6 +33,14 @@ import reactor.core.publisher.Mono
 class ProjectController(
   private val projectFacadeService: ProjectFacadeService
 ) {
+
+  @GetMapping
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun getProject(
+    @RequestParam(required = true) projectId: String
+  ): ProjectWithUserResponseDto {
+    return projectFacadeService.getProjectByProjectId(projectId);
+  }
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)

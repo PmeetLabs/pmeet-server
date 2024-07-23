@@ -1,6 +1,5 @@
 package pmeet.pmeetserver.project.service
 
-import org.springframework.data.domain.Slice
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
@@ -22,14 +21,17 @@ import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import java.time.LocalDateTime
+import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
+import pmeet.pmeetserver.user.service.UserService
 
 @Service
 class ProjectFacadeService(
   private val projectService: ProjectService,
   private val projectCommentService: ProjectCommentService,
   private val resumeService: ResumeService,
-  private val projectTryoutService: ProjectTryoutService
-) {
+  private val projectTryoutService: ProjectTryoutService,
+  private val userService: UserService
+  ) {
 
   @Transactional
   suspend fun createProject(userId: String, requestDto: CreateProjectRequestDto): ProjectResponseDto {
@@ -167,5 +169,12 @@ class ProjectFacadeService(
     val project = projectService.getProjectById(projectId)
     project.deleteBookmark(userId)
     projectService.update(project)
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun getProjectByProjectId(projectId: String): ProjectWithUserResponseDto {
+    val project = projectService.getProjectById(projectId)
+    val user = userService.getUserById(project.userId)
+    return ProjectWithUserResponseDto.from(project, user)
   }
 }

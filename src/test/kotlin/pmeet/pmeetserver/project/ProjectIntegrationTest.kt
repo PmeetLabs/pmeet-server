@@ -36,6 +36,7 @@ import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
+import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 import pmeet.pmeetserver.project.repository.ProjectRepository
 import pmeet.pmeetserver.util.RestSliceImpl
@@ -61,15 +62,29 @@ internal class ProjectIntegrationTest : DescribeSpec() {
   @Autowired
   lateinit var projectCommentRepository: ProjectCommentRepository
 
+  @Autowired
+  lateinit var userRepository: UserRepository
+
   lateinit var project: Project
   lateinit var userId: String
   lateinit var recruitments: List<Recruitment>
   lateinit var projectComment: ProjectComment
+  lateinit var user: User
   lateinit var deletedProjectComment: ProjectComment
   lateinit var childProjectComment: ProjectComment
 
   override suspend fun beforeSpec(spec: Spec) {
-    userId = "testUserId"
+    userId = "user-id"
+    user = User(
+      id = userId,
+      email = "testEmail@test.com",
+      name = "testName",
+      nickname = "nickname",
+      phoneNumber = "phone",
+      gender = Gender.MALE,
+      profileImageUrl = "image-url"
+    )
+
     recruitments = listOf(
       Recruitment(
         jobName = "testJobName",
@@ -102,6 +117,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
         isDeleted = false,
       )
       projectCommentRepository.save(projectComment).block()
+      userRepository.save(user).block()
 
       deletedProjectComment = ProjectComment(
         projectId = project.id!!,
@@ -121,6 +137,47 @@ internal class ProjectIntegrationTest : DescribeSpec() {
   }
 
   init {
+    describe("GET api/v1/projects") {
+      context("유저의 프로젝트 조회 요청이 들어오면") {
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+
+        val projectResponse = ProjectWithUserResponseDto.from(project, user)
+
+        val performRequest =
+          webTestClient
+            .mutateWith(mockAuthentication(mockAuthentication))
+            .get()
+            .uri {
+              it.path("/api/v1/projects")
+                .queryParam("projectId", project.id!!)
+                .build()
+            }
+            .exchange()
+
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("프로젝트를 반환한다") {
+          performRequest.expectBody<ProjectWithUserResponseDto>().consumeWith { result ->
+            val returnedProject = result.responseBody!!
+
+            returnedProject.id shouldBe projectResponse.id
+            returnedProject.userId shouldBe projectResponse.userId
+            returnedProject.title shouldBe projectResponse.title
+            returnedProject.startDate shouldBe projectResponse.startDate
+            returnedProject.endDate shouldBe projectResponse.endDate
+            returnedProject.thumbNailUrl shouldBe projectResponse.thumbNailUrl
+            returnedProject.description shouldBe projectResponse.description
+            returnedProject.isCompleted shouldBe projectResponse.isCompleted
+            returnedProject.userInfo.id shouldBe projectResponse.userInfo.id
+            returnedProject.techStacks shouldBe projectResponse.techStacks
+          }
+        }
+      }
+    }
+
     describe("POST api/v1/projects") {
       context("인증된 유저의 Project 생성 요청이 들어오면") {
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)

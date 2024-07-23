@@ -22,6 +22,7 @@ import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.RecruitmentResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.enums.ProjectFilterType
@@ -29,7 +30,6 @@ import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import pmeet.pmeetserver.project.service.ProjectFacadeService
 import pmeet.pmeetserver.util.RestSliceImpl
 import java.time.LocalDateTime
-
 
 @WebFluxTest(ProjectController::class)
 @Import(TestSecurityConfig::class)
@@ -42,6 +42,76 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
   lateinit var projectFacadeService: ProjectFacadeService
 
   init {
+    describe("GET api/v1/projects") {
+      context("유저의 프로젝트 조회 요청이 들어오면") {
+        val userId = "1234"
+        val projectId = "project-id"
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+
+        val projectResponse = ProjectWithUserResponseDto(
+          id = projectId,
+          title = "title",
+          startDate = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
+          endDate = LocalDateTime.of(2021, 12, 31, 23, 59, 59),
+          thumbNailUrl = "testThumbNailUrl",
+          techStacks = listOf("testTechStack1", "testTechStack2"),
+          description = "testDescription",
+          userId = userId,
+          isCompleted = false,
+          bookMarkers = emptyList(),
+          userInfo = UserResponseDtoInProject(
+            userId,
+            "user-email",
+            "user-phone",
+            LocalDate.of(2021, 12, 31),
+            Gender.MALE,
+            "intro",
+            "nickname",
+            "image-url"
+          ),
+          createdAt = LocalDateTime.of(2021, 12, 31, 23, 59, 59)
+        )
+
+        coEvery { projectFacadeService.getProjectByProjectId(projectId) } answers { projectResponse }
+
+        val performRequest =
+          webTestClient
+            .mutateWith(mockAuthentication(mockAuthentication))
+            .get()
+            .uri {
+              it.path("/api/v1/projects")
+                .queryParam("projectId", projectId)
+                .build()
+            }
+            .exchange()
+
+        it("서비스를 통해 데이터를 검색한다") {
+          coVerify(exactly = 1) { projectFacadeService.getProjectByProjectId(projectId) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("프로젝트를 반환한다") {
+          performRequest.expectBody<ProjectWithUserResponseDto>().consumeWith { result ->
+            val returnedProject = result.responseBody!!
+
+            returnedProject.id shouldBe projectResponse.id
+            returnedProject.userId shouldBe projectResponse.userId
+            returnedProject.title shouldBe projectResponse.title
+            returnedProject.startDate shouldBe projectResponse.startDate
+            returnedProject.endDate shouldBe projectResponse.endDate
+            returnedProject.thumbNailUrl shouldBe projectResponse.thumbNailUrl
+            returnedProject.description shouldBe projectResponse.description
+            returnedProject.isCompleted shouldBe projectResponse.isCompleted
+            returnedProject.userInfo.id shouldBe projectResponse.userInfo.id
+            returnedProject.techStacks shouldBe projectResponse.techStacks
+          }
+        }
+      }
+    }
+
     describe("POST api/v1/projects") {
       val requestDto = CreateProjectRequestDto(
         title = "TestTitlet",
@@ -516,4 +586,3 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
     }
   }
 }
-
