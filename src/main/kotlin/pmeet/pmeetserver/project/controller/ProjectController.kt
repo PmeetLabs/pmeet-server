@@ -83,4 +83,14 @@ class ProjectController(
     val requestDto = SearchProjectRequestDto.of(isCompleted, filterType, filterValue, page, size, sortBy, direction)
     return projectFacadeService.searchProjectSlice(userId.awaitSingle(), requestDto)
   }
+
+  @PutMapping("/{projectId}/bookmark")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun addBookmarkProject(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @PathVariable projectId: String
+  ): Boolean {
+    projectFacadeService.addBookmark(userId.awaitSingle(), projectId)
+    return true
+  }
 }

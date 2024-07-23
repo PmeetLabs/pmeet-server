@@ -53,4 +53,12 @@ class Project(
     this.updatedAt = LocalDateTime.now()
   }
 
+  fun addBookmark(userId: String) {
+    val newBookMark = ProjectBookMark(userId, LocalDateTime.now())
+    bookMarkers.indexOfFirst { it.userId == userId }
+      .takeIf { it != -1 }
+      ?.let { bookMarkers[it] = newBookMark }
+      ?: bookMarkers.add(newBookMark)
+  }
+
 }

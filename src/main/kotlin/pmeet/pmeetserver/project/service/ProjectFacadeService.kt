@@ -154,4 +154,11 @@ class ProjectFacadeService(
       requestDto.pageable
     ).map { SearchProjectResponseDto.of(it, userId) }
   }
+
+  @Transactional
+  suspend fun addBookmark(userId: String, projectId: String) {
+    val project = projectService.getProjectById(projectId)
+    project.addBookmark(userId)
+    projectService.update(project)
+  }
 }

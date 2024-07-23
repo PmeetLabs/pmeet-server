@@ -4,6 +4,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -450,6 +451,38 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.isLast shouldBe false
           result.content.first().bookMarked shouldBe true
           result.content.last().bookMarked shouldBe false
+        }
+      }
+    }
+  }
+
+  describe("addBookmark") {
+    context("userId와 projectId가 주어지면") {
+      val projectId = project.id!!
+      it("북마크를 추가한다") {
+        runTest {
+          coEvery { projectService.getProjectById(projectId) } answers { project }
+          coEvery { projectService.update(any()) } answers { project }
+
+          projectFacadeService.addBookmark(userId, projectId)
+
+          project.bookMarkers.size shouldBe 1
+          project.bookMarkers[0].userId shouldBe userId
+          project.bookMarkers[0].addedAt shouldNotBe null
+        }
+      }
+
+      it("이미 북마크를 추가한 경우 대치 한다") {
+        runTest {
+          coEvery { projectService.getProjectById(projectId) } answers { project }
+          coEvery { projectService.update(any()) } answers { project }
+
+          projectFacadeService.addBookmark(userId, projectId)
+          projectFacadeService.addBookmark(userId, projectId)
+
+          project.bookMarkers.size shouldBe 1
+          project.bookMarkers[0].userId shouldBe userId
+          project.bookMarkers[0].addedAt shouldNotBe null
         }
       }
     }

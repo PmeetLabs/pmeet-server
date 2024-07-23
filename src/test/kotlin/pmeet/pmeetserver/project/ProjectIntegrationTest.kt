@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -786,6 +787,38 @@ internal class ProjectIntegrationTest : DescribeSpec() {
               searchProjectResponseDto.updatedAt shouldBe LocalDateTime.of(2021, 1, 1, 0, 0, 0)
                 .plusDays(20 - index.toLong())
             }
+          }
+        }
+      }
+    }
+
+    describe("PUT /api/v1/projects/{projectId}/bookmark") {
+      context("인증된 유저가 Project를 북마크하면") {
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val projectId = project.id!!
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .put()
+          .uri("/api/v1/projects/$projectId/bookmark")
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("북마크 추가 여부를 반환한다") {
+          performRequest.expectBody<Boolean>().consumeWith { response ->
+            response.responseBody shouldBe true
+          }
+        }
+
+        it("projectId에 해당하는 Project의 북마크가 추가된다") {
+          withContext(Dispatchers.IO) {
+            val bookmarkedProject = projectRepository.findById(projectId).awaitSingleOrNull()
+            bookmarkedProject?.bookMarkers?.size shouldBe 1
+            bookmarkedProject?.bookMarkers?.get(0)?.userId shouldBe userId
+            bookmarkedProject?.bookMarkers?.get(0)?.addedAt shouldNotBe null
           }
         }
       }

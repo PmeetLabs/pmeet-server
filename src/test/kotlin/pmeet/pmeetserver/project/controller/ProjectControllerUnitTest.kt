@@ -448,6 +448,45 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
         }
       }
     }
+
+    describe("PUT /api/v1/projects/{projectId}/bookmark") {
+      val projectId = "testProjectId"
+      context("인증된 유저의 Project 북마크 추가 요청이 들어오면") {
+        val userId = "1234"
+        coEvery { projectFacadeService.addBookmark(userId, projectId) } answers { Unit }
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .put()
+          .uri("/api/v1/projects/$projectId/bookmark")
+          .exchange()
+
+        it("서비스를 통해 북마크를 추가한다") {
+          coVerify(exactly = 1) { projectFacadeService.addBookmark(userId, projectId) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("북마크 추가 성공 여부를 반환한다") {
+          performRequest.expectBody<Boolean>().consumeWith { response ->
+            response.responseBody shouldBe true
+          }
+        }
+      }
+
+      context("인증되지 않은 유저의 Project 북마크 추가 요청이 들어오면") {
+        val performRequest = webTestClient
+          .put()
+          .uri("/api/v1/projects/$projectId/bookmark")
+          .exchange()
+
+        it("요청은 실패한다") {
+          performRequest.expectStatus().isUnauthorized
+        }
+      }
+    }
   }
 }
 
