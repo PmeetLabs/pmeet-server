@@ -1,6 +1,7 @@
 package pmeet.pmeetserver.project.dto.response
 
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.ProjectBookmark
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.dto.response.UserResponseDtoInProject
 import java.time.LocalDateTime
@@ -16,7 +17,7 @@ data class ProjectWithUserResponseDto(
   val techStacks: List<String>,
   val description: String,
   val isCompleted: Boolean,
-  val bookMarkers: List<String>,
+  val bookMarkers: List<ProjectBookmark>,
   val userInfo: UserResponseDtoInProject,
   val createdAt: LocalDateTime
 ) {
@@ -32,7 +33,7 @@ data class ProjectWithUserResponseDto(
         techStacks = project.techStacks!!,
         description = project.description,
         isCompleted = project.isCompleted,
-        bookMarkers = project.bookMarkers,
+        bookMarkers = project.bookmarkers,
         userInfo = UserResponseDtoInProject.from(user),
         createdAt = project.createdAt
       )

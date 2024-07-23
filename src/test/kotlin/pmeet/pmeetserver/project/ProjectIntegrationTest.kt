@@ -33,12 +33,15 @@ import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
-import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 import pmeet.pmeetserver.project.repository.ProjectRepository
+import pmeet.pmeetserver.user.domain.User
+import pmeet.pmeetserver.user.domain.enum.Gender
+import pmeet.pmeetserver.user.repository.UserRepository
 import pmeet.pmeetserver.util.RestSliceImpl
 import java.time.LocalDateTime
 

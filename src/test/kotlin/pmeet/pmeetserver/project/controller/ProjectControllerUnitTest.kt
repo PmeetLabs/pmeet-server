@@ -28,7 +28,10 @@ import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import pmeet.pmeetserver.project.service.ProjectFacadeService
+import pmeet.pmeetserver.user.domain.enum.Gender
+import pmeet.pmeetserver.user.dto.response.UserResponseDtoInProject
 import pmeet.pmeetserver.util.RestSliceImpl
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 @WebFluxTest(ProjectController::class)

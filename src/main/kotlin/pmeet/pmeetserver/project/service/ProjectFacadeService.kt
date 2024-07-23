@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.project.service
 
+import org.springframework.data.domain.Slice
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
@@ -18,11 +19,11 @@ import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResp
 import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.request.tryout.ProjectTryoutResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
+import pmeet.pmeetserver.user.service.UserService
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import java.time.LocalDateTime
-import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
-import pmeet.pmeetserver.user.service.UserService
 
 @Service
 class ProjectFacadeService(
