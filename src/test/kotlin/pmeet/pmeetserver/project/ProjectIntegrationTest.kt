@@ -822,6 +822,37 @@ internal class ProjectIntegrationTest : DescribeSpec() {
           }
         }
       }
+      context("인증된 유저가 이미 북마크한 Project를 북마크하면") {
+        val localDateTime = LocalDateTime.of(2024, 7, 23, 0, 0, 0)
+        project.bookMarkers.add(ProjectBookMark(userId, localDateTime))
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val projectId = project.id!!
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .put()
+          .uri("/api/v1/projects/$projectId/bookmark")
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("북마크 추가 여부를 반환한다") {
+          performRequest.expectBody<Boolean>().consumeWith { response ->
+            response.responseBody shouldBe true
+          }
+        }
+
+        it("북마크 추가 시간을 갱신한다") {
+          withContext(Dispatchers.IO) {
+            val bookmarkedProject = projectRepository.findById(projectId).awaitSingleOrNull()
+            bookmarkedProject?.bookMarkers?.size shouldBe 1
+            bookmarkedProject?.bookMarkers?.get(0)?.userId shouldBe userId
+            bookmarkedProject?.bookMarkers?.get(0)?.addedAt shouldNotBe localDateTime
+          }
+        }
+      }
     }
 
     describe("DELETE /api/v1/projects/{projectId}/bookmark") {
@@ -846,6 +877,33 @@ internal class ProjectIntegrationTest : DescribeSpec() {
         }
 
         it("projectId에 해당하는 Project의 북마크가 삭제된다") {
+          withContext(Dispatchers.IO) {
+            val bookmarkedProject = projectRepository.findById(projectId).awaitSingleOrNull()
+            bookmarkedProject?.bookMarkers?.size shouldBe 0
+          }
+        }
+      }
+      context("인증된 유저가 이미 북마크 삭제한 프로젝트 북마크를 삭제하면") {
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val projectId = project.id!!
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/projects/$projectId/bookmark")
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isNoContent
+        }
+
+        it("북마크 삭제 여부를 반환한다") {
+          performRequest.expectBody<Boolean>().consumeWith { response ->
+            response.responseBody shouldBe true
+          }
+        }
+
+        it("북마크는 삭제된 상태를 유지한다") {
           withContext(Dispatchers.IO) {
             val bookmarkedProject = projectRepository.findById(projectId).awaitSingleOrNull()
             bookmarkedProject?.bookMarkers?.size shouldBe 0
