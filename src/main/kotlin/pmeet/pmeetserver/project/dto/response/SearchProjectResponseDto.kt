@@ -14,7 +14,7 @@ data class SearchProjectResponseDto(
   val jobNames: List<String>,
   val description: String,
   val isCompleted: Boolean,
-  val bookMarked: Boolean,
+  val bookmarked: Boolean,
   val createdAt: LocalDateTime,
   val updatedAt: LocalDateTime
 ) {
@@ -31,7 +31,7 @@ data class SearchProjectResponseDto(
         jobNames = project.recruitments.map { it.jobName },
         description = project.description,
         isCompleted = project.isCompleted,
-        bookMarked = project.bookMarkers.any { it.userId == userId },
+        bookmarked = project.bookmarkers.any { it.userId == userId },
         createdAt = project.createdAt,
         updatedAt = project.updatedAt
       )

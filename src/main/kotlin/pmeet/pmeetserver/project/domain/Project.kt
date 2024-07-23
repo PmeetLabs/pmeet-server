@@ -10,7 +10,7 @@ data class Recruitment(
   var numberOfRecruitment: Int,
 )
 
-data class ProjectBookMark(
+data class ProjectBookmark(
   val userId: String,
   val addedAt: LocalDateTime
 )
@@ -29,7 +29,7 @@ class Project(
   var recruitments: List<Recruitment>,
   var description: String,
   var isCompleted: Boolean = false,
-  var bookMarkers: MutableList<ProjectBookMark> = mutableListOf(), // 북마크를 한 유저 ID 리스트
+  var bookmarkers: MutableList<ProjectBookmark> = mutableListOf(), // 북마크를 한 유저 ID 리스트
   val createdAt: LocalDateTime = LocalDateTime.now(),
   var updatedAt: LocalDateTime = LocalDateTime.now() // 조회 시 정렬을 위해 now()로 초기화
 ) {
@@ -54,15 +54,15 @@ class Project(
   }
 
   fun addBookmark(userId: String) {
-    val newBookMark = ProjectBookMark(userId, LocalDateTime.now())
-    bookMarkers.indexOfFirst { it.userId == userId }
+    val newBookMark = ProjectBookmark(userId, LocalDateTime.now())
+    bookmarkers.indexOfFirst { it.userId == userId }
       .takeIf { it != -1 }
-      ?.let { bookMarkers[it] = newBookMark }
-      ?: bookMarkers.add(newBookMark)
+      ?.let { bookmarkers[it] = newBookMark }
+      ?: bookmarkers.add(newBookMark)
   }
 
   fun deleteBookmark(userId: String) {
-    bookMarkers.removeIf { it.userId == userId }
+    bookmarkers.removeIf { it.userId == userId }
   }
 
 }

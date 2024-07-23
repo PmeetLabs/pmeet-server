@@ -73,7 +73,7 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
           recruitments = requestDto.recruitments.map { RecruitmentResponseDto(it.jobName, it.numberOfRecruitment) },
           description = requestDto.description,
           userId = userId,
-          bookMarked = false,
+          bookmarked = false,
           isCompleted = false,
           createdAt = LocalDateTime.of(2021, 5, 1, 0, 0, 0),
           updatedAt = LocalDateTime.of(2021, 6, 1, 0, 0, 0)
@@ -112,7 +112,7 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
             }
             response.responseBody?.description shouldBe responseDto.description
             response.responseBody?.userId shouldBe responseDto.userId
-            response.responseBody?.bookMarked shouldBe responseDto.bookMarked
+            response.responseBody?.bookmarked shouldBe responseDto.bookmarked
             response.responseBody?.isCompleted shouldBe responseDto.isCompleted
             response.responseBody?.createdAt shouldBe responseDto.createdAt
             response.responseBody?.updatedAt shouldBe responseDto.updatedAt
@@ -166,7 +166,7 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
           recruitments = requestDto.recruitments.map { RecruitmentResponseDto(it.jobName, it.numberOfRecruitment) },
           description = requestDto.description,
           userId = userId,
-          bookMarked = false,
+          bookmarked = false,
           isCompleted = false,
           createdAt = LocalDateTime.of(2021, 5, 1, 0, 0, 0),
           updatedAt = LocalDateTime.of(2021, 6, 1, 0, 0, 0)
@@ -205,7 +205,7 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
             }
             response.responseBody?.description shouldBe responseDto.description
             response.responseBody?.userId shouldBe responseDto.userId
-            response.responseBody?.bookMarked shouldBe responseDto.bookMarked
+            response.responseBody?.bookmarked shouldBe responseDto.bookmarked
             response.responseBody?.isCompleted shouldBe responseDto.isCompleted
             response.responseBody?.createdAt shouldBe responseDto.createdAt
             response.responseBody?.updatedAt shouldBe responseDto.updatedAt
@@ -362,7 +362,7 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
             ),
             description = "testDescription$i",
             userId = "userId$i",
-            bookMarked = true,
+            bookmarked = true,
             isCompleted = false,
             createdAt = LocalDateTime.of(2021, 5, 1, 0, 0, 0),
             updatedAt = LocalDateTime.of(2021, 5, 1, 0, 0, 0)
@@ -411,7 +411,7 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
               searchProjectResponseDto.jobNames shouldBe responseDtos[index].jobNames
               searchProjectResponseDto.description shouldBe responseDtos[index].description
               searchProjectResponseDto.userId shouldBe responseDtos[index].userId
-              searchProjectResponseDto.bookMarked shouldBe responseDtos[index].bookMarked
+              searchProjectResponseDto.bookmarked shouldBe responseDtos[index].bookmarked
               searchProjectResponseDto.isCompleted shouldBe responseDtos[index].isCompleted
               searchProjectResponseDto.createdAt shouldBe responseDtos[index].createdAt
               searchProjectResponseDto.updatedAt shouldBe responseDtos[index].updatedAt

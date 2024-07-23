@@ -25,7 +25,7 @@ import org.springframework.test.web.reactive.server.expectBody
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.project.domain.Project
-import pmeet.pmeetserver.project.domain.ProjectBookMark
+import pmeet.pmeetserver.project.domain.ProjectBookmark
 import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
@@ -169,7 +169,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
             }
             response.responseBody?.description shouldBe requestDto.description
             response.responseBody?.userId shouldBe project.userId
-            response.responseBody?.bookMarked shouldBe false
+            response.responseBody?.bookmarked shouldBe false
             response.responseBody?.isCompleted shouldBe project.isCompleted
             response.responseBody?.createdAt shouldNotBe null
             response.responseBody?.updatedAt shouldNotBe null
@@ -227,7 +227,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
             }
             response.responseBody?.description shouldBe requestDto.description
             response.responseBody?.userId shouldBe project.userId
-            response.responseBody?.bookMarked shouldBe false
+            response.responseBody?.bookmarked shouldBe false
             response.responseBody?.isCompleted shouldBe project.isCompleted
             response.responseBody?.createdAt shouldNotBe null
             response.responseBody?.updatedAt shouldNotBe null
@@ -635,10 +635,10 @@ internal class ProjectIntegrationTest : DescribeSpec() {
             description = "testDescription"
           )
           if (i == 20) {
-            newProject.bookMarkers.add(ProjectBookMark(userId, LocalDateTime.now()))
+            newProject.bookmarkers.add(ProjectBookmark(userId, LocalDateTime.now()))
           }
           for (j in 1..i) {
-            newProject.bookMarkers.add(ProjectBookMark("testUserId$j", LocalDateTime.now()))
+            newProject.bookmarkers.add(ProjectBookmark("testUserId$j", LocalDateTime.now()))
           }
           withContext(Dispatchers.IO) {
             projectRepository.save(newProject).block()
@@ -676,7 +676,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
         }
         it("요청한 유저가 북마크한 Project면 응답의 bookMarked를 True로 반환한다") {
           performRequest.expectBody<RestSliceImpl<SearchProjectResponseDto>>().consumeWith { response ->
-            response.responseBody?.content?.get(0)?.bookMarked shouldBe true
+            response.responseBody?.content?.get(0)?.bookmarked shouldBe true
           }
         }
       }
@@ -816,15 +816,15 @@ internal class ProjectIntegrationTest : DescribeSpec() {
         it("projectId에 해당하는 Project의 북마크가 추가된다") {
           withContext(Dispatchers.IO) {
             val bookmarkedProject = projectRepository.findById(projectId).awaitSingleOrNull()
-            bookmarkedProject?.bookMarkers?.size shouldBe 1
-            bookmarkedProject?.bookMarkers?.get(0)?.userId shouldBe userId
-            bookmarkedProject?.bookMarkers?.get(0)?.addedAt shouldNotBe null
+            bookmarkedProject?.bookmarkers?.size shouldBe 1
+            bookmarkedProject?.bookmarkers?.get(0)?.userId shouldBe userId
+            bookmarkedProject?.bookmarkers?.get(0)?.addedAt shouldNotBe null
           }
         }
       }
       context("인증된 유저가 이미 북마크한 Project를 북마크하면") {
         val localDateTime = LocalDateTime.of(2024, 7, 23, 0, 0, 0)
-        project.bookMarkers.add(ProjectBookMark(userId, localDateTime))
+        project.bookmarkers.add(ProjectBookmark(userId, localDateTime))
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
         val projectId = project.id!!
         val performRequest = webTestClient
@@ -847,9 +847,9 @@ internal class ProjectIntegrationTest : DescribeSpec() {
         it("북마크 추가 시간을 갱신한다") {
           withContext(Dispatchers.IO) {
             val bookmarkedProject = projectRepository.findById(projectId).awaitSingleOrNull()
-            bookmarkedProject?.bookMarkers?.size shouldBe 1
-            bookmarkedProject?.bookMarkers?.get(0)?.userId shouldBe userId
-            bookmarkedProject?.bookMarkers?.get(0)?.addedAt shouldNotBe localDateTime
+            bookmarkedProject?.bookmarkers?.size shouldBe 1
+            bookmarkedProject?.bookmarkers?.get(0)?.userId shouldBe userId
+            bookmarkedProject?.bookmarkers?.get(0)?.addedAt shouldNotBe localDateTime
           }
         }
       }
@@ -879,7 +879,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
         it("projectId에 해당하는 Project의 북마크가 삭제된다") {
           withContext(Dispatchers.IO) {
             val bookmarkedProject = projectRepository.findById(projectId).awaitSingleOrNull()
-            bookmarkedProject?.bookMarkers?.size shouldBe 0
+            bookmarkedProject?.bookmarkers?.size shouldBe 0
           }
         }
       }
@@ -906,7 +906,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
         it("북마크는 삭제된 상태를 유지한다") {
           withContext(Dispatchers.IO) {
             val bookmarkedProject = projectRepository.findById(projectId).awaitSingleOrNull()
-            bookmarkedProject?.bookMarkers?.size shouldBe 0
+            bookmarkedProject?.bookmarkers?.size shouldBe 0
           }
         }
       }

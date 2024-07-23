@@ -91,7 +91,7 @@ internal class ProjectServiceUnitTest : DescribeSpec({
           result.recruitments shouldBe project.recruitments
           result.description shouldBe project.description
           result.isCompleted shouldBe project.isCompleted
-          result.bookMarkers shouldBe project.bookMarkers
+          result.bookmarkers shouldBe project.bookmarkers
           result.createdAt shouldBe project.createdAt
           result.updatedAt shouldBe project.updatedAt
         }
@@ -117,7 +117,7 @@ internal class ProjectServiceUnitTest : DescribeSpec({
           result.recruitments shouldBe project.recruitments
           result.description shouldBe project.description
           result.isCompleted shouldBe project.isCompleted
-          result.bookMarkers shouldBe project.bookMarkers
+          result.bookmarkers shouldBe project.bookmarkers
           result.createdAt shouldBe project.createdAt
           result.updatedAt shouldBe project.updatedAt
         }
@@ -175,7 +175,7 @@ internal class ProjectServiceUnitTest : DescribeSpec({
           result.recruitments shouldBe updatedProject.recruitments
           result.description shouldBe updatedProject.description
           result.isCompleted shouldBe updatedProject.isCompleted
-          result.bookMarkers shouldBe updatedProject.bookMarkers
+          result.bookmarkers shouldBe updatedProject.bookmarkers
           result.updatedAt shouldBe updatedProject.updatedAt
           result.createdAt shouldBe updatedProject.createdAt
         }

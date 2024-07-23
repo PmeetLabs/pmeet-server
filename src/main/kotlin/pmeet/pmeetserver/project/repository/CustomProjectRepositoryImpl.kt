@@ -17,11 +17,11 @@ class CustomProjectRepositoryImpl(
 
   companion object {
     private const val DOCUMENT_NAME = "project"
-    private const val PROPERTY_NAME_BOOK_MARKERS = "bookMarkers"
+    private const val PROPERTY_NAME_BOOK_MARKERS = "bookmarkers"
     private const val PROPERTY_NAME_JOB_NAME = "recruitments.jobName"
     private const val PROPERTY_NAME_TITLE = "title"
     private const val PROPERTY_NAME_IS_COMPLETED = "isCompleted"
-    private const val PROPERTY_NAME_BOOK_MARKERS_SIZE = "bookMarkersSize"
+    private const val PROPERTY_NAME_BOOK_MARKERS_SIZE = "bookmarkersSize"
   }
 
   override fun findAllByFilter(

@@ -20,7 +20,7 @@ import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.project.domain.Project
-import pmeet.pmeetserver.project.domain.ProjectBookMark
+import pmeet.pmeetserver.project.domain.ProjectBookmark
 import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
@@ -158,7 +158,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           }
           result.description shouldBe requestDto.description
           result.isCompleted shouldBe project.isCompleted
-          result.bookMarked shouldBe false
+          result.bookmarked shouldBe false
           result.createdAt shouldBe project.createdAt
           result.updatedAt shouldBe project.updatedAt
         }
@@ -207,7 +207,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           }
           result.description shouldBe requestDto.description
           result.isCompleted shouldBe project.isCompleted
-          result.bookMarked shouldBe false
+          result.bookmarked shouldBe false
           result.createdAt shouldBe project.createdAt
           result.updatedAt shouldBe project.updatedAt
         }
@@ -427,10 +427,10 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
             description = "testDescription"
           )
           if (i == 1) {
-            newProject.bookMarkers.add(ProjectBookMark(requesterUserId, LocalDateTime.now()))
+            newProject.bookmarkers.add(ProjectBookmark(requesterUserId, LocalDateTime.now()))
           }
           for (j in 1..i) {
-            newProject.bookMarkers.add(ProjectBookMark("$userId$i", LocalDateTime.now()))
+            newProject.bookmarkers.add(ProjectBookmark("$userId$i", LocalDateTime.now()))
           }
           projects.add(newProject)
         }
@@ -449,8 +449,8 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.size shouldBe pageSize
           result.isFirst shouldBe true
           result.isLast shouldBe false
-          result.content.first().bookMarked shouldBe true
-          result.content.last().bookMarked shouldBe false
+          result.content.first().bookmarked shouldBe true
+          result.content.last().bookmarked shouldBe false
         }
       }
     }
@@ -466,9 +466,9 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
 
           projectFacadeService.addBookmark(userId, projectId)
 
-          project.bookMarkers.size shouldBe 1
-          project.bookMarkers[0].userId shouldBe userId
-          project.bookMarkers[0].addedAt shouldNotBe null
+          project.bookmarkers.size shouldBe 1
+          project.bookmarkers[0].userId shouldBe userId
+          project.bookmarkers[0].addedAt shouldNotBe null
         }
       }
 
@@ -478,12 +478,12 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           coEvery { projectService.update(any()) } answers { project }
 
           val localDateTime = LocalDateTime.of(2021, 1, 1, 0, 0, 0)
-          project.bookMarkers.add(ProjectBookMark(userId, localDateTime))
+          project.bookmarkers.add(ProjectBookmark(userId, localDateTime))
           projectFacadeService.addBookmark(userId, projectId)
 
-          project.bookMarkers.size shouldBe 1
-          project.bookMarkers[0].userId shouldBe userId
-          project.bookMarkers[0].addedAt shouldNotBe localDateTime
+          project.bookmarkers.size shouldBe 1
+          project.bookmarkers[0].userId shouldBe userId
+          project.bookmarkers[0].addedAt shouldNotBe localDateTime
         }
       }
     }
@@ -497,10 +497,10 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           coEvery { projectService.getProjectById(projectId) } answers { project }
           coEvery { projectService.update(any()) } answers { project }
 
-          project.bookMarkers.add(ProjectBookMark(userId, LocalDateTime.now()))
+          project.bookmarkers.add(ProjectBookmark(userId, LocalDateTime.now()))
           projectFacadeService.deleteBookmark(userId, projectId)
 
-          project.bookMarkers.size shouldBe 0
+          project.bookmarkers.size shouldBe 0
         }
       }
 
@@ -511,7 +511,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
 
           projectFacadeService.deleteBookmark(userId, projectId)
 
-          project.bookMarkers.size shouldBe 0
+          project.bookmarkers.size shouldBe 0
         }
       }
     }
