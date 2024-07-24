@@ -21,10 +21,10 @@ import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
-import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.service.ProjectFacadeService
 import reactor.core.publisher.Mono
 
@@ -34,12 +34,13 @@ class ProjectController(
   private val projectFacadeService: ProjectFacadeService
 ) {
 
-  @GetMapping
+  @GetMapping("/{projectId}")
   @ResponseStatus(HttpStatus.OK)
   suspend fun getProject(
-    @RequestParam(required = true) projectId: String
+    @AuthenticationPrincipal userId: Mono<String>,
+    @PathVariable projectId: String
   ): ProjectWithUserResponseDto {
-    return projectFacadeService.getProjectByProjectId(projectId);
+    return projectFacadeService.getProjectByProjectId(userId.awaitSingle(), projectId)
   }
 
   @PostMapping

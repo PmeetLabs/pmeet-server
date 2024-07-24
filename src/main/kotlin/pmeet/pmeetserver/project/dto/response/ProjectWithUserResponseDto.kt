@@ -17,12 +17,13 @@ data class ProjectWithUserResponseDto(
   val techStacks: List<String>,
   val description: String,
   val isCompleted: Boolean,
-  val bookMarkers: List<ProjectBookmark>,
+  val bookmarks: List<ProjectBookmark>,
+  val isMyBookmark: Boolean,
   val userInfo: UserResponseDtoInProject,
   val createdAt: LocalDateTime
 ) {
   companion object {
-    fun from(project: Project, user: User): ProjectWithUserResponseDto {
+    fun from(project: Project, user: User, requestedUserId: String): ProjectWithUserResponseDto {
       return ProjectWithUserResponseDto(
         id = project.id!!,
         userId = project.userId,
@@ -33,7 +34,8 @@ data class ProjectWithUserResponseDto(
         techStacks = project.techStacks!!,
         description = project.description,
         isCompleted = project.isCompleted,
-        bookMarkers = project.bookmarkers,
+        bookmarks = project.bookmarkers,
+        isMyBookmark = project.bookmarkers.any { it.userId == requestedUserId },
         userInfo = UserResponseDtoInProject.from(user),
         createdAt = project.createdAt
       )

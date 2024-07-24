@@ -173,9 +173,12 @@ class ProjectFacadeService(
   }
 
   @Transactional(readOnly = true)
-  suspend fun getProjectByProjectId(projectId: String): ProjectWithUserResponseDto {
+  suspend fun getProjectByProjectId(
+    requestedUserId: String,
+    projectId: String
+  ): ProjectWithUserResponseDto {
     val project = projectService.getProjectById(projectId)
     val user = userService.getUserById(project.userId)
-    return ProjectWithUserResponseDto.from(project, user)
+    return ProjectWithUserResponseDto.from(project, user, requestedUserId)
   }
 }

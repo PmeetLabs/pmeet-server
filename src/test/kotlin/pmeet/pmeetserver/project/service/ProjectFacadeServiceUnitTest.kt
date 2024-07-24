@@ -30,15 +30,15 @@ import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
-import pmeet.pmeetserver.user.domain.User
-import pmeet.pmeetserver.user.domain.enum.Gender
-import pmeet.pmeetserver.user.service.UserService
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
+import pmeet.pmeetserver.user.domain.User
+import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
+import pmeet.pmeetserver.user.service.UserService
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import java.time.LocalDateTime
 
@@ -146,7 +146,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           coEvery { projectService.getProjectById(any()) } answers { project }
           coEvery { userService.getUserById(project.userId) } answers { user }
 
-          val result = projectFacadeService.getProjectByProjectId(projectId = project.id!!)
+          val result = projectFacadeService.getProjectByProjectId(user.id!!, project.id!!)
 
           result.id shouldBe project.id
           result.userId shouldBe project.userId
@@ -158,6 +158,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.isCompleted shouldBe project.isCompleted
           result.userInfo.id shouldBe user.id
           result.techStacks shouldBe project.techStacks
+          result.isMyBookmark shouldBe false
         }
       }
     }

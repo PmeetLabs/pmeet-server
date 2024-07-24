@@ -69,6 +69,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
   lateinit var userRepository: UserRepository
 
   lateinit var project: Project
+  lateinit var projectId: String
   lateinit var userId: String
   lateinit var recruitments: List<Recruitment>
   lateinit var projectComment: ProjectComment
@@ -99,7 +100,9 @@ internal class ProjectIntegrationTest : DescribeSpec() {
       )
     )
 
+    projectId = "project-id"
     project = Project(
+      id = projectId,
       userId = userId,
       title = "testTitle",
       startDate = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
@@ -110,11 +113,13 @@ internal class ProjectIntegrationTest : DescribeSpec() {
       description = "testDescription"
     )
 
+    project.addBookmark(userId)
+
     withContext(Dispatchers.IO) {
       projectRepository.save(project).block()
 
       projectComment = ProjectComment(
-        projectId = project.id!!,
+        projectId = projectId,
         userId = userId,
         content = "testContent",
         isDeleted = false,
@@ -123,7 +128,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
       userRepository.save(user).block()
 
       deletedProjectComment = ProjectComment(
-        projectId = project.id!!,
+        projectId = projectId,
         userId = userId,
         content = "childContent",
         isDeleted = true,
@@ -136,6 +141,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
     withContext(Dispatchers.IO) {
       projectRepository.deleteAll().block()
       projectCommentRepository.deleteAll().block()
+      userRepository.deleteAll().block()
     }
   }
 
@@ -144,15 +150,14 @@ internal class ProjectIntegrationTest : DescribeSpec() {
       context("유저의 프로젝트 조회 요청이 들어오면") {
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
 
-        val projectResponse = ProjectWithUserResponseDto.from(project, user)
+        val projectResponse = ProjectWithUserResponseDto.from(project, user, userId)
 
         val performRequest =
           webTestClient
             .mutateWith(mockAuthentication(mockAuthentication))
             .get()
             .uri {
-              it.path("/api/v1/projects")
-                .queryParam("projectId", project.id!!)
+              it.path("/api/v1/projects/$projectId")
                 .build()
             }
             .exchange()
@@ -176,6 +181,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
             returnedProject.isCompleted shouldBe projectResponse.isCompleted
             returnedProject.userInfo.id shouldBe projectResponse.userInfo.id
             returnedProject.techStacks shouldBe projectResponse.techStacks
+            returnedProject.isMyBookmark shouldBe projectResponse.isMyBookmark
           }
         }
       }
@@ -287,7 +293,7 @@ internal class ProjectIntegrationTest : DescribeSpec() {
             }
             response.responseBody?.description shouldBe requestDto.description
             response.responseBody?.userId shouldBe project.userId
-            response.responseBody?.bookmarked shouldBe false
+            response.responseBody?.bookmarked shouldBe true
             response.responseBody?.isCompleted shouldBe project.isCompleted
             response.responseBody?.createdAt shouldNotBe null
             response.responseBody?.updatedAt shouldNotBe null

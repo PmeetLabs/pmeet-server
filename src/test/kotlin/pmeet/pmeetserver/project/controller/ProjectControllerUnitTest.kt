@@ -61,7 +61,8 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
           description = "testDescription",
           userId = userId,
           isCompleted = false,
-          bookMarkers = emptyList(),
+          bookmarks = emptyList(),
+          isMyBookmark = false,
           userInfo = UserResponseDtoInProject(
             userId,
             "user-email",
@@ -75,21 +76,25 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
           createdAt = LocalDateTime.of(2021, 12, 31, 23, 59, 59)
         )
 
-        coEvery { projectFacadeService.getProjectByProjectId(projectId) } answers { projectResponse }
+        coEvery {
+          projectFacadeService.getProjectByProjectId(
+            userId,
+            projectId
+          )
+        } answers { projectResponse }
 
         val performRequest =
           webTestClient
             .mutateWith(mockAuthentication(mockAuthentication))
             .get()
             .uri {
-              it.path("/api/v1/projects")
-                .queryParam("projectId", projectId)
+              it.path("/api/v1/projects/$projectId")
                 .build()
             }
             .exchange()
 
         it("서비스를 통해 데이터를 검색한다") {
-          coVerify(exactly = 1) { projectFacadeService.getProjectByProjectId(projectId) }
+          coVerify(exactly = 1) { projectFacadeService.getProjectByProjectId(userId, projectId) }
         }
 
         it("요청은 성공한다") {
@@ -110,6 +115,8 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
             returnedProject.isCompleted shouldBe projectResponse.isCompleted
             returnedProject.userInfo.id shouldBe projectResponse.userInfo.id
             returnedProject.techStacks shouldBe projectResponse.techStacks
+            returnedProject.bookmarks shouldBe projectResponse.bookmarks
+            returnedProject.isMyBookmark shouldBe projectResponse.isMyBookmark
           }
         }
       }
