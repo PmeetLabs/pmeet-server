@@ -6,8 +6,10 @@ import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
 import org.springframework.data.mongodb.core.aggregation.ArrayOperators
+import org.springframework.data.mongodb.core.aggregation.ConditionalOperators
 import org.springframework.data.mongodb.core.query.Criteria
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.ProjectBookmark
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import reactor.core.publisher.Flux
 
@@ -82,7 +84,11 @@ class CustomProjectRepositoryImpl(
 
     val addFields = Aggregation.addFields()
       .addField(PROPERTY_NAME_BOOK_MARKERS_SIZE)
-      .withValue(ArrayOperators.Size.lengthOfArray(PROPERTY_NAME_BOOK_MARKERS))
+      .withValue(
+        ArrayOperators.Size.lengthOfArray(
+          ConditionalOperators.IfNull.ifNull(PROPERTY_NAME_BOOK_MARKERS).then(emptyList<ProjectBookmark>())
+        )
+      )
       .build()
 
     val sort = if (pageable.sort.getOrderFor(PROPERTY_NAME_BOOK_MARKERS) != null) {
