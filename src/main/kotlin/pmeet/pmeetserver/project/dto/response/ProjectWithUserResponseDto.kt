@@ -15,6 +15,7 @@ data class ProjectWithUserResponseDto(
   val endDate: LocalDateTime,
   val thumbNailUrl: String?,
   val techStacks: List<String>,
+  val recruitments: List<RecruitmentResponseDto>,
   val description: String,
   val isCompleted: Boolean,
   val bookmarks: List<ProjectBookmark>,
@@ -32,6 +33,12 @@ data class ProjectWithUserResponseDto(
         endDate = project.endDate,
         thumbNailUrl = project.thumbNailUrl,
         techStacks = project.techStacks!!,
+        recruitments = project.recruitments.map {
+          RecruitmentResponseDto(
+            it.jobName,
+            it.numberOfRecruitment
+          )
+        },
         description = project.description,
         isCompleted = project.isCompleted,
         bookmarks = project.bookmarkers,

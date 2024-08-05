@@ -58,6 +58,16 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
           endDate = LocalDateTime.of(2021, 12, 31, 23, 59, 59),
           thumbNailUrl = "testThumbNailUrl",
           techStacks = listOf("testTechStack1", "testTechStack2"),
+          recruitments = listOf(
+            RecruitmentResponseDto(
+              jobName = "testJobName1",
+              numberOfRecruitment = 1
+            ),
+            RecruitmentResponseDto(
+              jobName = "testJobName2",
+              numberOfRecruitment = 2
+            )
+          ),
           description = "testDescription",
           userId = userId,
           isCompleted = false,
@@ -115,6 +125,11 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
             returnedProject.isCompleted shouldBe projectResponse.isCompleted
             returnedProject.userInfo.id shouldBe projectResponse.userInfo.id
             returnedProject.techStacks shouldBe projectResponse.techStacks
+            returnedProject.recruitments.size shouldBe projectResponse.recruitments.size
+            returnedProject.recruitments.forEachIndexed { index, recruitmentResponseDto ->
+              recruitmentResponseDto.jobName shouldBe projectResponse.recruitments[index].jobName
+              recruitmentResponseDto.numberOfRecruitment shouldBe projectResponse.recruitments[index].numberOfRecruitment
+            }
             returnedProject.bookmarks shouldBe projectResponse.bookmarks
             returnedProject.isMyBookmark shouldBe projectResponse.isMyBookmark
           }

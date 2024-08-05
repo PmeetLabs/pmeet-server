@@ -200,6 +200,11 @@ internal class ProjectIntegrationTest : DescribeSpec() {
             returnedProject.isCompleted shouldBe projectResponse.isCompleted
             returnedProject.userInfo.id shouldBe projectResponse.userInfo.id
             returnedProject.techStacks shouldBe projectResponse.techStacks
+            returnedProject.recruitments.size shouldBe projectResponse.recruitments.size
+            returnedProject.recruitments.forEachIndexed { index, recruitmentResponseDto ->
+              recruitmentResponseDto.jobName shouldBe projectResponse.recruitments[index].jobName
+              recruitmentResponseDto.numberOfRecruitment shouldBe projectResponse.recruitments[index].numberOfRecruitment
+            }
             returnedProject.isMyBookmark shouldBe projectResponse.isMyBookmark
           }
         }
