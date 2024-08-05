@@ -3,6 +3,7 @@ package pmeet.pmeetserver.user.resume.service
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.shouldBe
 import io.mockk.coVerify
 import io.mockk.every
@@ -31,6 +32,7 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 
 @ExperimentalCoroutinesApi
 internal class ResumeServiceUnitTest : DescribeSpec({
@@ -91,6 +93,7 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           every { resumeRepository.countByUserId(any()) } answers { Mono.just(1) }
           every { resumeRepository.save(any()) } answers { Mono.just(resume) }
           every { resumeRepository.findById("resume-id") } answers { Mono.just(resume) }
+          val requestTime = LocalDateTime.now().minusMinutes(1L)
 
           val result = resumeService.save(resume)
 
@@ -110,6 +113,8 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           result.portfolioFileUrl shouldBe resume.portfolioFileUrl
           result.portfolioUrl.first shouldBe resume.portfolioUrl.first
           result.selfDescription shouldBe resume.selfDescription
+          result.createdAt shouldBeAfter requestTime
+          result.updatedAt shouldBeAfter requestTime
         }
       }
     }
@@ -133,7 +138,6 @@ internal class ResumeServiceUnitTest : DescribeSpec({
         runTest {
           val resumeUpdateRequestDto = createMockUpdateResumeRequestDto();
           every { resumeRepository.save(any()) } answers { Mono.just(generateUpdatedResume()) }
-
           val result = resumeService.update(generateUpdatedResume())
 
           result.title shouldBe resumeUpdateRequestDto.title

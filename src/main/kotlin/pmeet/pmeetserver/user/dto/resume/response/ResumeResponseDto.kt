@@ -8,6 +8,7 @@ import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.dto.job.response.JobResponseDto
 import pmeet.pmeetserver.user.dto.techStack.response.TechStackResponseDto
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class ResumeJobExperienceResponseDto(
   val companyName: String,
@@ -58,7 +59,9 @@ data class ResumeResponseDto(
   val projectExperiences: List<ResumeProjectExperienceResponseDto>,
   val portfolioFileUrl: String,
   val portfolioUrl: List<String>,
-  val selfDescription: String
+  val selfDescription: String,
+  val updatedAt: LocalDateTime,
+  val createdAt: LocalDateTime,
 ) {
   companion object {
     fun from(resume: Resume): ResumeResponseDto {
@@ -79,7 +82,9 @@ data class ResumeResponseDto(
         projectExperiences = resume.projectExperiences.map { ResumeProjectExperienceResponseDto.from(it) },
         portfolioFileUrl = resume.portfolioFileUrl ?: "",
         portfolioUrl = resume.portfolioUrl,
-        selfDescription = resume.selfDescription ?: ""
+        selfDescription = resume.selfDescription ?: "",
+        updatedAt = resume.updatedAt,
+        createdAt = resume.createdAt
       )
     }
   }

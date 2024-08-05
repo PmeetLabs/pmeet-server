@@ -3,6 +3,7 @@ package pmeet.pmeetserver.user.resume.service
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -29,6 +30,7 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
 import pmeet.pmeetserver.user.service.resume.ResumeService
+import java.time.LocalDateTime
 
 @ExperimentalCoroutinesApi
 class ResumeFacadeServiceUnitTest : DescribeSpec({
@@ -89,6 +91,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
     context("이력서를 업데이트하는 경우") {
       it("저장 후 이력서를 반환한다") {
         runTest {
+          val requestTime = LocalDateTime.now().minusMinutes(1L)
           val updateRequest = createMockUpdateResumeRequestDto()
           coEvery { resumeService.getByResumeId(any()) } answers { resume }
           coEvery { resumeService.update(any()) } answers { generateUpdatedResume() }
@@ -103,6 +106,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           result.portfolioFileUrl shouldBe updateRequest.portfolioFileUrl
           result.portfolioUrl.first() shouldBe updateRequest.portfolioUrl.first()
           result.selfDescription shouldBe updateRequest.selfDescription
+          result.updatedAt shouldBeAfter requestTime
         }
       }
 

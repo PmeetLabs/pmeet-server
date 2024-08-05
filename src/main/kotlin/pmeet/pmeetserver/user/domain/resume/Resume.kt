@@ -7,6 +7,7 @@ import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.domain.techStack.TechStack
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 data class JobExperience(
   val companyName: String,
@@ -39,7 +40,9 @@ class Resume(
   var projectExperiences: List<ProjectExperience>,
   var portfolioFileUrl: String?,
   var portfolioUrl: List<String>,
-  var selfDescription: String?
+  var selfDescription: String?,
+  var updatedAt: LocalDateTime = LocalDateTime.now(),
+  val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
   fun update(title: String? = null, userProfileImageUrl: String? = null,
              desiredJobs: List<Job>? = null,
@@ -59,6 +62,7 @@ class Resume(
     if (portfolioFileUrl != null) this.portfolioFileUrl = portfolioFileUrl
     if (portfolioUrl != null) this.portfolioUrl = portfolioUrl
     if (selfDescription != null) this.selfDescription = selfDescription
+    this.updatedAt = LocalDateTime.now()
     return this;
   }
 

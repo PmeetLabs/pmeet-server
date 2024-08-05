@@ -23,6 +23,7 @@ import pmeet.pmeetserver.user.dto.resume.response.ResumeProjectExperienceRespons
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.dto.techStack.response.TechStackResponseDto
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 object ResumeGenerator {
 
@@ -145,7 +146,9 @@ object ResumeGenerator {
       ),
       portfolioFileUrl = "http://example.com/portfolio.pdf",
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
-      selfDescription = "Passionate software engineer with a focus on backend development."
+      selfDescription = "Passionate software engineer with a focus on backend development.",
+      updatedAt = LocalDateTime.now(),
+      createdAt = LocalDateTime.now()
     )
   }
 
@@ -211,7 +214,9 @@ object ResumeGenerator {
       ),
       portfolioFileUrl = "http://example.com/portfolio.pdf",
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
-      selfDescription = "Passionate software engineer with a focus on backend development."
+      selfDescription = "Passionate software engineer with a focus on backend development.",
+      updatedAt = LocalDateTime.now(),
+      createdAt = LocalDateTime.now()
     )
   }
 

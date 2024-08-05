@@ -3,6 +3,7 @@ package pmeet.pmeetserver.user.resume
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.Spec
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,6 +36,7 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeReque
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
+import java.time.LocalDateTime
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -246,6 +248,7 @@ class ResumeIntegrationTest : DescribeSpec() {
     describe("PUT /api/v1/resumes") {
       context("인증된 유저의 이력서 수정 요청이 들어오면") {
         val requestDto = createMockUpdateResumeRequestDto()
+        val requestTime = LocalDateTime.now().minusMinutes(1L)
         val userId = resume.userId
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
         val resumeResponse = generateUpdatedResume()
@@ -275,6 +278,8 @@ class ResumeIntegrationTest : DescribeSpec() {
             returnedResume.portfolioFileUrl shouldBe resumeResponse.portfolioFileUrl
             returnedResume.portfolioUrl shouldBe resumeResponse.portfolioUrl
             returnedResume.selfDescription shouldBe resumeResponse.selfDescription
+            returnedResume.updatedAt shouldBeAfter requestTime
+            returnedResume.createdAt shouldBeAfter requestTime
           }
         }
       }
