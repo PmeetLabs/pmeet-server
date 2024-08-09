@@ -6,12 +6,17 @@
 
 - Kotlin
 - Coroutine
+- Spring Boot
 - Webflux
 - MongoDB
-- Junit5
-- Redis
+- Kotest
+- TestContainer
 - JWT
-- AWS
+
+## 인프라
+
+- Redis
+- AWS(EC2, CodeDeploy, S3)
 
 ## Documentation
 
