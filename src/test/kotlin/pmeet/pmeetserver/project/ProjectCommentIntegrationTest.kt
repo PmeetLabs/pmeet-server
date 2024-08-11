@@ -2,13 +2,10 @@ package pmeet.pmeetserver.project
 
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.Spec
-import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.reactive.awaitFirst
 import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -22,8 +19,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.testcontainers.containers.MongoDBContainer
-import org.testcontainers.junit.jupiter.Container
+import pmeet.pmeetserver.config.BaseMongoDBIntegrationTest
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectComment
@@ -31,6 +27,7 @@ import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequest
 import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 import pmeet.pmeetserver.project.repository.ProjectRepository
+import java.time.LocalDateTime
 
 @ExtendWith(SpringExtension::class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -38,7 +35,7 @@ import pmeet.pmeetserver.project.repository.ProjectRepository
 @Import(TestSecurityConfig::class)
 @ExperimentalCoroutinesApi
 @ActiveProfiles("test")
-internal class ProjectCommentIntegrationTest : DescribeSpec() {
+internal class ProjectCommentIntegrationTest : BaseMongoDBIntegrationTest() {
 
   override fun isolationMode(): IsolationMode? {
     return IsolationMode.InstancePerLeaf

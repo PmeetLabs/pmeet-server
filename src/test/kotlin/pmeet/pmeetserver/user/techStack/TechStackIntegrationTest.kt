@@ -2,7 +2,6 @@ package pmeet.pmeetserver.user.techStack
 
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.Spec
-import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -18,8 +17,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.testcontainers.containers.MongoDBContainer
-import org.testcontainers.junit.jupiter.Container
+import pmeet.pmeetserver.config.BaseMongoDBIntegrationTest
 import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.dto.techStack.request.CreateTechStackRequestDto
 import pmeet.pmeetserver.user.dto.techStack.response.TechStackResponseDto
@@ -31,7 +29,7 @@ import pmeet.pmeetserver.util.RestSliceImpl
 @AutoConfigureWebTestClient
 @ExperimentalCoroutinesApi
 @ActiveProfiles("test")
-class TechStackIntegrationTest : DescribeSpec() {
+class TechStackIntegrationTest : BaseMongoDBIntegrationTest() {
 
   override fun isolationMode(): IsolationMode? {
     return IsolationMode.InstancePerLeaf
@@ -57,7 +55,7 @@ class TechStackIntegrationTest : DescribeSpec() {
   override suspend fun afterSpec(spec: Spec) {
     withContext(Dispatchers.IO) {
       techStackRepository.deleteAll().block()
-    }  
+    }
   }
 
 

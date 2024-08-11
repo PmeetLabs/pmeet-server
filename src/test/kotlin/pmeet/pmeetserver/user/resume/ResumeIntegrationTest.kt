@@ -2,7 +2,6 @@ package pmeet.pmeetserver.user.resume
 
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.Spec
-import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.date.shouldBeAfter
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
@@ -19,8 +18,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.testcontainers.containers.MongoDBContainer
-import org.testcontainers.junit.jupiter.Container
+import pmeet.pmeetserver.config.BaseMongoDBIntegrationTest
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
@@ -43,7 +41,7 @@ import java.time.LocalDateTime
 @AutoConfigureWebTestClient
 @ExperimentalCoroutinesApi
 @ActiveProfiles("test")
-class ResumeIntegrationTest : DescribeSpec() {
+class ResumeIntegrationTest : BaseMongoDBIntegrationTest() {
 
   override fun isolationMode(): IsolationMode? {
     return IsolationMode.InstancePerLeaf

@@ -2,7 +2,6 @@ package pmeet.pmeetserver.project
 
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.Spec
-import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.Dispatchers
@@ -22,8 +21,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.util.ReflectionTestUtils
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.testcontainers.containers.MongoDBContainer
-import org.testcontainers.junit.jupiter.Container
+import pmeet.pmeetserver.config.BaseMongoDBIntegrationTest
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectBookmark
 import pmeet.pmeetserver.project.domain.ProjectComment
@@ -53,7 +51,7 @@ import java.time.LocalDateTime
 @AutoConfigureWebTestClient
 @ExperimentalCoroutinesApi
 @ActiveProfiles("test")
-internal class ProjectIntegrationTest : DescribeSpec() {
+internal class ProjectIntegrationTest : BaseMongoDBIntegrationTest() {
 
   override fun isolationMode(): IsolationMode? {
     return IsolationMode.InstancePerLeaf
@@ -169,8 +167,6 @@ internal class ProjectIntegrationTest : DescribeSpec() {
       context("유저의 프로젝트 조회 요청이 들어오면") {
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
 
-        val projectResponse = ProjectWithUserResponseDto.from(project, user, userId)
-
         val performRequest =
           webTestClient
             .mutateWith(mockAuthentication(mockAuthentication))
@@ -190,22 +186,22 @@ internal class ProjectIntegrationTest : DescribeSpec() {
           performRequest.expectBody<ProjectWithUserResponseDto>().consumeWith { result ->
             val returnedProject = result.responseBody!!
 
-            returnedProject.id shouldBe projectResponse.id
-            returnedProject.userId shouldBe projectResponse.userId
-            returnedProject.title shouldBe projectResponse.title
-            returnedProject.startDate shouldBe projectResponse.startDate
-            returnedProject.endDate shouldBe projectResponse.endDate
-            returnedProject.thumbNailUrl shouldBe projectResponse.thumbNailUrl
-            returnedProject.description shouldBe projectResponse.description
-            returnedProject.isCompleted shouldBe projectResponse.isCompleted
-            returnedProject.userInfo.id shouldBe projectResponse.userInfo.id
-            returnedProject.techStacks shouldBe projectResponse.techStacks
-            returnedProject.recruitments.size shouldBe projectResponse.recruitments.size
+            returnedProject.id shouldBe projectId
+            returnedProject.userId shouldBe userId
+            returnedProject.title shouldBe project.title
+            returnedProject.startDate shouldBe project.startDate
+            returnedProject.endDate shouldBe project.endDate
+            returnedProject.thumbNailUrl shouldBe project.thumbNailUrl
+            returnedProject.description shouldBe project.description
+            returnedProject.isCompleted shouldBe project.isCompleted
+            returnedProject.userInfo.id shouldBe user.id
+            returnedProject.techStacks shouldBe project.techStacks
+            returnedProject.recruitments.size shouldBe project.recruitments.size
             returnedProject.recruitments.forEachIndexed { index, recruitmentResponseDto ->
-              recruitmentResponseDto.jobName shouldBe projectResponse.recruitments[index].jobName
-              recruitmentResponseDto.numberOfRecruitment shouldBe projectResponse.recruitments[index].numberOfRecruitment
+              recruitmentResponseDto.jobName shouldBe project.recruitments[index].jobName
+              recruitmentResponseDto.numberOfRecruitment shouldBe project.recruitments[index].numberOfRecruitment
             }
-            returnedProject.isMyBookmark shouldBe projectResponse.isMyBookmark
+            returnedProject.isMyBookmark shouldBe true
           }
         }
       }

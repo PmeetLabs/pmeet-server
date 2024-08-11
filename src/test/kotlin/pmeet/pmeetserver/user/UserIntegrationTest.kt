@@ -1,7 +1,6 @@
 package pmeet.pmeetserver.user
 
 import io.kotest.core.spec.Spec
-import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -14,11 +13,11 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication
+import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import org.testcontainers.containers.MongoDBContainer
-import org.testcontainers.junit.jupiter.Container
+import pmeet.pmeetserver.config.BaseMongoDBIntegrationTest
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.dto.request.UpdateUserRequestDto
@@ -26,7 +25,6 @@ import pmeet.pmeetserver.user.dto.response.UserResponseDto
 import pmeet.pmeetserver.user.dto.response.UserSummaryResponseDto
 import pmeet.pmeetserver.user.repository.UserRepository
 import java.time.LocalDate
-import org.springframework.test.context.ActiveProfiles
 
 
 @ExtendWith(SpringExtension::class)
@@ -34,7 +32,7 @@ import org.springframework.test.context.ActiveProfiles
 @AutoConfigureWebTestClient
 @ExperimentalCoroutinesApi
 @ActiveProfiles("test")
-internal class UserIntegrationTest : DescribeSpec() {
+internal class UserIntegrationTest : BaseMongoDBIntegrationTest() {
 
   @Autowired
   lateinit var webTestClient: WebTestClient
