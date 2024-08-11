@@ -15,6 +15,7 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.support.ReactiveMongoRepositoryFactory
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
+import pmeet.pmeetserver.config.BaseMongoDBTest
 import pmeet.pmeetserver.user.domain.enum.ExperienceYear
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.domain.resume.JobExperience
@@ -30,10 +31,9 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 
 @ExperimentalCoroutinesApi
-@DataMongoTest
 internal class ResumeRepositoryUnitTest(
   @Autowired private val template: ReactiveMongoTemplate
-) : DescribeSpec({
+) : BaseMongoDBTest({
 
   isolationMode = IsolationMode.InstancePerLeaf
 
@@ -108,12 +108,12 @@ internal class ResumeRepositoryUnitTest(
           result?.userPhoneNumber shouldBe resume.userPhoneNumber
           result?.userEmail shouldBe resume.userEmail
           result?.userProfileImageUrl shouldBe resume.userProfileImageUrl
-          result?.desiredJobs?.first?.name shouldBe resume.desiredJobs.first.name
-          result?.techStacks?.first?.name shouldBe resume.techStacks.first.name
-          result?.jobExperiences?.first?.companyName shouldBe resume.jobExperiences.first.companyName
-          result?.projectExperiences?.first?.projectName shouldBe resume.projectExperiences.first.projectName
+          result?.desiredJobs?.first()?.name shouldBe resume.desiredJobs.first().name
+          result?.techStacks?.first()?.name shouldBe resume.techStacks.first().name
+          result?.jobExperiences?.first()?.companyName shouldBe resume.jobExperiences.first().companyName
+          result?.projectExperiences?.first()?.projectName shouldBe resume.projectExperiences.first().projectName
           result?.portfolioFileUrl shouldBe resume.portfolioFileUrl
-          result?.portfolioUrl?.first shouldBe resume.portfolioUrl.first
+          result?.portfolioUrl?.first() shouldBe resume.portfolioUrl.first()
           result?.selfDescription shouldBe resume.selfDescription
         }
       }
@@ -134,12 +134,12 @@ internal class ResumeRepositoryUnitTest(
           result?.userPhoneNumber shouldBe resume.userPhoneNumber
           result?.userEmail shouldBe resume.userEmail
           result?.userProfileImageUrl shouldBe resume.userProfileImageUrl
-          result?.desiredJobs?.first?.name shouldBe resume.desiredJobs.first.name
-          result?.techStacks?.first?.name shouldBe resume.techStacks.first.name
-          result?.jobExperiences?.first?.companyName shouldBe resume.jobExperiences.first.companyName
-          result?.projectExperiences?.first?.projectName shouldBe resume.projectExperiences.first.projectName
+          result?.desiredJobs?.first()?.name shouldBe resume.desiredJobs.first().name
+          result?.techStacks?.first()?.name shouldBe resume.techStacks.first().name
+          result?.jobExperiences?.first()?.companyName shouldBe resume.jobExperiences.first().companyName
+          result?.projectExperiences?.first()?.projectName shouldBe resume.projectExperiences.first().projectName
           result?.portfolioFileUrl shouldBe resume.portfolioFileUrl
-          result?.portfolioUrl?.first shouldBe resume.portfolioUrl.first
+          result?.portfolioUrl?.first() shouldBe resume.portfolioUrl.first()
           result?.selfDescription shouldBe resume.selfDescription
         }
       }

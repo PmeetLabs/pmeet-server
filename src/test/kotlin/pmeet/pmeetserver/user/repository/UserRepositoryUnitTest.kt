@@ -15,14 +15,14 @@ import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.support.ReactiveMongoRepositoryFactory
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
+import pmeet.pmeetserver.config.BaseMongoDBTest
 import pmeet.pmeetserver.user.domain.User
 
 //@Transactional
 @ExperimentalCoroutinesApi
-@DataMongoTest
 internal class UserRepositoryUnitTest(
   @Autowired private val template: ReactiveMongoTemplate
-) : DescribeSpec({
+) : BaseMongoDBTest({
   isolationMode = IsolationMode.InstancePerLeaf
 
   val testDispatcher = StandardTestDispatcher()

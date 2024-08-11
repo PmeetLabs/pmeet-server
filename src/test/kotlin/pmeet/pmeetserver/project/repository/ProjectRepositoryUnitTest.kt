@@ -17,6 +17,7 @@ import org.springframework.data.mongodb.repository.support.ReactiveMongoReposito
 import org.springframework.test.util.ReflectionTestUtils
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
+import pmeet.pmeetserver.config.BaseMongoDBTest
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectBookmark
 import pmeet.pmeetserver.project.domain.Recruitment
@@ -25,10 +26,9 @@ import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import java.time.LocalDateTime
 
 @ExperimentalCoroutinesApi
-@DataMongoTest
 internal class ProjectRepositoryUnitTest(
   @Autowired private val template: ReactiveMongoTemplate
-) : DescribeSpec({
+) : BaseMongoDBTest({
 
   isolationMode = IsolationMode.InstancePerLeaf
 

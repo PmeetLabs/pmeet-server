@@ -1,19 +1,18 @@
-package pmeet.pmeetserver.user.repository
+package pmeet.pmeetserver.config
 
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
+import org.springframework.test.context.DynamicPropertyRegistry
+import org.springframework.test.context.DynamicPropertySource
 import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
 
 @DataMongoTest
-class MongoDBTestContainer() : DescribeSpec({
-
-    isolationMode = IsolationMode.InstancePerLeaf
-
-}) {
+@Testcontainers
+abstract class BaseMongoDBTest(body: DescribeSpec.() -> Unit = {}) : DescribeSpec(body) {
     companion object {
-
         @Container
         val mongoDBContainer = MongoDBContainer("mongo:latest").apply {
             withExposedPorts(27017)
@@ -28,5 +27,7 @@ class MongoDBTestContainer() : DescribeSpec({
         }
     }
 
+    init {
+        isolationMode = IsolationMode.InstancePerLeaf
+    }
 }
-

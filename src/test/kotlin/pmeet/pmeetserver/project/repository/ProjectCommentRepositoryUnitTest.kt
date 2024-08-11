@@ -13,14 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.support.ReactiveMongoRepositoryFactory
+import pmeet.pmeetserver.config.BaseMongoDBTest
 import pmeet.pmeetserver.project.domain.ProjectComment
 
 
 @ExperimentalCoroutinesApi
-@DataMongoTest
 internal class ProjectCommentRepositoryUnitTest(
   @Autowired private val template: ReactiveMongoTemplate,
-) : DescribeSpec({
+) : BaseMongoDBTest({
 
   isolationMode = IsolationMode.InstancePerLeaf
 
