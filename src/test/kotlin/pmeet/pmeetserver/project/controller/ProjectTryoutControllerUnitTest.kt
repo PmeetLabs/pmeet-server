@@ -87,5 +87,57 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
         }
       }
     }
+
+    describe("getProjectTryoutList") {
+      context("인증된 유저의 프로젝트에 대한 이력서 지원 현황 조회 요청이 들어오면") {
+        val resume = generateResume()
+        val userId = resume.userId
+        val requestProjectId = "testProjectId"
+        val createdAt = LocalDateTime.now()
+        val responseDto = mutableListOf(ProjectTryoutResponseDto(
+          id = "testTryoutId",
+          resumeId = resume.id!!,
+          userId = userId,
+          projectId = requestProjectId,
+          userName = "userName",
+          positionName = "positionName",
+          tryoutStatus = ProjectTryoutStatus.INREVIEW,
+          createdAt = createdAt
+        ))
+
+        coEvery {
+          projectFacadeService.getProjectTryoutListByProjectId(
+            userId,
+            requestProjectId
+          )
+        } answers { responseDto }
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest =
+          webTestClient
+            .mutateWith(mockAuthentication(mockAuthentication))
+            .get()
+            .uri("/api/v1/project-tryouts/${requestProjectId}")
+            .exchange()
+
+        it("서비스를 통해 데이터를 조회한다.") {
+          coVerify(exactly = 1) { projectFacadeService.getProjectTryoutListByProjectId(userId, requestProjectId) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("생성된 게시글과 지원서 정보를 반환한다") {
+          performRequest.expectBody<List<ProjectTryoutResponseDto>>().consumeWith { response ->
+            response.responseBody?.get(0)!!.projectId shouldBe responseDto.get(0).projectId
+            response.responseBody?.get(0)!!.userId shouldBe responseDto.get(0).userId
+            response.responseBody?.get(0)!!.userName shouldBe responseDto.get(0).userName
+            response.responseBody?.get(0)!!.tryoutStatus shouldBe responseDto.get(0).tryoutStatus
+            response.responseBody?.get(0)!!.createdAt shouldBe responseDto.get(0).createdAt
+          }
+        }
+      }
+    }
+    
   }
 }

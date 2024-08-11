@@ -131,6 +131,8 @@ class ProjectFacadeService(
       throw ForbiddenRequestException(ErrorCode.RESUME_TRYOUT_FORBIDDEN)
     }
 
+    //todo projectID 에 대한 유효성 검사 필요
+
     val projectTryout = ProjectTryout(
       resumeId = requestDto.resumeId,
       userId = userId,
@@ -142,6 +144,16 @@ class ProjectFacadeService(
     )
 
     return ProjectTryoutResponseDto.from(projectTryoutService.save(projectTryout))
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun getProjectTryoutListByProjectId(userId: String, projectId: String): List<ProjectTryoutResponseDto> {
+    val project = projectService.getProjectById(projectId)
+    if (project.userId != userId) {
+      throw ForbiddenRequestException(ErrorCode.PROJECT_TRYOUT_VIEW_FORBIDDEN)
+    }
+    val projectTryoutList = projectTryoutService.findAllByProjectId(projectId)
+    return projectTryoutList.map { ProjectTryoutResponseDto.from(it) }
   }
 
   @Transactional(readOnly = true)

@@ -398,6 +398,41 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     }
   }
 
+  describe("getProjectTryoutListByProjectId") {
+    context("userId 와 projectId 가 주어지면") {
+      val projectId = "testProjectId"
+
+      it("ProjectTryoutResponseDto list 를 반환한다") {
+        runTest {
+          coEvery { projectService.getProjectById(any()) } answers { project }
+          coEvery { projectTryoutService.findAllByProjectId(any()) } answers { mutableListOf(projectTryout) }
+
+          val result = projectFacadeService.getProjectTryoutListByProjectId(userId, projectId)
+
+          result.get(0).id shouldBe projectTryout.id
+          result.get(0).resumeId shouldBe projectTryout.resumeId
+          result.get(0).userId shouldBe projectTryout.userId
+          result.get(0).userName shouldBe projectTryout.userName
+          result.get(0).positionName shouldBe projectTryout.positionName
+          result.get(0).projectId shouldBe projectTryout.projectId
+        }
+      }
+
+      it("해당 project 를 조회할 권한이 없다면 PROJECT_TRYOUT_VIEW_FORBIDDEN 예외를 반환한다") {
+        runTest {
+          coEvery { projectService.getProjectById(any()) } answers { project }
+          coEvery { projectTryoutService.findAllByProjectId(any()) } answers { mutableListOf(projectTryout) }
+
+          val exception = shouldThrow<ForbiddenRequestException> {
+            projectFacadeService.getProjectTryoutListByProjectId("unvalidUserId", projectId)
+          }
+
+          exception.errorCode shouldBe ErrorCode.PROJECT_TRYOUT_VIEW_FORBIDDEN
+        }
+      }
+    }
+  }
+
   describe("getProjectCommentList") {
     val projectId = project.id!!
     val responseDto = listOf(

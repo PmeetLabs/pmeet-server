@@ -22,4 +22,9 @@ class ProjectTryoutService(
     projectTryoutRepository.deleteByProjectId(projectId).awaitSingleOrNull()
   }
 
+  @Transactional(readOnly = true)
+  suspend fun findAllByProjectId(projectId: String): List<ProjectTryout> {
+    return projectTryoutRepository.findAllByProjectId(projectId).collectList().awaitSingle()
+  }
+
 }
