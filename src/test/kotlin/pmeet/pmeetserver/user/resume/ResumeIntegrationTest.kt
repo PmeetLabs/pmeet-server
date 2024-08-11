@@ -365,20 +365,4 @@ class ResumeIntegrationTest : DescribeSpec() {
     }
 
   }
-
-  companion object {
-    @Container
-    val mongoDBContainer = MongoDBContainer("mongo:latest").apply {
-      withExposedPorts(27017)
-      start()
-    }
-
-    init {
-      System.setProperty(
-        "spring.data.mongodb.uri",
-        "mongodb://localhost:${mongoDBContainer.getMappedPort(27017)}/test"
-      )
-    }
-  }
-
 }

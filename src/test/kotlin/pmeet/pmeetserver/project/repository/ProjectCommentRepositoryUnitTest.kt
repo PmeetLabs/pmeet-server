@@ -13,14 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.support.ReactiveMongoRepositoryFactory
-import org.testcontainers.containers.MongoDBContainer
-import org.testcontainers.junit.jupiter.Container
 import pmeet.pmeetserver.project.domain.ProjectComment
+
 
 @ExperimentalCoroutinesApi
 @DataMongoTest
 internal class ProjectCommentRepositoryUnitTest(
-  @Autowired private val template: ReactiveMongoTemplate
+  @Autowired private val template: ReactiveMongoTemplate,
 ) : DescribeSpec({
 
   isolationMode = IsolationMode.InstancePerLeaf
@@ -128,19 +127,4 @@ internal class ProjectCommentRepositoryUnitTest(
       }
     }
   }
-}) {
-  companion object {
-    @Container
-    val mongoDBContainer = MongoDBContainer("mongo:latest").apply {
-      withExposedPorts(27017)
-      start()
-    }
-
-    init {
-      System.setProperty(
-        "spring.data.mongodb.uri",
-        "mongodb://localhost:${mongoDBContainer.getMappedPort(27017)}/test"
-      )
-    }
-  }
-}
+})
