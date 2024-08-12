@@ -47,6 +47,7 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
           userId = userId,
           projectId = "testProjectId",
           userName = "userName",
+          userSelfDescription = "userSelfDescription",
           positionName = "positionName",
           tryoutStatus = ProjectTryoutStatus.INREVIEW,
           createdAt = createdAt
@@ -81,6 +82,7 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
             response.responseBody?.projectId shouldBe responseDto.projectId
             response.responseBody?.userId shouldBe responseDto.userId
             response.responseBody?.userName shouldBe responseDto.userName
+            response.responseBody?.userSelfDescription shouldBe responseDto.userSelfDescription
             response.responseBody?.tryoutStatus shouldBe responseDto.tryoutStatus
             response.responseBody?.createdAt shouldBe responseDto.createdAt
           }
@@ -100,6 +102,7 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
           userId = userId,
           projectId = requestProjectId,
           userName = "userName",
+          userSelfDescription = "userSelfDescription",
           positionName = "positionName",
           tryoutStatus = ProjectTryoutStatus.INREVIEW,
           createdAt = createdAt
@@ -132,6 +135,7 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
             response.responseBody?.get(0)!!.projectId shouldBe responseDto.get(0).projectId
             response.responseBody?.get(0)!!.userId shouldBe responseDto.get(0).userId
             response.responseBody?.get(0)!!.userName shouldBe responseDto.get(0).userName
+            response.responseBody?.get(0)!!.userSelfDescription shouldBe responseDto.get(0).userSelfDescription
             response.responseBody?.get(0)!!.tryoutStatus shouldBe responseDto.get(0).tryoutStatus
             response.responseBody?.get(0)!!.createdAt shouldBe responseDto.get(0).createdAt
           }

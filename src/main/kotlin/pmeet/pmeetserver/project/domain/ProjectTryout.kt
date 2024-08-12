@@ -12,6 +12,7 @@ class ProjectTryout(
   val resumeId: String,
   val userId: String,
   val userName: String,
+  val userSelfDescription: String,
   val positionName: String,
   val tryoutStatus: ProjectTryoutStatus,
   val projectId: String,

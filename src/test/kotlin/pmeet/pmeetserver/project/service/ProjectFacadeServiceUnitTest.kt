@@ -19,11 +19,7 @@ import org.springframework.data.domain.Sort
 import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
-import pmeet.pmeetserver.project.domain.Project
-import pmeet.pmeetserver.project.domain.ProjectBookmark
-import pmeet.pmeetserver.project.domain.ProjectComment
-import pmeet.pmeetserver.project.domain.ProjectTryout
-import pmeet.pmeetserver.project.domain.Recruitment
+import pmeet.pmeetserver.project.domain.*
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
@@ -128,6 +124,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
       userId = userId,
       resumeId = "resumeId",
       userName = "testUserName",
+      userSelfDescription = "userSelfDescription",
       positionName = "testPosition",
       tryoutStatus = ProjectTryoutStatus.INREVIEW,
       createdAt = LocalDateTime.now()
@@ -391,6 +388,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.resumeId shouldBe projectTryout.resumeId
           result.userId shouldBe projectTryout.userId
           result.userName shouldBe projectTryout.userName
+          result.userSelfDescription shouldBe projectTryout.userSelfDescription
           result.positionName shouldBe projectTryout.positionName
           result.projectId shouldBe projectTryout.projectId
         }
@@ -413,6 +411,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.get(0).resumeId shouldBe projectTryout.resumeId
           result.get(0).userId shouldBe projectTryout.userId
           result.get(0).userName shouldBe projectTryout.userName
+          result.get(0).userSelfDescription shouldBe projectTryout.userSelfDescription
           result.get(0).positionName shouldBe projectTryout.positionName
           result.get(0).projectId shouldBe projectTryout.projectId
         }

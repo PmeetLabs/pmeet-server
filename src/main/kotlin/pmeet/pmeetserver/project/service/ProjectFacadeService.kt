@@ -137,6 +137,7 @@ class ProjectFacadeService(
       resumeId = requestDto.resumeId,
       userId = userId,
       userName = resume.userName,
+      userSelfDescription = resume.selfDescription.orEmpty(),
       positionName = requestDto.positionName,
       tryoutStatus = ProjectTryoutStatus.INREVIEW,
       projectId = requestDto.projectId,

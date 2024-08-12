@@ -41,6 +41,7 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
       userId = userId,
       resumeId = "resumeId",
       userName = "testUserName",
+      userSelfDescription = "testSelfDescription",
       positionName = "testPosition",
       tryoutStatus = ProjectTryoutStatus.INREVIEW,
       createdAt = LocalDateTime.now()
@@ -52,6 +53,7 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
       userId = userId,
       resumeId = "resumeId",
       userName = "testUserName2",
+      userSelfDescription = "testSelfDescription",
       positionName = "testPosition",
       tryoutStatus = ProjectTryoutStatus.ACCEPTED,
       createdAt = LocalDateTime.now()
@@ -75,6 +77,7 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
           result.resumeId shouldBe projectTryout.resumeId
           result.userId shouldBe projectTryout.userId
           result.userName shouldBe projectTryout.userName
+          result.userSelfDescription shouldBe projectTryout.userSelfDescription
           result.positionName shouldBe projectTryout.positionName
           result.projectId shouldBe projectTryout.projectId
         }
@@ -110,6 +113,7 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
           result.get(0).resumeId shouldBe projectTryout.resumeId
           result.get(0).userId shouldBe projectTryout.userId
           result.get(0).userName shouldBe projectTryout.userName
+          result.get(0).userSelfDescription shouldBe projectTryout.userSelfDescription
           result.get(0).positionName shouldBe projectTryout.positionName
           result.get(0).projectId shouldBe projectTryout.projectId
 
@@ -117,6 +121,7 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
           result.get(1).resumeId shouldBe projectTryoutForList.resumeId
           result.get(1).userId shouldBe projectTryoutForList.userId
           result.get(1).userName shouldBe projectTryoutForList.userName
+          result.get(1).userSelfDescription shouldBe projectTryout.userSelfDescription
           result.get(1).positionName shouldBe projectTryoutForList.positionName
           result.get(1).projectId shouldBe projectTryoutForList.projectId
         }
