@@ -1,7 +1,6 @@
 package pmeet.pmeetserver.user.repository
 
 import io.kotest.core.spec.IsolationMode
-import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -10,19 +9,16 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.support.ReactiveMongoRepositoryFactory
-import org.testcontainers.containers.MongoDBContainer
-import org.testcontainers.junit.jupiter.Container
-import pmeet.pmeetserver.config.BaseMongoDBTest
+import pmeet.pmeetserver.config.BaseMongoDBTestForRepository
 import pmeet.pmeetserver.user.domain.User
 
 //@Transactional
 @ExperimentalCoroutinesApi
 internal class UserRepositoryUnitTest(
   @Autowired private val template: ReactiveMongoTemplate
-) : BaseMongoDBTest({
+) : BaseMongoDBTestForRepository({
   isolationMode = IsolationMode.InstancePerLeaf
 
   val testDispatcher = StandardTestDispatcher()

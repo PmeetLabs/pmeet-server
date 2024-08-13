@@ -1,7 +1,6 @@
 package pmeet.pmeetserver.user.techStack.repository
 
 import io.kotest.core.spec.IsolationMode
-import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -10,13 +9,10 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.support.ReactiveMongoRepositoryFactory
-import org.testcontainers.containers.MongoDBContainer
-import org.testcontainers.junit.jupiter.Container
-import pmeet.pmeetserver.config.BaseMongoDBTest
+import pmeet.pmeetserver.config.BaseMongoDBTestForRepository
 import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.repository.techStack.CustomTechStackRepositoryImpl
 import pmeet.pmeetserver.user.repository.techStack.TechStackRepository
@@ -24,7 +20,7 @@ import pmeet.pmeetserver.user.repository.techStack.TechStackRepository
 @ExperimentalCoroutinesApi
 internal class TechStackRepositoryUnitTest(
   @Autowired private val template: ReactiveMongoTemplate
-) : BaseMongoDBTest({
+) : BaseMongoDBTestForRepository({
 
   isolationMode = IsolationMode.InstancePerLeaf
 

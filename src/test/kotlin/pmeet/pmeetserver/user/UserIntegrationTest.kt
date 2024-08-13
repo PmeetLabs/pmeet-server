@@ -17,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import pmeet.pmeetserver.config.BaseMongoDBIntegrationTest
+import pmeet.pmeetserver.config.BaseMongoDBTestForIntegration
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.dto.request.UpdateUserRequestDto
@@ -32,7 +32,7 @@ import java.time.LocalDate
 @AutoConfigureWebTestClient
 @ExperimentalCoroutinesApi
 @ActiveProfiles("test")
-internal class UserIntegrationTest : BaseMongoDBIntegrationTest() {
+internal class UserIntegrationTest : BaseMongoDBTestForIntegration() {
 
   @Autowired
   lateinit var webTestClient: WebTestClient

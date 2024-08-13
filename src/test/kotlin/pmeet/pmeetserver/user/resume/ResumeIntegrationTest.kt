@@ -18,7 +18,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import pmeet.pmeetserver.config.BaseMongoDBIntegrationTest
+import pmeet.pmeetserver.config.BaseMongoDBTestForIntegration
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
@@ -41,7 +41,7 @@ import java.time.LocalDateTime
 @AutoConfigureWebTestClient
 @ExperimentalCoroutinesApi
 @ActiveProfiles("test")
-class ResumeIntegrationTest : BaseMongoDBIntegrationTest() {
+class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
 
   override fun isolationMode(): IsolationMode? {
     return IsolationMode.InstancePerLeaf

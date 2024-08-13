@@ -9,7 +9,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 
 @Testcontainers
-abstract class BaseMongoDBIntegrationTest(body: DescribeSpec.() -> Unit = {}) : DescribeSpec(body) {
+abstract class BaseMongoDBTestForIntegration(body: DescribeSpec.() -> Unit = {}) : DescribeSpec(body) {
   companion object {
     @Container
     val mongoDBContainer = MongoDBContainer("mongo:latest").apply {

@@ -17,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import pmeet.pmeetserver.config.BaseMongoDBIntegrationTest
+import pmeet.pmeetserver.config.BaseMongoDBTestForIntegration
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.dto.job.request.CreateJobRequestDto
 import pmeet.pmeetserver.user.dto.job.response.JobResponseDto
@@ -29,7 +29,7 @@ import pmeet.pmeetserver.util.RestSliceImpl
 @AutoConfigureWebTestClient
 @ExperimentalCoroutinesApi
 @ActiveProfiles("test")
-internal class JobIntegrationTest : BaseMongoDBIntegrationTest() {
+internal class JobIntegrationTest : BaseMongoDBTestForIntegration() {
 
   override fun isolationMode(): IsolationMode? {
     return IsolationMode.InstancePerLeaf

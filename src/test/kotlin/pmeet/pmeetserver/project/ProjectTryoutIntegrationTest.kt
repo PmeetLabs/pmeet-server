@@ -17,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
-import pmeet.pmeetserver.config.BaseMongoDBIntegrationTest
+import pmeet.pmeetserver.config.BaseMongoDBTestForIntegration
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
@@ -35,7 +35,7 @@ import java.time.LocalDateTime
 @Import(TestSecurityConfig::class)
 @ExperimentalCoroutinesApi
 @ActiveProfiles("test")
-internal class ProjectTryoutIntegrationTest : BaseMongoDBIntegrationTest() {
+internal class ProjectTryoutIntegrationTest : BaseMongoDBTestForIntegration() {
 
   override fun isolationMode(): IsolationMode? {
     return IsolationMode.InstancePerLeaf
