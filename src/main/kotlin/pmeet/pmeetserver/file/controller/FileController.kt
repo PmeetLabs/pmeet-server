@@ -7,12 +7,12 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import pmeet.pmeetserver.file.dto.response.FileUrlResponseDto
-import pmeet.pmeetserver.file.service.FileService
+import pmeet.pmeetserver.file.service.FileFacadeService
 
 @RestController
 @RequestMapping("/api/v1/file")
 class FileController(
-  private val fileService: FileService
+  private val fileFacadeService: FileFacadeService
 ) {
 
   @GetMapping("/presigned-url/upload")
@@ -21,13 +21,13 @@ class FileController(
     @RequestParam("filename") fileName: String,
     @RequestParam("filedomain") fileDomain: String
   ): FileUrlResponseDto {
-    return fileService.generatePreSignedUrlToUpload(fileName, fileDomain)
+    return fileFacadeService.getPreSignedUrlToUpload(fileName, fileDomain)
   }
 
 
   @GetMapping("/presigned-url/download")
   @ResponseStatus(HttpStatus.OK)
   suspend fun getPreSignedUrlToDownload(@RequestParam("objectname") objectName: String): FileUrlResponseDto {
-    return fileService.generatePreSignedUrlToDownload(objectName)
+    return fileFacadeService.getPreSignedUrlToDownload(objectName)
   }
 }

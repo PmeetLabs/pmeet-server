@@ -47,7 +47,7 @@ class FileService(
       }
   }
 
-  suspend fun generatePreSignedUrlToDownload(objectName: String): FileUrlResponseDto {
+  suspend fun generatePreSignedUrlToDownload(objectName: String): String {
     S3Presigner.builder()
       .credentialsProvider(awsCredentialsProvider)
       .region(Region.of(region))
@@ -61,7 +61,7 @@ class FileService(
               .build()
           )
           .build().run {
-            return FileUrlResponseDto.of(presigner.presignGetObject(this).url().toExternalForm(), objectName)
+            return presigner.presignGetObject(this).url().toExternalForm()
           }
       }
   }
