@@ -11,13 +11,13 @@ data class UserSummaryResponseDto(
   val profileImageUrl: String?
 ) {
   companion object {
-    fun from(user: User): UserSummaryResponseDto {
+    fun of(user: User, profileImageDownloadUrl: String?): UserSummaryResponseDto {
       return UserSummaryResponseDto(
         id = user.id!!,
         email = user.email,
         nickname = user.nickname,
         isEmployed = user.isEmployed,
-        profileImageUrl =  user.profileImageUrl
+        profileImageUrl = profileImageDownloadUrl
       )
     }
   }

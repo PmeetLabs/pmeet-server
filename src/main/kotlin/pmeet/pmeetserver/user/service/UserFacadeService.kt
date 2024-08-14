@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.common.utils.jwt.JwtUtil
+import pmeet.pmeetserver.file.service.FileService
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.dto.request.CheckMailRequestDto
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
@@ -26,7 +27,8 @@ class UserFacadeService(
   private val passwordEncoder: PasswordEncoder,
   private val userService: UserService,
   private val emailService: EmailService,
-  private val jwtUtil: JwtUtil
+  private val jwtUtil: JwtUtil,
+  private val fileService: FileService
 ) {
   @Transactional
   suspend fun save(requestDto: SignUpRequestDto): UserSignUpResponseDto {
@@ -98,17 +100,30 @@ class UserFacadeService(
         requestDto.introductionComment
       )
     }
-    return UserResponseDto.from(userService.update(user))
+    return UserResponseDto.of(
+      userService.update(user),
+      user.profileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    )
   }
 
   @Transactional(readOnly = true)
   suspend fun getMySummaryInfo(userId: String): UserSummaryResponseDto {
-    return UserSummaryResponseDto.from(userService.getUserById(userId))
+    val user = userService.getUserById(userId)
+
+    return UserSummaryResponseDto.of(
+      user,
+      user.profileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    )
   }
 
   @Transactional(readOnly = true)
   suspend fun getMyInfo(userId: String): UserResponseDto {
-    return UserResponseDto.from(userService.getUserById(userId))
+    val user = userService.getUserById(userId)
+
+    return UserResponseDto.of(
+      user,
+      user.profileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    )
   }
 
   @Transactional

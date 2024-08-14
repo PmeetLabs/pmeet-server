@@ -1,8 +1,8 @@
 package pmeet.pmeetserver.user.dto.response
 
-import java.time.LocalDate
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
+import java.time.LocalDate
 
 data class UserResponseDto(
   val id: String,
@@ -18,7 +18,7 @@ data class UserResponseDto(
   val profileImageUrl: String?
 ) {
   companion object {
-    fun from(user: User): UserResponseDto {
+    fun of(user: User, profileImageDownloadUrl: String?): UserResponseDto {
       return UserResponseDto(
         id = user.id!!,
         provider = user.provider,
@@ -30,7 +30,7 @@ data class UserResponseDto(
         introductionComment = user.introductionComment,
         nickname = user.nickname,
         isEmployed = user.isEmployed,
-        profileImageUrl = user.profileImageUrl
+        profileImageUrl = profileImageDownloadUrl
       )
     }
   }

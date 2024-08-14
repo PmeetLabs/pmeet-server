@@ -2,6 +2,7 @@ package pmeet.pmeetserver.user
 
 import io.kotest.core.spec.Spec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.reactive.awaitFirst
@@ -47,7 +48,8 @@ internal class UserIntegrationTest : BaseMongoDBTestForIntegration() {
     password = "password",
     phoneNumber = "1234567890",
     gender = Gender.MALE,
-    introductionComment = "testIntroduction"
+    introductionComment = "testIntroduction",
+    profileImageUrl = "http://test.image.url"
   )
 
   lateinit var userId: String
@@ -82,7 +84,7 @@ internal class UserIntegrationTest : BaseMongoDBTestForIntegration() {
               userSummary.email shouldBe user.email
               userSummary.nickname shouldBe user.nickname
               userSummary.isEmployed shouldBe user.isEmployed
-              userSummary.profileImageUrl shouldBe user.profileImageUrl
+              userSummary.profileImageUrl shouldNotBe user.profileImageUrl
             }
         }
       }
@@ -104,7 +106,7 @@ internal class UserIntegrationTest : BaseMongoDBTestForIntegration() {
               userResponse.email shouldBe user.email
               userResponse.nickname shouldBe user.nickname
               userResponse.isEmployed shouldBe user.isEmployed
-              userResponse.profileImageUrl shouldBe user.profileImageUrl
+              userResponse.profileImageUrl shouldNotBe user.profileImageUrl
               userResponse.gender shouldBe user.gender
               userResponse.introductionComment shouldBe user.introductionComment
               userResponse.phoneNumber shouldBe user.phoneNumber
@@ -139,7 +141,7 @@ internal class UserIntegrationTest : BaseMongoDBTestForIntegration() {
             .expectBody<UserResponseDto>()
             .consumeWith {
               val userResponse = it.responseBody!!
-              userResponse.profileImageUrl shouldBe updateUserRequestDto.profileImageUrl
+              userResponse.profileImageUrl shouldNotBe updateUserRequestDto.profileImageUrl
               userResponse.name shouldBe updateUserRequestDto.name
               userResponse.nickname shouldBe updateUserRequestDto.nickname
               userResponse.phoneNumber shouldBe updateUserRequestDto.phoneNumber

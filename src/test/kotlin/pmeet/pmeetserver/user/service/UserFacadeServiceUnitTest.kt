@@ -20,6 +20,7 @@ import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.UnauthorizedException
 import pmeet.pmeetserver.common.utils.jwt.JwtUtil
+import pmeet.pmeetserver.file.service.FileService
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.dto.request.CheckMailRequestDto
@@ -45,6 +46,7 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
   val userService = mockk<UserService>(relaxed = true)
   val emailService = mockk<EmailService>(relaxed = true)
   val jwtUtil = mockk<JwtUtil>(relaxed = true)
+  val fileService = mockk<FileService>(relaxed = true)
 
   lateinit var user: User
 
@@ -54,7 +56,8 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
       passwordEncoder,
       userService,
       emailService,
-      jwtUtil
+      jwtUtil,
+      fileService
     )
 
     user = User(
@@ -64,7 +67,8 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
       nickname = "testNickname",
       phoneNumber = "1234567890",
       gender = Gender.MALE,
-      introductionComment = "testIntroduction"
+      introductionComment = "testIntroduction",
+      profileImageUrl = "http://test.image.url"
     )
     ReflectionTestUtils.setField(user, "id", "testId")
   }
@@ -239,6 +243,8 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
 
       it("유저를 조회한 후 UserSummaryResponseDto 반환") {
         runTest {
+          val profileImageDownloadUrl = "profileImageDownloadUrl"
+          coEvery { fileService.generatePreSignedUrlToDownload(user.profileImageUrl!!) } returns profileImageDownloadUrl
           coEvery { userService.getUserById(userId) } returns user
 
           val result = userFacadeService.getMySummaryInfo(userId)
@@ -246,6 +252,7 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
           result.id shouldBe user.id
           result.email shouldBe user.email
           result.nickname shouldBe user.nickname
+          result.profileImageUrl shouldBe profileImageDownloadUrl
         }
       }
     }
@@ -257,6 +264,8 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
 
       it("유저를 조회한 후 UserResponseDto 반환") {
         runTest {
+          val profileImageDownloadUrl = "profileImageDownloadUrl"
+          coEvery { fileService.generatePreSignedUrlToDownload(user.profileImageUrl!!) } returns profileImageDownloadUrl
           coEvery { userService.getUserById(userId) } returns user
 
           val result = userFacadeService.getMyInfo(userId)
@@ -268,6 +277,7 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
           result.phoneNumber shouldBe user.phoneNumber
           result.birthDate shouldBe user.birthDate
           result.introductionComment shouldBe user.introductionComment
+          result.profileImageUrl shouldBe profileImageDownloadUrl
         }
       }
     }
@@ -303,13 +313,15 @@ internal class UserFacadeServiceUnitTest : DescribeSpec({
 
       it("사용자 정보를 업데이트하고 UserResponseDto를 반환") {
         runTest {
+          val profileImageDownloadUrl = "profileImageDownloadUrl"
+          coEvery { fileService.generatePreSignedUrlToDownload(updateUserRequestDto.profileImageUrl!!) } returns profileImageDownloadUrl
           coEvery { userService.getUserById(userId) } returns user
           coEvery { userService.update(any()) } returns updatedUser
 
           val result = userFacadeService.updateUser(userId, updateUserRequestDto)
 
           result.email shouldBe updatedUser.email
-          result.profileImageUrl shouldBe updateUserRequestDto.profileImageUrl
+          result.profileImageUrl shouldBe profileImageDownloadUrl
           result.name shouldBe updateUserRequestDto.name
           result.nickname shouldBe updateUserRequestDto.nickname
           result.phoneNumber shouldBe updateUserRequestDto.phoneNumber
