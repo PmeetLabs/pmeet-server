@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.project.domain.ProjectComment
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 
 @Service

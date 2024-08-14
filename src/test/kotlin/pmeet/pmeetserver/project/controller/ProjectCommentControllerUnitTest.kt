@@ -5,7 +5,6 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
-import java.time.LocalDateTime
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.context.annotation.Import
@@ -14,9 +13,10 @@ import org.springframework.security.test.web.reactive.server.SecurityMockServerC
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
-import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.comment.request.CreateProjectCommentRequestDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.service.ProjectFacadeService
+import java.time.LocalDateTime
 
 @WebFluxTest(ProjectCommentController::class)
 @Import(TestSecurityConfig::class)

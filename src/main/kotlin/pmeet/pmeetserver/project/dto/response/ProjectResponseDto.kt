@@ -25,14 +25,14 @@ data class ProjectResponseDto(
   val updatedAt: LocalDateTime
 ) {
   companion object {
-    fun from(project: Project, userId: String): ProjectResponseDto {
+    fun of(project: Project, userId: String, thumbNailDownloadUrl: String?): ProjectResponseDto {
       return ProjectResponseDto(
         id = project.id!!,
         userId = project.userId,
         title = project.title,
         startDate = project.startDate,
         endDate = project.endDate,
-        thumbNailUrl = project.thumbNailUrl,
+        thumbNailUrl = thumbNailDownloadUrl,
         techStacks = project.techStacks!!,
         recruitments = project.recruitments.map { RecruitmentResponseDto(it.jobName, it.numberOfRecruitment) },
         description = project.description,

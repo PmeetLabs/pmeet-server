@@ -6,7 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.time.LocalDateTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -17,11 +16,12 @@ import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.project.domain.ProjectComment
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
+import java.time.LocalDateTime
 
 @ExperimentalCoroutinesApi
 internal class ProjectCommentServiceUnitTest : DescribeSpec({
@@ -146,7 +146,11 @@ internal class ProjectCommentServiceUnitTest : DescribeSpec({
     context("projectId가 주어지면") {
       it("댓글을 조회한다.") {
         runTest {
-          every { projectCommentRepository.findCommentsByProjectIdWithChild(projectId) } answers { Flux.fromIterable(responseDto) }
+          every { projectCommentRepository.findCommentsByProjectIdWithChild(projectId) } answers {
+            Flux.fromIterable(
+              responseDto
+            )
+          }
 
           val result = projectCommentService.getProjectCommentWithChildByProjectId(projectId)
 

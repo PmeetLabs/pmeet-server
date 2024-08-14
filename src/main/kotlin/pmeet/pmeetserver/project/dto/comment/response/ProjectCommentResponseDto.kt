@@ -1,9 +1,9 @@
-package pmeet.pmeetserver.project.dto.request.comment
+package pmeet.pmeetserver.project.dto.comment.response
 
-import java.time.LocalDateTime
 import pmeet.pmeetserver.project.domain.ProjectComment
+import java.time.LocalDateTime
 
-data class ProjectCommentWithChildResponseDto(
+data class ProjectCommentResponseDto(
   val id: String,
   val parentCommentId: String?,
   val projectId: String,
@@ -11,12 +11,11 @@ data class ProjectCommentWithChildResponseDto(
   val content: String,
   val likerIdList: List<String>,
   val createdAt: LocalDateTime,
-  val isDeleted: Boolean,
-  val childComments: List<ProjectCommentResponseDto>
+  val isDeleted: Boolean
 ) {
   companion object {
-    fun from(comment: ProjectComment, childComments: List<ProjectComment>): ProjectCommentWithChildResponseDto {
-      return ProjectCommentWithChildResponseDto(
+    fun from(comment: ProjectComment): ProjectCommentResponseDto {
+      return ProjectCommentResponseDto(
         id = comment.id!!,
         parentCommentId = comment.parentCommentId,
         projectId = comment.projectId,
@@ -24,8 +23,7 @@ data class ProjectCommentWithChildResponseDto(
         content = comment.content,
         likerIdList = comment.likerIdList,
         createdAt = comment.createdAt,
-        isDeleted = comment.isDeleted,
-        childComments = childComments.map { ProjectCommentResponseDto.from(it) }
+        isDeleted = comment.isDeleted
       )
     }
   }

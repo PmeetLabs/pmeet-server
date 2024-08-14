@@ -1,4 +1,4 @@
-package pmeet.pmeetserver.project.dto.request.tryout
+package pmeet.pmeetserver.project.dto.tryout.request
 
 import jakarta.validation.constraints.NotBlank
 

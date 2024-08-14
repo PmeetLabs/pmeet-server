@@ -15,7 +15,7 @@ data class UserResponseDtoInProject(
   val profileImageUrl: String?
 ) {
   companion object {
-    fun from(user: User): UserResponseDtoInProject {
+    fun of(user: User, userProfileImageDownloadUrl: String?): UserResponseDtoInProject {
       return UserResponseDtoInProject(
         id = user.id!!,
         email = user.email,
@@ -24,7 +24,7 @@ data class UserResponseDtoInProject(
         gender = user.gender,
         introductionComment = user.introductionComment,
         nickname = user.nickname,
-        profileImageUrl = user.profileImageUrl
+        profileImageUrl = userProfileImageDownloadUrl
       )
     }
   }

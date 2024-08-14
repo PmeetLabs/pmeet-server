@@ -22,8 +22,8 @@ import pmeet.pmeetserver.config.BaseMongoDBTestForIntegration
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
-import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
-import pmeet.pmeetserver.project.dto.request.tryout.ProjectTryoutResponseDto
+import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
+import pmeet.pmeetserver.project.dto.tryout.response.ProjectTryoutResponseDto
 import pmeet.pmeetserver.project.repository.ProjectRepository
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository

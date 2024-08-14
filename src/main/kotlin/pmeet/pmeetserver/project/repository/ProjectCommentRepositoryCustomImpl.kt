@@ -13,8 +13,8 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation.sort
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation
 import org.springframework.data.mongodb.core.aggregation.AggregationOperationContext
 import org.springframework.data.mongodb.core.query.Criteria
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
 import reactor.core.publisher.Flux
 
 class ProjectCommentRepositoryCustomImpl(
@@ -96,7 +96,8 @@ class ProjectCommentRepositoryCustomImpl(
                 userId = childDoc.getString("userId") ?: "",
                 content = childDoc.getString("content") ?: "",
                 likerIdList = childDoc.getList("likerIdList", String::class.java) ?: emptyList(),
-                createdAt = childDoc.getDate("createdAt")?.toInstant()?.atZone(ZoneId.systemDefault())?.toLocalDateTime() ?: LocalDateTime.now(),
+                createdAt = childDoc.getDate("createdAt")?.toInstant()?.atZone(ZoneId.systemDefault())
+                  ?.toLocalDateTime() ?: LocalDateTime.now(),
                 isDeleted = childDoc.getBoolean("isDeleted") ?: false
               )
             }

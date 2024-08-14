@@ -14,8 +14,8 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
-import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
-import pmeet.pmeetserver.project.dto.request.tryout.ProjectTryoutResponseDto
+import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
+import pmeet.pmeetserver.project.dto.tryout.response.ProjectTryoutResponseDto
 import pmeet.pmeetserver.project.service.ProjectFacadeService
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import java.time.LocalDateTime
@@ -96,17 +96,19 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
         val userId = resume.userId
         val requestProjectId = "testProjectId"
         val createdAt = LocalDateTime.now()
-        val responseDto = mutableListOf(ProjectTryoutResponseDto(
-          id = "testTryoutId",
-          resumeId = resume.id!!,
-          userId = userId,
-          projectId = requestProjectId,
-          userName = "userName",
-          userSelfDescription = "userSelfDescription",
-          positionName = "positionName",
-          tryoutStatus = ProjectTryoutStatus.INREVIEW,
-          createdAt = createdAt
-        ))
+        val responseDto = mutableListOf(
+          ProjectTryoutResponseDto(
+            id = "testTryoutId",
+            resumeId = resume.id!!,
+            userId = userId,
+            projectId = requestProjectId,
+            userName = "userName",
+            userSelfDescription = "userSelfDescription",
+            positionName = "positionName",
+            tryoutStatus = ProjectTryoutStatus.INREVIEW,
+            createdAt = createdAt
+          )
+        )
 
         coEvery {
           projectFacadeService.getProjectTryoutListByProjectId(
@@ -142,6 +144,6 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
         }
       }
     }
-    
+
   }
 }

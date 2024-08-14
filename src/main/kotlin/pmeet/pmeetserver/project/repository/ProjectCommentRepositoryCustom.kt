@@ -1,6 +1,6 @@
 package pmeet.pmeetserver.project.repository
 
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
 import reactor.core.publisher.Flux
 
 interface ProjectCommentRepositoryCustom {

@@ -1,4 +1,4 @@
-package pmeet.pmeetserver.project.dto.request.comment
+package pmeet.pmeetserver.project.dto.comment.request
 
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size

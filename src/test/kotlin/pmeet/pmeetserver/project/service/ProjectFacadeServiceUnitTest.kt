@@ -19,16 +19,21 @@ import org.springframework.data.domain.Sort
 import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
-import pmeet.pmeetserver.project.domain.*
+import pmeet.pmeetserver.file.service.FileService
+import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.ProjectBookmark
+import pmeet.pmeetserver.project.domain.ProjectComment
+import pmeet.pmeetserver.project.domain.ProjectTryout
+import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
+import pmeet.pmeetserver.project.dto.comment.request.CreateProjectCommentRequestDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
-import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
-import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
+import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
@@ -50,6 +55,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   val resumeService = mockk<ResumeService>(relaxed = true)
   val projectTryoutService = mockk<ProjectTryoutService>(relaxed = true)
   val userService = mockk<UserService>(relaxed = true)
+  val fileService = mockk<FileService>(relaxed = true)
 
   lateinit var projectFacadeService: ProjectFacadeService
 
@@ -69,7 +75,8 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
       projectCommentService,
       resumeService,
       projectTryoutService,
-      userService
+      userService,
+      fileService
     )
 
     userId = "testUserId"
@@ -140,8 +147,12 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     context("projectId가 주어지면") {
       it("ProjectWithUserResponseDto를 반환한다") {
         runTest {
+          val thumbNailDownloadUrl = "testThumbNailDownloadUrl"
+          val profileImageDownloadUrl = "testProfileImageDownloadUrl"
           coEvery { projectService.getProjectById(any()) } answers { project }
           coEvery { userService.getUserById(project.userId) } answers { user }
+          coEvery { fileService.generatePreSignedUrlToDownload(project.thumbNailUrl!!) } answers { thumbNailDownloadUrl }
+          coEvery { fileService.generatePreSignedUrlToDownload(user.profileImageUrl!!) } answers { profileImageDownloadUrl }
 
           val result = projectFacadeService.getProjectByProjectId(user.id!!, project.id!!)
 
@@ -150,10 +161,11 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.title shouldBe project.title
           result.startDate shouldBe project.startDate
           result.endDate shouldBe project.endDate
-          result.thumbNailUrl shouldBe project.thumbNailUrl
+          result.thumbNailUrl shouldBe thumbNailDownloadUrl
           result.description shouldBe project.description
           result.isCompleted shouldBe project.isCompleted
           result.userInfo.id shouldBe user.id
+          result.userInfo.profileImageUrl shouldBe profileImageDownloadUrl
           result.techStacks shouldBe project.techStacks
           result.isMyBookmark shouldBe false
         }
@@ -179,7 +191,9 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
       )
       it("ProjectResponseDto를 반환한다") {
         runTest {
+          val thumbNailDownloadUrl = "testThumbNailDownloadUrl"
           coEvery { projectService.save(any()) } answers { project }
+          coEvery { fileService.generatePreSignedUrlToDownload(project.thumbNailUrl!!) } answers { thumbNailDownloadUrl }
 
           val result = projectFacadeService.createProject(userId, requestDto)
 
@@ -187,7 +201,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.title shouldBe requestDto.title
           result.startDate shouldBe requestDto.startDate
           result.endDate shouldBe requestDto.endDate
-          result.thumbNailUrl shouldBe requestDto.thumbNailUrl
+          result.thumbNailUrl shouldBe thumbNailDownloadUrl
           result.techStacks shouldBe requestDto.techStacks
           result.recruitments.size shouldBe project.recruitments.size
           result.recruitments.forEachIndexed { index, recruitmentResponseDto ->
@@ -228,7 +242,9 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     context("Project의 userId와 요청으로 들어온 userId가 같은 경우") {
       it("업데이트 후 ProjectResponseDto를 반환한다") {
         runTest {
+          val thumbNailDownloadUrl = "testThumbNailDownloadUrl"
           coEvery { projectService.update(any()) } answers { project }
+          coEvery { fileService.generatePreSignedUrlToDownload(requestDto.thumbNailUrl!!) } answers { thumbNailDownloadUrl }
 
           val result = projectFacadeService.updateProject(project.userId, requestDto)
 
@@ -236,7 +252,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           result.title shouldBe requestDto.title
           result.startDate shouldBe requestDto.startDate
           result.endDate shouldBe requestDto.endDate
-          result.thumbNailUrl shouldBe requestDto.thumbNailUrl
+          result.thumbNailUrl shouldBe thumbNailDownloadUrl
           result.techStacks shouldBe requestDto.techStacks
           result.recruitments.size shouldBe requestDto.recruitments.size
           result.recruitments.forEachIndexed { index, recruitmentResponseDto ->

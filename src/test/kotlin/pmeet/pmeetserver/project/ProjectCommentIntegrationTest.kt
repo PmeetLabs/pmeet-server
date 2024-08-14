@@ -23,8 +23,8 @@ import pmeet.pmeetserver.config.BaseMongoDBTestForIntegration
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectComment
-import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.comment.request.CreateProjectCommentRequestDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 import pmeet.pmeetserver.project.repository.ProjectRepository
 import java.time.LocalDateTime

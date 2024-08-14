@@ -19,14 +19,14 @@ data class SearchProjectResponseDto(
   val updatedAt: LocalDateTime
 ) {
   companion object {
-    fun of(project: Project, userId: String): SearchProjectResponseDto {
+    fun of(project: Project, userId: String, thumbNailDownloadUrl: String?): SearchProjectResponseDto {
       return SearchProjectResponseDto(
         id = project.id!!,
         userId = project.userId,
         title = project.title,
         startDate = project.startDate,
         endDate = project.endDate,
-        thumbNailUrl = project.thumbNailUrl,
+        thumbNailUrl = thumbNailDownloadUrl,
         techStacks = project.techStacks!!,
         jobNames = project.recruitments.map { it.jobName },
         description = project.description,

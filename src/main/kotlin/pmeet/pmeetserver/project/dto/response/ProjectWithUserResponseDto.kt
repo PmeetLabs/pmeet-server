@@ -24,14 +24,20 @@ data class ProjectWithUserResponseDto(
   val createdAt: LocalDateTime
 ) {
   companion object {
-    fun from(project: Project, user: User, requestedUserId: String): ProjectWithUserResponseDto {
+    fun from(
+      project: Project,
+      user: User,
+      requestedUserId: String,
+      thumbNailDownloadUrl: String?,
+      userProfileImageDownloadUrl: String?
+    ): ProjectWithUserResponseDto {
       return ProjectWithUserResponseDto(
         id = project.id!!,
         userId = project.userId,
         title = project.title,
         startDate = project.startDate,
         endDate = project.endDate,
-        thumbNailUrl = project.thumbNailUrl,
+        thumbNailUrl = thumbNailDownloadUrl,
         techStacks = project.techStacks!!,
         recruitments = project.recruitments.map {
           RecruitmentResponseDto(
@@ -43,7 +49,7 @@ data class ProjectWithUserResponseDto(
         isCompleted = project.isCompleted,
         bookmarks = project.bookmarkers,
         isMyBookmark = project.bookmarkers.any { it.userId == requestedUserId },
-        userInfo = UserResponseDtoInProject.from(user),
+        userInfo = UserResponseDtoInProject.of(user, userProfileImageDownloadUrl),
         createdAt = project.createdAt
       )
     }

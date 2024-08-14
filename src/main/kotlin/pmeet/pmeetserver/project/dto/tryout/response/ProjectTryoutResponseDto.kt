@@ -1,4 +1,4 @@
-package pmeet.pmeetserver.project.dto.request.tryout
+package pmeet.pmeetserver.project.dto.tryout.response
 
 import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus

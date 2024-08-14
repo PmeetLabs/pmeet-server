@@ -1,26 +1,28 @@
 package pmeet.pmeetserver.project.service
 
 import org.springframework.data.domain.Slice
+import org.springframework.data.domain.SliceImpl
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
+import pmeet.pmeetserver.file.service.FileService
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
+import pmeet.pmeetserver.project.dto.comment.request.CreateProjectCommentRequestDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
-import pmeet.pmeetserver.project.dto.request.comment.CreateProjectCommentRequestDto
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentResponseDto
-import pmeet.pmeetserver.project.dto.request.comment.ProjectCommentWithChildResponseDto
-import pmeet.pmeetserver.project.dto.request.tryout.CreateProjectTryoutRequestDto
-import pmeet.pmeetserver.project.dto.request.tryout.ProjectTryoutResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
+import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
+import pmeet.pmeetserver.project.dto.tryout.response.ProjectTryoutResponseDto
 import pmeet.pmeetserver.user.service.UserService
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import java.time.LocalDateTime
@@ -31,8 +33,9 @@ class ProjectFacadeService(
   private val projectCommentService: ProjectCommentService,
   private val resumeService: ResumeService,
   private val projectTryoutService: ProjectTryoutService,
-  private val userService: UserService
-  ) {
+  private val userService: UserService,
+  private val fileService: FileService
+) {
 
   @Transactional
   suspend fun createProject(userId: String, requestDto: CreateProjectRequestDto): ProjectResponseDto {
@@ -53,7 +56,11 @@ class ProjectFacadeService(
       description = requestDto.description
     )
 
-    return ProjectResponseDto.from(projectService.save(project), userId)
+    return ProjectResponseDto.of(
+      projectService.save(project),
+      userId,
+      project.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    )
   }
 
   @Transactional
@@ -74,7 +81,11 @@ class ProjectFacadeService(
       description = requestDto.description
     )
 
-    return ProjectResponseDto.from(projectService.update(originalProject), userId)
+    return ProjectResponseDto.of(
+      projectService.update(originalProject),
+      userId,
+      originalProject.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    )
   }
 
   @Transactional
@@ -164,12 +175,23 @@ class ProjectFacadeService(
 
   @Transactional(readOnly = true)
   suspend fun searchProjectSlice(userId: String, requestDto: SearchProjectRequestDto): Slice<SearchProjectResponseDto> {
-    return projectService.searchSliceByFilter(
+    val projects = projectService.searchSliceByFilter(
       requestDto.isCompleted,
       requestDto.filterType,
       requestDto.filterValue,
       requestDto.pageable
-    ).map { SearchProjectResponseDto.of(it, userId) }
+    )
+    return SliceImpl(
+      projects.content.map {
+        SearchProjectResponseDto.of(
+          it,
+          userId,
+          it.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+        )
+      },
+      projects.pageable,
+      projects.hasNext()
+    )
   }
 
   @Transactional
@@ -193,6 +215,12 @@ class ProjectFacadeService(
   ): ProjectWithUserResponseDto {
     val project = projectService.getProjectById(projectId)
     val user = userService.getUserById(project.userId)
-    return ProjectWithUserResponseDto.from(project, user, requestedUserId)
+    return ProjectWithUserResponseDto.from(
+      project,
+      user,
+      requestedUserId,
+      project.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
+      user.profileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    )
   }
 }
