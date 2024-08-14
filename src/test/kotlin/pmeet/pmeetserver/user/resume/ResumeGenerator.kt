@@ -153,7 +153,8 @@ object ResumeGenerator {
   }
 
   internal fun createMockResumeResponseDtoList(): List<ResumeResponseDto> {
-    return generateResumeList().map { ResumeResponseDto.from(it) }
+    val resumes = generateResumeList()
+    return resumes.map { ResumeResponseDto.of(it, "profileImageDownloadUrl", "portfolioFileDownloadUrl") }
   }
 
   internal fun createMockResumeCopyResponseDto(): ResumeResponseDto {

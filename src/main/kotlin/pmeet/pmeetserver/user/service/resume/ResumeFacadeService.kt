@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
+import pmeet.pmeetserver.file.service.FileService
 import pmeet.pmeetserver.user.dto.resume.request.ChangeResumeActiveRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
@@ -13,23 +14,40 @@ import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 
 @Service
 class ResumeFacadeService(
-  private val resumeService: ResumeService
+  private val resumeService: ResumeService,
+  private val fileService: FileService
 ) {
 
   @Transactional
   suspend fun createResume(requestDto: CreateResumeRequestDto): ResumeResponseDto {
     val resume = requestDto.toEntity()
-    return ResumeResponseDto.from(resumeService.save(resume))
+    return ResumeResponseDto.of(
+      resumeService.save(resume),
+      resume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
+      resume.portfolioFileUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    )
   }
 
   @Transactional(readOnly = true)
   suspend fun findResumeById(resumeId: String): ResumeResponseDto {
-    return ResumeResponseDto.from(resumeService.getByResumeId(resumeId))
+    val resume = resumeService.getByResumeId(resumeId)
+    return ResumeResponseDto.of(
+      resume,
+      resume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
+      resume.portfolioFileUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    )
   }
 
   @Transactional(readOnly = true)
   suspend fun findResumeListByUserId(userId: String): List<ResumeResponseDto> {
-    return resumeService.getAllByUserId(userId).map { ResumeResponseDto.from(it) }
+    val resumes = resumeService.getAllByUserId(userId)
+    return resumes.map {
+      ResumeResponseDto.of(
+        it,
+        it.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
+        it.portfolioFileUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+      )
+    }
   }
 
   @Transactional
@@ -49,7 +67,12 @@ class ResumeFacadeService(
       portfolioUrl = requestDto.portfolioUrl,
       selfDescription = requestDto.selfDescription
     )
-    return ResumeResponseDto.from(resumeService.update(updateResume))
+    val updatedResume = resumeService.update(updateResume)
+    return ResumeResponseDto.of(
+      updatedResume,
+      updatedResume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
+      updatedResume.portfolioFileUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    )
   }
 
   @Transactional
@@ -62,12 +85,17 @@ class ResumeFacadeService(
   }
 
   @Transactional
-  suspend fun copyResume(userId: String, requestDto: CopyResumeRequestDto): ResumeResponseDto{
+  suspend fun copyResume(userId: String, requestDto: CopyResumeRequestDto): ResumeResponseDto {
     val originalResume = resumeService.getByResumeId(requestDto.id);
     if (!originalResume.userId.equals(userId)) {
       throw ForbiddenRequestException(ErrorCode.RESUME_COPY_FORBIDDEN)
     }
-    return ResumeResponseDto.from(resumeService.save(originalResume.copy()))
+    val copiedResume = resumeService.save(originalResume.copy())
+    return ResumeResponseDto.of(
+      copiedResume,
+      copiedResume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
+      copiedResume.portfolioFileUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    )
   }
 
   @Transactional

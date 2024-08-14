@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.setMain
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
+import pmeet.pmeetserver.file.service.FileService
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockChangeResumeActiveRequestDto
@@ -39,6 +40,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
   val testDispatcher = StandardTestDispatcher()
 
   val resumeService = mockk<ResumeService>(relaxed = true)
+  val fileService = mockk<FileService>(relaxed = true)
 
   lateinit var resumeFacadeService: ResumeFacadeService
 
@@ -48,7 +50,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
   beforeSpec {
     Dispatchers.setMain(testDispatcher)
 
-    resumeFacadeService = ResumeFacadeService(resumeService)
+    resumeFacadeService = ResumeFacadeService(resumeService, fileService)
 
     resume = generateResume()
     resumeList = generateResumeList()
@@ -64,6 +66,11 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
         runTest {
           coEvery { resumeService.save(any()) } answers { resume }
           val resumeCreateRequest = createMockCreateResumeRequestDto()
+          val profileImageDownloadUrl = "profile-image-download-url"
+          val portfolioFileDownloadUrl = "portfolio-file-download-url"
+          coEvery { fileService.generatePreSignedUrlToDownload(resume.userProfileImageUrl!!) } answers { profileImageDownloadUrl }
+          coEvery { fileService.generatePreSignedUrlToDownload(resume.portfolioFileUrl!!) } answers { portfolioFileDownloadUrl }
+
           val result = resumeFacadeService.createResume(resumeCreateRequest)
 
           result.title shouldBe resume.title
@@ -74,12 +81,12 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           result.userBirthDate shouldBe resume.userBirthDate
           result.userPhoneNumber shouldBe resume.userPhoneNumber
           result.userEmail shouldBe resume.userEmail
-          result.userProfileImageUrl shouldBe resume.userProfileImageUrl
+          result.userProfileImageUrl shouldBe profileImageDownloadUrl
           result.desiredJobs.first().name shouldBe resume.desiredJobs.first().name
           result.techStacks.first().name shouldBe resume.techStacks.first().name
           result.jobExperiences.first().companyName shouldBe resume.jobExperiences.first().companyName
           result.projectExperiences.first().projectName shouldBe resume.projectExperiences.first().projectName
-          result.portfolioFileUrl shouldBe resume.portfolioFileUrl
+          result.portfolioFileUrl shouldBe portfolioFileDownloadUrl
           result.portfolioUrl.first() shouldBe resume.portfolioUrl.first()
           result.selfDescription shouldBe resume.selfDescription
         }
@@ -93,17 +100,23 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
         runTest {
           val requestTime = LocalDateTime.now().minusMinutes(1L)
           val updateRequest = createMockUpdateResumeRequestDto()
+          val profileImageDownloadUrl = "profile-image-download-url"
+          val portfolioFileDownloadUrl = "portfolio-file-download-url"
+          coEvery { fileService.generatePreSignedUrlToDownload(updateRequest.userProfileImageUrl!!) } answers { profileImageDownloadUrl }
+          coEvery { fileService.generatePreSignedUrlToDownload(updateRequest.portfolioFileUrl!!) } answers { portfolioFileDownloadUrl }
           coEvery { resumeService.getByResumeId(any()) } answers { resume }
           coEvery { resumeService.update(any()) } answers { generateUpdatedResume() }
 
           val result = resumeFacadeService.updateResume(resume.userId, updateRequest)
+
           result.title shouldBe updateRequest.title
           result.isActive shouldBe updateRequest.isActive
+          result.userProfileImageUrl shouldBe profileImageDownloadUrl
           result.desiredJobs.first().name shouldBe updateRequest.desiredJobs.first().name
           result.techStacks.first().name shouldBe updateRequest.techStacks.first().name
           result.jobExperiences.first().companyName shouldBe updateRequest.jobExperiences.first().companyName
           result.projectExperiences.first().projectName shouldBe updateRequest.projectExperiences.first().projectName
-          result.portfolioFileUrl shouldBe updateRequest.portfolioFileUrl
+          result.portfolioFileUrl shouldBe portfolioFileDownloadUrl
           result.portfolioUrl.first() shouldBe updateRequest.portfolioUrl.first()
           result.selfDescription shouldBe updateRequest.selfDescription
           result.updatedAt shouldBeAfter requestTime
@@ -124,8 +137,6 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           resume.portfolioFileUrl shouldBe originalResume.portfolioFileUrl
           resume.portfolioUrl.first() shouldBe originalResume.portfolioUrl.first()
           resume.selfDescription shouldBe originalResume.selfDescription
-
-
         }
       }
 
@@ -209,14 +220,20 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
 
           val originalResume = generateResume()
 
+          val profileImageDownloadUrl = "profile-image-download-url"
+          val portfolioFileDownloadUrl = "portfolio-file-download-url"
+          coEvery { fileService.generatePreSignedUrlToDownload(originalResume.userProfileImageUrl!!) } answers { profileImageDownloadUrl }
+          coEvery { fileService.generatePreSignedUrlToDownload(originalResume.portfolioFileUrl!!) } answers { portfolioFileDownloadUrl }
+
           val result = resumeFacadeService.copyResume(resume.userId, copyRequest)
           result.title shouldBe "[복사] ${originalResume.title.toString()}"
           result.isActive shouldBe originalResume.isActive
+          result.userProfileImageUrl shouldBe profileImageDownloadUrl
           result.desiredJobs.first().name shouldBe originalResume.desiredJobs.first().name
           result.techStacks.first().name shouldBe originalResume.techStacks.first().name
           result.jobExperiences.first().companyName shouldBe originalResume.jobExperiences.first().companyName
           result.projectExperiences.first().projectName shouldBe originalResume.projectExperiences.first().projectName
-          result.portfolioFileUrl shouldBe originalResume.portfolioFileUrl
+          result.portfolioFileUrl shouldBe portfolioFileDownloadUrl
           result.portfolioUrl.first() shouldBe originalResume.portfolioUrl.first()
           result.selfDescription shouldBe originalResume.selfDescription
         }
@@ -270,7 +287,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
       it("이력서 목록을 반환한다.") {
         runTest {
           coEvery { resumeService.getAllByUserId(any()) } answers { resumeList }
-          val result = resumeFacadeService.findResumeListByUserId(resumeList.first.userId)
+          val result = resumeFacadeService.findResumeListByUserId(resumeList.first().userId)
 
           result.size shouldBe resumeList.size
         }

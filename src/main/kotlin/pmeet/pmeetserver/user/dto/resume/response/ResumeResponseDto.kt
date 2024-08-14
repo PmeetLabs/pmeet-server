@@ -52,19 +52,19 @@ data class ResumeResponseDto(
   val userBirthDate: LocalDate,
   val userPhoneNumber: String,
   val userEmail: String,
-  val userProfileImageUrl: String,
+  val userProfileImageUrl: String?,
   val desiredJobs: List<JobResponseDto>,
   val techStacks: List<TechStackResponseDto>,
   val jobExperiences: List<ResumeJobExperienceResponseDto>,
   val projectExperiences: List<ResumeProjectExperienceResponseDto>,
-  val portfolioFileUrl: String,
+  val portfolioFileUrl: String?,
   val portfolioUrl: List<String>,
   val selfDescription: String,
   val updatedAt: LocalDateTime,
   val createdAt: LocalDateTime,
 ) {
   companion object {
-    fun from(resume: Resume): ResumeResponseDto {
+    fun of(resume: Resume, profileImageDownloadUrl: String?, portfolioFileDownloadUrl: String?): ResumeResponseDto {
       return ResumeResponseDto(
         id = resume.id!!,
         title = resume.title,
@@ -75,12 +75,12 @@ data class ResumeResponseDto(
         userBirthDate = resume.userBirthDate,
         userPhoneNumber = resume.userPhoneNumber,
         userEmail = resume.userEmail,
-        userProfileImageUrl = resume.userProfileImageUrl ?: "",
+        userProfileImageUrl = profileImageDownloadUrl,
         desiredJobs = resume.desiredJobs.map { JobResponseDto.from(it) },
         techStacks = resume.techStacks.map { TechStackResponseDto.from(it) },
         jobExperiences = resume.jobExperiences.map { ResumeJobExperienceResponseDto.from(it) },
         projectExperiences = resume.projectExperiences.map { ResumeProjectExperienceResponseDto.from(it) },
-        portfolioFileUrl = resume.portfolioFileUrl ?: "",
+        portfolioFileUrl = portfolioFileDownloadUrl,
         portfolioUrl = resume.portfolioUrl,
         selfDescription = resume.selfDescription ?: "",
         updatedAt = resume.updatedAt,
