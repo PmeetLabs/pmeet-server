@@ -20,11 +20,7 @@ import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.file.service.FileService
-import pmeet.pmeetserver.project.domain.Project
-import pmeet.pmeetserver.project.domain.ProjectBookmark
-import pmeet.pmeetserver.project.domain.ProjectComment
-import pmeet.pmeetserver.project.domain.ProjectTryout
-import pmeet.pmeetserver.project.domain.Recruitment
+import pmeet.pmeetserver.project.domain.*
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.comment.request.CreateProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
@@ -34,6 +30,7 @@ import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
+import pmeet.pmeetserver.project.dto.tryout.request.PatchProjectTryoutRequestDto
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
@@ -54,6 +51,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   val projectCommentService = mockk<ProjectCommentService>(relaxed = true)
   val resumeService = mockk<ResumeService>(relaxed = true)
   val projectTryoutService = mockk<ProjectTryoutService>(relaxed = true)
+  val projectMemberService = mockk<ProjectMemberService>(relaxed = true)
   val userService = mockk<UserService>(relaxed = true)
   val fileService = mockk<FileService>(relaxed = true)
 
@@ -75,6 +73,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
       projectCommentService,
       resumeService,
       projectTryoutService,
+      projectMemberService,
       userService,
       fileService
     )
@@ -613,6 +612,54 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           projectFacadeService.deleteBookmark(userId, projectId)
 
           project.bookmarkers.size shouldBe 0
+        }
+      }
+    }
+  }
+
+  describe("patchProjectTryoutStatusToAccept") {
+    context("userId와 patchRequest 가 주어지면") {
+      val projectId = project.id!!
+      val tryoutId = projectTryout.id!!
+      val requestDto = PatchProjectTryoutRequestDto(projectId, tryoutId)
+      it("프로젝트 지원 상태를 합격으로 업데이트한다") {
+        runTest {
+          coEvery { projectService.getProjectById(projectId) } answers { project }
+          coEvery {
+            projectTryoutService.updateTryoutStatus(
+              tryoutId,
+              ProjectTryoutStatus.ACCEPTED
+            )
+          } answers { projectTryout }
+          coEvery { projectMemberService.save(any()) } answers { projectTryout.createProjectMember() }
+
+          projectFacadeService.patchProjectTryoutStatusToAccept(userId, requestDto)
+
+          coVerify(exactly = 1) { projectTryoutService.updateTryoutStatus(tryoutId, ProjectTryoutStatus.ACCEPTED) }
+        }
+      }
+    }
+  }
+
+  describe("pathProjectTryoutStatusToReject") {
+    context("userId와 patchRequest 가 주어지면") {
+      val projectId = project.id!!
+      val tryoutId = projectTryout.id!!
+      val requestDto = PatchProjectTryoutRequestDto(projectId, tryoutId)
+      it("프로젝트 지원 상태를 불합격으로 업데이트한다") {
+        runTest {
+          coEvery { projectService.getProjectById(projectId) } answers { project }
+          coEvery {
+            projectTryoutService.updateTryoutStatus(
+              tryoutId,
+              ProjectTryoutStatus.REJECTED
+            )
+          } answers { projectTryout }
+          coEvery { projectMemberService.save(any()) } answers { projectTryout.createProjectMember() }
+
+          projectFacadeService.pathProjectTryoutStatusToReject(userId, requestDto)
+
+          coVerify(exactly = 1) { projectTryoutService.updateTryoutStatus(tryoutId, ProjectTryoutStatus.REJECTED) }
         }
       }
     }

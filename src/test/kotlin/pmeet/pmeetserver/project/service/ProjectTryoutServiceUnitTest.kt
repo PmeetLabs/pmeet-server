@@ -128,4 +128,19 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
       }
     }
   }
+
+  describe("updateTryoutStatus") {
+    context("지원 현황에 대한 업데이트 요청이 주어지면") {
+      it("지원 현황의 업데이트 결과가 반환된다.") {
+        runTest {
+          every { projectTryoutRepository.findById(projectTryout.id!!) } answers { Mono.just(projectTryout) }
+          every { projectTryoutRepository.save(any()) } answers { Mono.just(projectTryout) }
+
+          val result = projectTryoutService.updateTryoutStatus(projectTryout.id!!, ProjectTryoutStatus.ACCEPTED)
+
+          result.tryoutStatus shouldBe ProjectTryoutStatus.ACCEPTED
+        }
+      }
+    }
+  }
 })

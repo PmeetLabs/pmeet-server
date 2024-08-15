@@ -2,7 +2,6 @@ package pmeet.pmeetserver.project
 
 import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.Spec
-import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,10 +20,13 @@ import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.BaseMongoDBTestForIntegration
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
+import pmeet.pmeetserver.project.dto.tryout.request.PatchProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.tryout.response.ProjectTryoutResponseDto
 import pmeet.pmeetserver.project.repository.ProjectRepository
+import pmeet.pmeetserver.project.repository.ProjectTryoutRepository
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
@@ -49,12 +51,17 @@ internal class ProjectTryoutIntegrationTest : BaseMongoDBTestForIntegration() {
     private lateinit var projectRepository: ProjectRepository
 
     @Autowired
+    private lateinit var projectTryoutRepository: ProjectTryoutRepository
+
+    @Autowired
     lateinit var webTestClient: WebTestClient
 
     lateinit var project: Project
     lateinit var resume: Resume
     lateinit var userId: String
     lateinit var projectId: String
+    lateinit var projectTryout: ProjectTryout
+    lateinit var projectTryoutId: String
 
     override suspend fun beforeSpec(spec: Spec) {
         resume = generateResume()
@@ -73,9 +80,24 @@ internal class ProjectTryoutIntegrationTest : BaseMongoDBTestForIntegration() {
             description = "testDescription"
         )
 
+        projectTryoutId = "testProjectTryoutId"
+
+        projectTryout = ProjectTryout(
+            id = projectTryoutId,
+            resumeId = resume.id!!,
+            userId = userId,
+            userName = resume.userName,
+            userSelfDescription = resume.selfDescription.orEmpty(),
+            positionName = "testPositionName",
+            tryoutStatus = ProjectTryoutStatus.INREVIEW,
+            projectId = projectId,
+            createdAt = LocalDateTime.now()
+        )
+
         withContext(Dispatchers.IO) {
             projectRepository.save(project).block()
             resumeRepository.save(resume).block()
+            projectTryoutRepository.save(projectTryout).block()
         }
     }
 
@@ -83,6 +105,7 @@ internal class ProjectTryoutIntegrationTest : BaseMongoDBTestForIntegration() {
         withContext(Dispatchers.IO) {
             projectRepository.deleteAll().block()
             resumeRepository.deleteAll().block()
+            projectTryoutRepository.deleteAll().block()
         }
     }
 
@@ -166,6 +189,52 @@ internal class ProjectTryoutIntegrationTest : BaseMongoDBTestForIntegration() {
                         response.responseBody?.get(0)!!.userName shouldBe responseDto.userName
                         response.responseBody?.get(0)!!.userSelfDescription shouldBe responseDto.userSelfDescription
                         response.responseBody?.get(0)!!.tryoutStatus shouldBe responseDto.tryoutStatus
+                    }
+                }
+            }
+        }
+
+        describe("patchProjectTryoutToAccepted") {
+            context("인증된 유저의 프로젝트에 대한 지원 현황 합격 업데이트 요청이 들어오면") {
+                val userId = resume.userId
+                val requestDto = PatchProjectTryoutRequestDto(projectId, projectTryoutId)
+
+                val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+                val performRequest =
+                    webTestClient
+                        .mutateWith(mockAuthentication(mockAuthentication))
+                        .patch()
+                        .uri("/api/v1/project-tryouts/accept")
+                        .bodyValue(requestDto)
+                        .exchange()
+
+                it("요청은 성공한다") {
+                    performRequest.expectStatus().isOk
+                    performRequest.expectBody<ProjectTryoutResponseDto>().consumeWith { response ->
+                        response.responseBody?.tryoutStatus shouldBe ProjectTryoutStatus.ACCEPTED
+                    }
+                }
+            }
+        }
+
+        describe("patchProjectTryoutToAccepted") {
+            context("인증된 유저의 프로젝트에 대한 지원 현황 불합격 업데이트 요청이 들어오면") {
+                val userId = resume.userId
+                val requestDto = PatchProjectTryoutRequestDto(projectId, projectTryoutId)
+
+                val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+                val performRequest =
+                    webTestClient
+                        .mutateWith(mockAuthentication(mockAuthentication))
+                        .patch()
+                        .uri("/api/v1/project-tryouts/reject")
+                        .bodyValue(requestDto)
+                        .exchange()
+
+                it("요청은 성공한다") {
+                    performRequest.expectStatus().isOk
+                    performRequest.expectBody<ProjectTryoutResponseDto>().consumeWith { response ->
+                        response.responseBody?.tryoutStatus shouldBe ProjectTryoutStatus.REJECTED
                     }
                 }
             }
