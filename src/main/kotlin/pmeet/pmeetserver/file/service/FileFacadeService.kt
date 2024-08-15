@@ -13,6 +13,6 @@ class FileFacadeService(
   }
 
   suspend fun getPreSignedUrlToDownload(objectName: String): FileUrlResponseDto {
-    return FileUrlResponseDto.of(fileService.generatePreSignedUrlToDownload(objectName), objectName)
+    return FileUrlResponseDto.of(fileService.generatePreSignedUrlToDownload(objectName)!!, objectName)
   }
 }

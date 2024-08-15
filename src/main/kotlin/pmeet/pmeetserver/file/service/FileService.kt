@@ -12,7 +12,7 @@ import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignReques
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest
 import java.time.Duration
 import java.time.LocalDate
-import java.util.UUID
+import java.util.*
 
 
 @Service
@@ -42,12 +42,19 @@ class FileService(
               .build()
           )
           .build().run {
-            return FileUrlResponseDto.of(presigner.presignPutObject(this).url().toExternalForm(), objectName)
+            return FileUrlResponseDto.of(
+              presigner.presignPutObject(this).url().toExternalForm(),
+              objectName
+            )
           }
       }
   }
 
-  suspend fun generatePreSignedUrlToDownload(objectName: String): String {
+  suspend fun generatePreSignedUrlToDownload(objectName: String): String? {
+    if (objectName.isBlank()) {
+      return null
+    }
+
     S3Presigner.builder()
       .credentialsProvider(awsCredentialsProvider)
       .region(Region.of(region))
