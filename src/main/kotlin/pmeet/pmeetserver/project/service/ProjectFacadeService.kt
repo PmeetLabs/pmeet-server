@@ -22,6 +22,7 @@ import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
+import pmeet.pmeetserver.project.dto.tryout.request.PatchProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.tryout.response.ProjectTryoutResponseDto
 import pmeet.pmeetserver.user.service.UserService
 import pmeet.pmeetserver.user.service.resume.ResumeService
@@ -33,6 +34,7 @@ class ProjectFacadeService(
   private val projectCommentService: ProjectCommentService,
   private val resumeService: ResumeService,
   private val projectTryoutService: ProjectTryoutService,
+  private val projectMemberService: ProjectMemberService,
   private val userService: UserService,
   private val fileService: FileService
 ) {
@@ -211,9 +213,32 @@ class ProjectFacadeService(
     )
   }
 
+  @Transactional
+  suspend fun patchProjectTryoutStatusToAccept(
+    userId: String,
+    patchRequest: PatchProjectTryoutRequestDto
+  ): ProjectTryoutResponseDto {
+    checkUserHasAuthToProject(patchRequest.projectId, userId, ErrorCode.PROJECT_TRYOUT_VIEW_FORBIDDEN)
+    val projectTryout = projectTryoutService.updateTryoutStatus(patchRequest.tryoutId, ProjectTryoutStatus.ACCEPTED)
+    projectMemberService.save(projectTryout.createProjectMember())
+    // TODO 프밋 시작 알림
+    return ProjectTryoutResponseDto.from(projectTryout)
+  }
+
+  @Transactional
+  suspend fun pathProjectTryoutStatusToReject(
+    userId: String,
+    patchRequest: PatchProjectTryoutRequestDto
+  ): ProjectTryoutResponseDto {
+    checkUserHasAuthToProject(patchRequest.projectId, userId, ErrorCode.PROJECT_TRYOUT_VIEW_FORBIDDEN)
+    val projectTryout = projectTryoutService.updateTryoutStatus(patchRequest.tryoutId, ProjectTryoutStatus.REJECTED)
+    // TODO 프밋 지원 마감 알림
+    return ProjectTryoutResponseDto.from(projectTryout)
+  }
+
   /**
-   * 요청을 보낸 사용자가 해당 프밋의 관리자인지 검증한다.
-   * 관리자가 맞는 경우엔 Project 를 반환한다.
+   * 요청을 보낸 사용자가 해당 프밋의 생성자인지 검증한다.
+   * 생성자가 맞는 경우엔 Project 를 반환한다.
    */
   internal suspend fun checkUserHasAuthToProject(projectId: String, userId: String, errorCode: ErrorCode): Project {
     val project = projectService.getProjectById(projectId)
@@ -222,4 +247,5 @@ class ProjectFacadeService(
     }
     return project
   }
+
 }

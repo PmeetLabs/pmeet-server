@@ -5,6 +5,7 @@ import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.project.domain.ProjectTryout
+import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.repository.ProjectTryoutRepository
 
 @Service
@@ -25,6 +26,13 @@ class ProjectTryoutService(
   @Transactional(readOnly = true)
   suspend fun findAllByProjectId(projectId: String): List<ProjectTryout> {
     return projectTryoutRepository.findAllByProjectId(projectId).collectList().awaitSingle()
+  }
+
+  @Transactional
+  suspend fun updateTryoutStatus(tryoutId: String, accepted: ProjectTryoutStatus): ProjectTryout {
+    val projectTryout = projectTryoutRepository.findById(tryoutId).awaitSingle()
+    projectTryout.updateStatus(accepted)
+    return projectTryoutRepository.save(projectTryout).awaitSingle()
   }
 
 }

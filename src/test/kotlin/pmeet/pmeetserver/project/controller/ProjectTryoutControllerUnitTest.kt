@@ -15,6 +15,7 @@ import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
+import pmeet.pmeetserver.project.dto.tryout.request.PatchProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.tryout.response.ProjectTryoutResponseDto
 import pmeet.pmeetserver.project.service.ProjectFacadeService
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
@@ -145,5 +146,102 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
       }
     }
 
+    describe("patchProjectTryoutToAccepted") {
+      context("인증된 유저의 프로젝트에 대한 지원 현황 합격 업데이트 요청이 들어오면") {
+        val resume = generateResume()
+        val userId = resume.userId
+        val requestProjectId = "testProjectId"
+        val requestTryoutId = "testTryoutId"
+        val createdAt = LocalDateTime.now()
+        val responseDto =
+          ProjectTryoutResponseDto(
+            id = requestTryoutId,
+            resumeId = resume.id!!,
+            userId = userId,
+            projectId = requestProjectId,
+            userName = "userName",
+            userSelfDescription = "userSelfDescription",
+            positionName = "positionName",
+            tryoutStatus = ProjectTryoutStatus.INREVIEW,
+            createdAt = createdAt
+          )
+
+
+        val requestDto = PatchProjectTryoutRequestDto(requestProjectId, requestTryoutId)
+
+        coEvery {
+          projectFacadeService.patchProjectTryoutStatusToAccept(
+            userId,
+            requestDto
+          )
+        } answers { responseDto }
+
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest =
+          webTestClient
+            .mutateWith(mockAuthentication(mockAuthentication))
+            .patch()
+            .uri("/api/v1/project-tryouts/accept")
+            .bodyValue(requestDto)
+            .exchange()
+
+        it("서비스를 통해 데이터를 업데이트한다.") {
+          coVerify(exactly = 1) { projectFacadeService.patchProjectTryoutStatusToAccept(userId, requestDto) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+      }
+    }
+
+    describe("patchProjectTryoutToAccepted") {
+      context("인증된 유저의 프로젝트에 대한 지원 현황 불합격 업데이트 요청이 들어오면") {
+        val resume = generateResume()
+        val userId = resume.userId
+        val requestProjectId = "testProjectId"
+        val requestTryoutId = "testTryoutId"
+        val createdAt = LocalDateTime.now()
+        val responseDto =
+          ProjectTryoutResponseDto(
+            id = requestTryoutId,
+            resumeId = resume.id!!,
+            userId = userId,
+            projectId = requestProjectId,
+            userName = "userName",
+            userSelfDescription = "userSelfDescription",
+            positionName = "positionName",
+            tryoutStatus = ProjectTryoutStatus.INREVIEW,
+            createdAt = createdAt
+          )
+
+
+        val requestDto = PatchProjectTryoutRequestDto(requestProjectId, requestTryoutId)
+
+        coEvery {
+          projectFacadeService.pathProjectTryoutStatusToReject(
+            userId,
+            requestDto
+          )
+        } answers { responseDto }
+
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest =
+          webTestClient
+            .mutateWith(mockAuthentication(mockAuthentication))
+            .patch()
+            .uri("/api/v1/project-tryouts/reject")
+            .bodyValue(requestDto)
+            .exchange()
+
+        it("서비스를 통해 데이터를 업데이트한다.") {
+          coVerify(exactly = 1) { projectFacadeService.pathProjectTryoutStatusToReject(userId, requestDto) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+      }
+    }
   }
 }
