@@ -65,11 +65,7 @@ class ProjectFacadeService(
 
   @Transactional
   suspend fun updateProject(userId: String, requestDto: UpdateProjectRequestDto): ProjectResponseDto {
-    val originalProject = projectService.getProjectById(requestDto.id)
-
-    if (originalProject.userId != userId) {
-      throw ForbiddenRequestException(ErrorCode.PROJECT_UPDATE_FORBIDDEN)
-    }
+    val originalProject = checkUserHasAuthToProject(requestDto.id, userId, ErrorCode.PROJECT_UPDATE_FORBIDDEN)
 
     originalProject.update(
       title = requestDto.title,
@@ -120,11 +116,7 @@ class ProjectFacadeService(
 
   @Transactional
   suspend fun deleteProject(usedId: String, projectId: String) {
-    val project = projectService.getProjectById(projectId)
-
-    if (project.userId != usedId) {
-      throw ForbiddenRequestException(ErrorCode.PROJECT_DELETE_FORBIDDEN)
-    }
+    val project = checkUserHasAuthToProject(projectId, usedId, ErrorCode.PROJECT_DELETE_FORBIDDEN)
 
     projectCommentService.deleteAllByProjectId(projectId)
     projectTryoutService.deleteAllByProjectId(projectId)
@@ -142,8 +134,6 @@ class ProjectFacadeService(
       throw ForbiddenRequestException(ErrorCode.RESUME_TRYOUT_FORBIDDEN)
     }
 
-    //todo projectID 에 대한 유효성 검사 필요
-
     val projectTryout = ProjectTryout(
       resumeId = requestDto.resumeId,
       userId = userId,
@@ -160,10 +150,7 @@ class ProjectFacadeService(
 
   @Transactional(readOnly = true)
   suspend fun getProjectTryoutListByProjectId(userId: String, projectId: String): List<ProjectTryoutResponseDto> {
-    val project = projectService.getProjectById(projectId)
-    if (project.userId != userId) {
-      throw ForbiddenRequestException(ErrorCode.PROJECT_TRYOUT_VIEW_FORBIDDEN)
-    }
+    checkUserHasAuthToProject(projectId, userId, ErrorCode.PROJECT_TRYOUT_VIEW_FORBIDDEN)
     val projectTryoutList = projectTryoutService.findAllByProjectId(projectId)
     return projectTryoutList.map { ProjectTryoutResponseDto.from(it) }
   }
@@ -222,5 +209,17 @@ class ProjectFacadeService(
       project.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
       user.profileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
     )
+  }
+
+  /**
+   * 요청을 보낸 사용자가 해당 프밋의 관리자인지 검증한다.
+   * 관리자가 맞는 경우엔 Project 를 반환한다.
+   */
+  internal suspend fun checkUserHasAuthToProject(projectId: String, userId: String, errorCode: ErrorCode): Project {
+    val project = projectService.getProjectById(projectId)
+    if (project.userId != userId) {
+      throw ForbiddenRequestException(errorCode)
+    }
+    return project
   }
 }
