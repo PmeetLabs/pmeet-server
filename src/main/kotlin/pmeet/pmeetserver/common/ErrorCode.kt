@@ -45,8 +45,11 @@ enum class ErrorCode(private val code: String, private val message: String) {
   PROJECT_COMMENT_NOT_FOUND("PROJECT-COMMENT-40400", "해당하는 ID의 댓글을 찾을 수 없습니다."),
   PROJECT_COMMENT_DELETE_FORBIDDEN("PROJECT-COMMENT-40300", "해당하는 댓글을 삭제할 권한이 없습니다."),
 
-    // Project Tryout
-    PROJECT_TRYOUT_STATUS_UPDATE_FAIL("PROJECT-TRYOUT-40401", "상태가 검토중이 아닌 지원서는 상태를 변경할 수 없습니다."),
+  // Project Tryout
+  PROJECT_TRYOUT_STATUS_UPDATE_FAIL("PROJECT-TRYOUT-40401", "상태가 검토중이 아닌 지원서는 상태를 변경할 수 없습니다."),
+
+  // Project Member
+  PROJECT_MEMBER_MODIFY_FORBIDDEN("PROJECT-MEMBER-40401", "프로젝트 멤버를 수정할 권한이 없습니다."),
 
   ;
 
