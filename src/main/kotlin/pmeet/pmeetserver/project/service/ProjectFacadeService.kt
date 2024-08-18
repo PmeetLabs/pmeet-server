@@ -240,7 +240,7 @@ class ProjectFacadeService(
    * 요청을 보낸 사용자가 해당 프밋의 생성자인지 검증한다.
    * 생성자가 맞는 경우엔 Project 를 반환한다.
    */
-  internal suspend fun checkUserHasAuthToProject(projectId: String, userId: String, errorCode: ErrorCode): Project {
+  private suspend fun checkUserHasAuthToProject(projectId: String, userId: String, errorCode: ErrorCode): Project {
     val project = projectService.getProjectById(projectId)
     if (project.userId != userId) {
       throw ForbiddenRequestException(errorCode)
