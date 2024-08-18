@@ -32,6 +32,7 @@ class ProjectTryout(
         return ProjectMember(
             resumeId = resumeId,
             userId = userId,
+            tryoutId = id!!,
             userName = userName,
             userSelfDescription = userSelfDescription,
             projectId = projectId,

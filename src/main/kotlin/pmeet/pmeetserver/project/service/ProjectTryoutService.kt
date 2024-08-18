@@ -35,4 +35,9 @@ class ProjectTryoutService(
     return projectTryoutRepository.save(projectTryout).awaitSingle()
   }
 
+  @Transactional
+  suspend fun deleteTryout(tryoutId: String) {
+    projectTryoutRepository.deleteById(tryoutId).awaitSingleOrNull()
+  }
+
 }

@@ -143,4 +143,21 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
       }
     }
   }
+
+  describe("deleteTryout") {
+    context("지원 현황에 대한 삭제 요청이 주어지면") {
+      it("지원 현황이 삭제된다.") {
+        runTest {
+          every { projectTryoutRepository.deleteById(projectTryout.id!!) } answers { Mono.empty() }
+
+          projectTryoutService.deleteTryout(projectTryout.id!!)
+
+          verify(exactly = 1) { projectTryoutRepository.deleteById(projectTryout.id!!) }
+        }
+      }
+    }
+  }
+
+
+
 })

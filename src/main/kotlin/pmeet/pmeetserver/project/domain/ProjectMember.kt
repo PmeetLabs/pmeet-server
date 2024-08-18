@@ -9,6 +9,7 @@ class ProjectMember(
     @Id
     var id: String? = null,
     val resumeId: String,
+    val tryoutId: String,
     val userId: String,
     val userName: String,
     val userSelfDescription: String,

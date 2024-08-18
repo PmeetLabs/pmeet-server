@@ -236,6 +236,14 @@ class ProjectFacadeService(
     return ProjectTryoutResponseDto.from(projectTryout)
   }
 
+  @Transactional
+  suspend fun deleteProjectMember(userId: String, projectId: String, memberId: String) {
+    checkUserHasAuthToProject(projectId, userId, ErrorCode.PROJECT_MEMBER_MODIFY_FORBIDDEN)
+    val projectMember = projectMemberService.findMemberById(memberId);
+    projectTryoutService.deleteTryout(projectMember.tryoutId)
+    projectMemberService.deleteProjectMember(memberId)
+  }
+
   /**
    * 요청을 보낸 사용자가 해당 프밋의 생성자인지 검증한다.
    * 생성자가 맞는 경우엔 Project 를 반환한다.
