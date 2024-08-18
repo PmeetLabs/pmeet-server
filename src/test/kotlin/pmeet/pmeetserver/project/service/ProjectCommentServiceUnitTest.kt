@@ -17,7 +17,7 @@ import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
-import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.comment.ProjectCommentWithChildDto
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -119,7 +119,7 @@ internal class ProjectCommentServiceUnitTest : DescribeSpec({
   describe("getProjectCommentWithChildByProjectId") {
     val projectId = "testProjectId"
     val responseDto = listOf(
-      ProjectCommentWithChildResponseDto(
+      ProjectCommentWithChildDto(
         id = "testCommentId",
         parentCommentId = null,
         projectId = "testProjectId",

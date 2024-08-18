@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
-import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
@@ -74,7 +74,7 @@ class ProjectController(
   @ResponseStatus(HttpStatus.OK)
   suspend fun getProjectCommentList(
     @PathVariable projectId: String
-  ): List<ProjectCommentWithChildResponseDto> {
+  ): List<GetProjectCommentWithChildResponseDto> {
     return projectFacadeService.getProjectCommentList(projectId)
   }
 

@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.project.domain.ProjectComment
-import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.comment.ProjectCommentWithChildDto
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
 
 @Service
@@ -32,7 +32,7 @@ class ProjectCommentService(
   }
 
   @Transactional(readOnly = true)
-  suspend fun getProjectCommentWithChildByProjectId(projectId: String): List<ProjectCommentWithChildResponseDto> {
+  suspend fun getProjectCommentWithChildByProjectId(projectId: String): List<ProjectCommentWithChildDto> {
     return projectCommentRepository.findCommentsByProjectIdWithChild(projectId).collectList().awaitSingle()
   }
 }
