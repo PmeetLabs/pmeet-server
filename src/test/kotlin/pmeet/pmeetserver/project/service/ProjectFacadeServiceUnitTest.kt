@@ -24,7 +24,7 @@ import pmeet.pmeetserver.project.domain.*
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.comment.request.CreateProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
-import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.comment.ProjectCommentWithChildDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
@@ -450,7 +450,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   describe("getProjectCommentList") {
     val projectId = project.id!!
     val responseDto = listOf(
-      ProjectCommentWithChildResponseDto(
+      ProjectCommentWithChildDto(
         id = "testCommentId",
         parentCommentId = null,
         projectId = "testProjectId",
@@ -475,6 +475,8 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     )
 
     coEvery { projectCommentService.getProjectCommentWithChildByProjectId(projectId) } answers { responseDto }
+    coEvery { fileService.generatePreSignedUrlToDownload(any()) } answers { "test" }
+
     context("projectId를 입력받으면") {
       it("ProjectCommentWithChildResponseDto를 조회한다.") {
         runTest {

@@ -16,7 +16,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
-import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.comment.ProjectCommentWithChildDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
@@ -33,6 +33,8 @@ import pmeet.pmeetserver.user.dto.response.UserResponseDtoInProject
 import pmeet.pmeetserver.util.RestSliceImpl
 import java.time.LocalDate
 import java.time.LocalDateTime
+import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentWithChildResponseDto
 
 @WebFluxTest(ProjectController::class)
 @Import(TestSecurityConfig::class)
@@ -369,21 +371,25 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
         val userId = "userId"
         val projectId = "testProjectId"
         val responseDto = listOf(
-          ProjectCommentWithChildResponseDto(
+          GetProjectCommentWithChildResponseDto(
             id = "testCommentId",
             parentCommentId = null,
             projectId = "testProjectId",
             userId = userId,
+            userNickname = "testNickname",
+            userProfileImageUrl = null,
             content = "testContent",
             likerIdList = listOf(),
             createdAt = LocalDateTime.of(2024, 7, 16, 0, 0, 0),
             isDeleted = false,
             childComments = listOf(
-              ProjectCommentResponseDto(
+              GetProjectCommentResponseDto(
                 id = "childCommentId",
                 parentCommentId = "testCommentId",
                 projectId = "testProjectId",
                 userId = userId,
+                userNickname = "testNickname",
+                userProfileImageUrl = null,
                 content = "testContent",
                 likerIdList = listOf(),
                 createdAt = LocalDateTime.of(2024, 7, 16, 0, 0, 0),
@@ -411,7 +417,7 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
         }
 
         it("조회한 댓글 정보를 반환한다") {
-          performRequest.expectBody<List<ProjectCommentWithChildResponseDto>>().consumeWith { response ->
+          performRequest.expectBody<List<ProjectCommentWithChildDto>>().consumeWith { response ->
             response.responseBody?.get(0)?.id shouldBe responseDto[0].id
             response.responseBody?.get(0)?.parentCommentId shouldBe responseDto[0].parentCommentId
             response.responseBody?.get(0)?.projectId shouldBe responseDto[0].projectId

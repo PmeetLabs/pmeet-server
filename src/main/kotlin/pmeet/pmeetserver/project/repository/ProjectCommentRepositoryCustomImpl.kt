@@ -14,13 +14,13 @@ import org.springframework.data.mongodb.core.aggregation.AggregationOperation
 import org.springframework.data.mongodb.core.aggregation.AggregationOperationContext
 import org.springframework.data.mongodb.core.query.Criteria
 import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
-import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.comment.ProjectCommentWithChildDto
 import reactor.core.publisher.Flux
 
 class ProjectCommentRepositoryCustomImpl(
   @Autowired private val mongoTemplate: ReactiveMongoTemplate
 ) : ProjectCommentRepositoryCustom {
-  override fun findCommentsByProjectIdWithChild(projectId: String): Flux<ProjectCommentWithChildResponseDto> {
+  override fun findCommentsByProjectIdWithChild(projectId: String): Flux<ProjectCommentWithChildDto> {
 
     val matchProjectId = match(Criteria.where("projectId").`is`(projectId))
 
@@ -78,7 +78,7 @@ class ProjectCommentRepositoryCustomImpl(
 
     return mongoTemplate.aggregate(aggregation, "projectComment", Document::class.java)
       .map { doc ->
-        ProjectCommentWithChildResponseDto(
+        ProjectCommentWithChildDto(
           id = doc.getObjectId("_id")!!.toString(),
           parentCommentId = doc.getString("parentCommentId"),
           projectId = doc.getString("projectId"),

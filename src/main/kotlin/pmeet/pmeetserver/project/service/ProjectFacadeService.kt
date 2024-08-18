@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.project.service
 
+import java.time.LocalDateTime
 import org.springframework.data.domain.Slice
 import org.springframework.data.domain.SliceImpl
 import org.springframework.stereotype.Service
@@ -13,8 +14,9 @@ import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.comment.request.CreateProjectCommentRequestDto
+import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
-import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
@@ -26,7 +28,6 @@ import pmeet.pmeetserver.project.dto.tryout.request.PatchProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.tryout.response.ProjectTryoutResponseDto
 import pmeet.pmeetserver.user.service.UserService
 import pmeet.pmeetserver.user.service.resume.ResumeService
-import java.time.LocalDateTime
 
 @Service
 class ProjectFacadeService(
@@ -91,6 +92,11 @@ class ProjectFacadeService(
     ProjectCommentResponseDto {
 
     val project = projectService.getProjectById(requestDto.projectId)
+
+    // parentId에 해당하는 댓글이 있는지 검증
+    requestDto.parentCommentId?.let { parentId ->
+      projectCommentService.getProjectCommentById(parentId)
+    }
 
     val projectComment = ProjectComment(
       parentCommentId = requestDto.parentCommentId,
@@ -158,8 +164,24 @@ class ProjectFacadeService(
   }
 
   @Transactional(readOnly = true)
-  suspend fun getProjectCommentList(projectId: String): List<ProjectCommentWithChildResponseDto> {
-    return projectCommentService.getProjectCommentWithChildByProjectId(projectId)
+  suspend fun getProjectCommentList(projectId: String): List<GetProjectCommentWithChildResponseDto> {
+    val projectCommentWithChild = projectCommentService.getProjectCommentWithChildByProjectId(projectId)
+
+    return projectCommentWithChild.map { parentComment ->
+      val user = parentComment.userId.let { userService.getUserById(it) }
+      GetProjectCommentWithChildResponseDto.from(
+        parentComment,
+        user,
+        user.profileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
+        parentComment.childComments.map { childComment ->
+          val childUser = childComment.userId.let { userService.getUserById(it) }
+          GetProjectCommentResponseDto.from(
+            childComment,
+            childUser,
+            childUser.profileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) })
+        }
+      )
+    }
   }
 
   @Transactional(readOnly = true)

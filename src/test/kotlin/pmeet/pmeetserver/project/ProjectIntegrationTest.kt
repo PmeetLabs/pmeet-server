@@ -28,7 +28,7 @@ import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
-import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.comment.ProjectCommentWithChildDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
@@ -364,7 +364,7 @@ internal class ProjectIntegrationTest : BaseMongoDBTestForIntegration() {
       context("Project Comment 전체 조회 요청이 들어오면") {
         val deletedProjectComment1 = ProjectComment(
           projectId = "testProjectId",
-          userId = "testUserId",
+          userId = userId,
           content = "deleted1",
           isDeleted = true
         )
@@ -372,7 +372,7 @@ internal class ProjectIntegrationTest : BaseMongoDBTestForIntegration() {
 
         val deletedProjectComment2 = ProjectComment(
           projectId = "testProjectId",
-          userId = "testUserId",
+          userId = userId,
           content = "deleted2",
           isDeleted = true
         )
@@ -381,7 +381,7 @@ internal class ProjectIntegrationTest : BaseMongoDBTestForIntegration() {
         val childProjectComment1 = ProjectComment(
           parentCommentId = deletedProjectComment1.id!!,
           projectId = "testProjectId",
-          userId = "testUserId",
+          userId = userId,
           content = "child",
           isDeleted = false
         )
@@ -390,7 +390,7 @@ internal class ProjectIntegrationTest : BaseMongoDBTestForIntegration() {
         val deletedChildProjectComment1 = ProjectComment(
           parentCommentId = deletedProjectComment1.id!!,
           projectId = "testProjectId",
-          userId = "testUserId",
+          userId = userId,
           content = "deletedChild",
           isDeleted = true
         )
@@ -410,8 +410,8 @@ internal class ProjectIntegrationTest : BaseMongoDBTestForIntegration() {
           performRequest.expectStatus().isOk
         }
 
-        it("생성된 Project 정보를 반환한다") {
-          performRequest.expectBody<List<ProjectCommentWithChildResponseDto>>().consumeWith { response ->
+        it("조회된 댓글 정보를 반환한다") {
+          performRequest.expectBody<List<ProjectCommentWithChildDto>>().consumeWith { response ->
             response.responseBody?.get(0)?.id shouldBe deletedProjectComment1.id
             response.responseBody?.get(0)?.parentCommentId shouldBe deletedProjectComment1.parentCommentId
             response.responseBody?.get(0)?.projectId shouldBe deletedProjectComment1.projectId
