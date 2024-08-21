@@ -367,5 +367,23 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
       }
     }
 
+    describe("POST api/v1/resumes/{resumeId}/bookmark") {
+      context("인증된 유저이자 다른 사람의 이력서에 대한 북마크 등록") {
+        it("해당 이력서에 대한 북마크가 등록된다")
+      }
+    }
+
+    describe("DELETE api/v1/resumes/{resumeId}/bookmark") {
+      context("인증된 유저이자 다른 사람의 이력서에 대한 북마크 해제") {
+        it("해당 이력서에 대한 북마크가 삭제된다")
+      }
+    }
+
+    describe("GET api/v1/resumes/bookmark-list") {
+      context("인증된 유저이자 북마크한 이력서 목록 조회") {
+        it("북마크된 이력서 목록이 조회된다")
+      }
+    }
+
   }
 }
