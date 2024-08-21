@@ -31,3 +31,22 @@ jobs:
 
       - name: Run tests with Gradle
         run: ./gradlew test
+
+  event_file:
+    needs: build  # build job이 완료된 후 실행되도록 설정
+    name: "Event File"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: Event File
+          path: ${{ github.event_path }}
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Test Results
+          path: |
+            build/test-results/test/TEST-*.xml
