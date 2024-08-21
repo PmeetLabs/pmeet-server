@@ -15,6 +15,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.user.controller.ResumeController
+import pmeet.pmeetserver.user.dto.resume.response.BookmarkedResumeResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockChangeResumeActiveRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCopyResumeRequestDto
@@ -24,6 +25,7 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeCopyRespons
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDtoList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
 
@@ -317,10 +319,10 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
             returnedResume.userPhoneNumber shouldBe mockResume.userPhoneNumber
             returnedResume.userEmail shouldBe mockResume.userEmail
             returnedResume.userProfileImageUrl shouldBe mockResume.userProfileImageUrl
-            returnedResume.desiredJobs.first.name shouldBe mockResume.desiredJobs.first.name
-            returnedResume.techStacks.first.name shouldBe mockResume.techStacks.first.name
-            returnedResume.jobExperiences.first.companyName shouldBe mockResume.jobExperiences.first.companyName
-            returnedResume.projectExperiences.first.projectName shouldBe mockResume.projectExperiences.first.projectName
+            returnedResume.desiredJobs.first().name shouldBe mockResume.desiredJobs.first().name
+            returnedResume.techStacks.first().name shouldBe mockResume.techStacks.first().name
+            returnedResume.jobExperiences.first().companyName shouldBe mockResume.jobExperiences.first().companyName
+            returnedResume.projectExperiences.first().projectName shouldBe mockResume.projectExperiences.first().projectName
             returnedResume.portfolioFileUrl shouldBe mockResume.portfolioFileUrl
             returnedResume.portfolioUrl shouldBe mockResume.portfolioUrl
             returnedResume.selfDescription shouldBe mockResume.selfDescription
@@ -369,21 +371,61 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
 
     describe("POST api/v1/resumes/{resumeId}/bookmark") {
       context("인증된 유저이자 다른 사람의 이력서에 대한 북마크 등록") {
-        it("해당 이력서에 대한 북마크가 등록된다")
+        val resumeId = "resumeId"
+        val userId = "userId"
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .put()
+          .uri("/api/v1/resumes/${resumeId}/bookmark")
+          .exchange()
+        it("해당 이력서에 대한 북마크가 등록된다") {
+          coVerify(exactly = 1) { resumeFacadeService.addBookmark(userId, resumeId) }
+        }
       }
     }
 
     describe("DELETE api/v1/resumes/{resumeId}/bookmark") {
       context("인증된 유저이자 다른 사람의 이력서에 대한 북마크 해제") {
-        it("해당 이력서에 대한 북마크가 삭제된다")
+        val resumeId = "resumeId"
+        val userId = "userId"
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/resumes/${resumeId}/bookmark")
+          .exchange()
+        it("해당 이력서에 대한 북마크가 삭제된다") {
+          coVerify(exactly = 1) { resumeFacadeService.deleteBookmark(userId, resumeId) }
+        }
       }
     }
 
     describe("GET api/v1/resumes/bookmark-list") {
       context("인증된 유저이자 북마크한 이력서 목록 조회") {
-        it("북마크된 이력서 목록이 조회된다")
+
+        val userId = "userId"
+        val resume = generateResume()
+        resume.addBookmark(userId)
+        val responseDto = listOf(BookmarkedResumeResponseDto.of(resume, "user_profile_image_url"))
+
+        coEvery { resumeFacadeService.getBookmarkedResumeList(userId) } answers { responseDto }
+
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .get()
+          .uri("/api/v1/resumes/bookmark-list")
+          .exchange()
+
+        it("북마크된 이력서 목록이 조회된다") {
+          performRequest.expectStatus().isOk
+          performRequest.expectBody<List<BookmarkedResumeResponseDto>>().consumeWith { result ->
+            val returnedResumeList = result.responseBody!!
+            returnedResumeList.size shouldBe 1
+          }
+        }
       }
     }
-
   }
 }

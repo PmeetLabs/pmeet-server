@@ -10,12 +10,15 @@ import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
+import pmeet.pmeetserver.user.dto.resume.response.BookmarkedResumeResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
+import pmeet.pmeetserver.user.service.UserService
 
 @Service
 class ResumeFacadeService(
   private val resumeService: ResumeService,
-  private val fileService: FileService
+  private val fileService: FileService,
+  private val userService: UserService
 ) {
 
   @Transactional
@@ -105,5 +108,37 @@ class ResumeFacadeService(
       throw ForbiddenRequestException(ErrorCode.RESUME_ACTIVE_CHANGE_FORBIDDEN)
     }
     resumeService.changeActive(originalResume, requestDto.targetActiveStatus)
+  }
+
+  @Transactional
+  suspend fun addBookmark(userId: String, resumeId: String) {
+    val user = userService.getUserById(userId)
+    user.addBookmarkForResume(resumeId)
+    userService.update(user)
+    val resume = resumeService.getByResumeId(resumeId)
+    resume.addBookmark(userId)
+    resumeService.update(resume)
+  }
+
+  @Transactional
+  suspend fun deleteBookmark(userId: String, resumeId: String) {
+    val user = userService.getUserById(userId)
+    user.deleteBookmarkForResume(resumeId)
+    userService.update(user)
+    val resume = resumeService.getByResumeId(resumeId)
+    resume.deleteBookmark(userId)
+    resumeService.update(resume)
+  }
+
+  @Transactional
+  suspend fun getBookmarkedResumeList(userId: String): List<BookmarkedResumeResponseDto> {
+    val user = userService.getUserById(userId)
+    val resumeList = resumeService.getResumeListByResumeId(user.bookmarkedResumes.map { it.resumeId })
+    return resumeList.filter { it.isActive }.map {
+      BookmarkedResumeResponseDto.of(
+        it,
+        it.userProfileImageUrl?.let { it1 -> fileService.generatePreSignedUrlToDownload(it1) }
+      )
+    }.toList()
   }
 }

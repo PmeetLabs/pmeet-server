@@ -4,28 +4,18 @@ import jakarta.validation.Valid
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.DeleteMapping
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PatchMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.PutMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
-import org.springframework.web.bind.annotation.RestController
-import pmeet.pmeetserver.user.dto.resume.request.ChangeResumeActiveRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
+import org.springframework.web.bind.annotation.*
+import pmeet.pmeetserver.user.dto.resume.request.*
+import pmeet.pmeetserver.user.dto.resume.response.BookmarkedResumeResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
 import reactor.core.publisher.Mono
 
 @RestController
 @RequestMapping("/api/v1/resumes")
-class ResumeController(private val resumeFacadeService: ResumeFacadeService) {
+class ResumeController(
+  private val resumeFacadeService: ResumeFacadeService,
+) {
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
@@ -80,4 +70,29 @@ class ResumeController(private val resumeFacadeService: ResumeFacadeService) {
     resumeFacadeService.changeResumeActiveStatus(requestUserId, requestDto)
   }
 
+  @PutMapping("/{resumeId}/bookmark")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun addBookmarkResume(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @PathVariable resumeId: String
+  ) {
+    resumeFacadeService.addBookmark(userId.awaitSingle(), resumeId)
+  }
+
+  @DeleteMapping("/{resumeId}/bookmark")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  suspend fun removeBookmark(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @PathVariable resumeId: String
+  ) {
+    resumeFacadeService.deleteBookmark(userId.awaitSingle(), resumeId)
+  }
+
+  @GetMapping("/bookmark-list")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun getBookmarkedResumeList(
+    @AuthenticationPrincipal userId: Mono<String>
+  ): List<BookmarkedResumeResponseDto> {
+    return resumeFacadeService.getBookmarkedResumeList(userId.awaitSingle())
+  }
 }

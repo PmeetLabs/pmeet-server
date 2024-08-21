@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.withContext
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,10 +21,14 @@ import org.springframework.test.context.junit.jupiter.SpringExtension
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.BaseMongoDBTestForIntegration
+import pmeet.pmeetserver.user.domain.User
+import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
+import pmeet.pmeetserver.user.dto.resume.response.BookmarkedResumeResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
+import pmeet.pmeetserver.user.repository.UserRepository
 import pmeet.pmeetserver.user.repository.job.JobRepository
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.repository.techStack.TechStackRepository
@@ -32,9 +37,11 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeReque
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeCopyResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateActiveResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
+import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
 import java.time.LocalDateTime
 
 @ExtendWith(SpringExtension::class)
@@ -49,6 +56,9 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
   }
 
   @Autowired
+  private lateinit var resumeFacadeService: ResumeFacadeService
+
+  @Autowired
   lateinit var webTestClient: WebTestClient
 
   @Autowired
@@ -60,8 +70,16 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
   @Autowired
   lateinit var resumeRepository: ResumeRepository
 
+  @Autowired
+  lateinit var userRepository: UserRepository
+
   lateinit var resume: Resume
+  lateinit var activeResume: Resume
+  lateinit var resumeId: String
   lateinit var resumeList: List<Resume>
+
+  lateinit var user: User
+  lateinit var userId: String
 
   override suspend fun beforeSpec(spec: Spec) {
     val job1 = Job(
@@ -86,15 +104,29 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
 
     resume = generateResume()
 
+    activeResume = generateActiveResume()
+
     resumeList = generateResumeList()
 
+    user = User(
+      email = "testEmail@test.com",
+      name = "testName",
+      nickname = "nickname",
+      phoneNumber = "phone",
+      gender = Gender.MALE,
+      profileImageUrl = "image-url"
+    )
     withContext(Dispatchers.IO) {
       jobRepository.save(job1).block()
       jobRepository.save(job2).block()
       techStackRepository.save(techStack1).block()
       techStackRepository.save(techStack2).block()
       resumeRepository.save(resume).block()
+      resumeRepository.save(activeResume).block()
       resumeRepository.saveAll(resumeList).collectList().block()
+      resumeId = resume.id!!
+      userRepository.save(user).block()
+      userId = user.id!!
     }
   }
 
@@ -103,6 +135,7 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
       jobRepository.deleteAll().block()
       techStackRepository.deleteAll().block()
       resumeRepository.deleteAll().block()
+      userRepository.deleteAll().block()
     }
   }
 
@@ -363,5 +396,58 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
       }
     }
 
+    describe("POST api/v1/resumes/{resumeId}/bookmark") {
+      context("인증된 유저이자 다른 사람의 이력서에 대한 북마크 등록") {
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .put()
+          .uri("/api/v1/resumes/${resumeId}/bookmark")
+          .exchange()
+        it("해당 이력서에 대한 북마크가 등록된다") {
+          performRequest.expectStatus().isOk
+          resumeRepository.findById(resumeId).awaitSingle().bookmarkers.size shouldBe 1
+          userRepository.findById(userId).awaitSingle().bookmarkedResumes.size shouldBe 1
+        }
+      }
+    }
+
+    describe("DELETE api/v1/resumes/{resumeId}/bookmark") {
+      context("인증된 유저이자 다른 사람의 이력서에 대한 북마크 해제") {
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/resumes/${resumeId}/bookmark")
+          .exchange()
+        it("해당 이력서에 대한 북마크가 삭제된다") {
+          performRequest.expectStatus().isNoContent
+          resumeRepository.findById(resumeId).awaitSingle().bookmarkers.size shouldBe 0
+          userRepository.findById(userId).awaitSingle().bookmarkedResumes.size shouldBe 0
+        }
+      }
+    }
+
+    describe("GET api/v1/resumes/bookmark-list") {
+      context("인증된 유저이자 북마크한 이력서 목록 조회") {
+
+        resumeFacadeService.addBookmark(userId, activeResume.id!!)
+
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .get()
+          .uri("/api/v1/resumes/bookmark-list")
+          .exchange()
+
+        it("북마크된 이력서 목록이 조회된다") {
+          performRequest.expectStatus().isOk
+          performRequest.expectBody<List<BookmarkedResumeResponseDto>>().consumeWith { result ->
+            val returnedResumeList = result.responseBody!!
+            returnedResumeList.size shouldBe 1
+          }
+        }
+      }
+    }
   }
 }

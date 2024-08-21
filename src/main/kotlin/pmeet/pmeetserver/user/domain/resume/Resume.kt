@@ -21,6 +21,14 @@ data class ProjectExperience(
   val responsibilities: String
 )
 
+/**
+ * 이력서에 대해 좋아요 한 userId
+ */
+data class ResumeBookMarker(
+  val userId: String,
+  val addedAt: LocalDateTime,
+)
+
 @Document
 class Resume(
   @Id
@@ -41,6 +49,7 @@ class Resume(
   var portfolioFileUrl: String?,
   var portfolioUrl: List<String>,
   var selfDescription: String?,
+  var bookmarkers: MutableList<ResumeBookMarker> = mutableListOf(),
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
@@ -84,7 +93,20 @@ class Resume(
       projectExperiences = projectExperiences.toList(),
       portfolioFileUrl = portfolioFileUrl,
       portfolioUrl = portfolioUrl.toList(),
+      bookmarkers = mutableListOf(),
       selfDescription = selfDescription
     )
+  }
+
+  fun addBookmark(userId: String) {
+    val newBookMark = ResumeBookMarker(userId, LocalDateTime.now())
+    bookmarkers.indexOfFirst { it.userId == userId }
+      .takeIf { it != -1 }
+      ?.let { bookmarkers[it] = newBookMark }
+      ?: bookmarkers.add(newBookMark)
+  }
+
+  fun deleteBookmark(userId: String) {
+    bookmarkers.removeIf { it.userId == userId }
   }
 }
