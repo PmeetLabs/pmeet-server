@@ -9,15 +9,7 @@ import pmeet.pmeetserver.user.domain.resume.ProjectExperience
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.dto.job.response.JobResponseDto
-import pmeet.pmeetserver.user.dto.resume.request.ChangeResumeActiveRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.ResumeJobExperienceRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.ResumeJobRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.ResumeProjectExperienceRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.ResumeTechStackRequestDto
-import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
+import pmeet.pmeetserver.user.dto.resume.request.*
 import pmeet.pmeetserver.user.dto.resume.response.ResumeJobExperienceResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeProjectExperienceResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
@@ -242,6 +234,68 @@ object ResumeGenerator {
           name = "Frontend Developer"
         )
       ),
+      techStacks = listOf(
+        TechStack(
+          id = "tech1",
+          name = "Kotlin"
+        ),
+        TechStack(
+          id = "tech2",
+          name = "React"
+        )
+      ),
+      jobExperiences = listOf(
+        JobExperience(
+          companyName = "ABC Corp",
+          experiencePeriod = ExperienceYear.YEAR_03,
+          responsibilities = "Developed backend services"
+        ),
+        JobExperience(
+          companyName = "XYZ Inc",
+          experiencePeriod = ExperienceYear.YEAR_02,
+          responsibilities = "Worked on frontend development"
+        )
+      ),
+      projectExperiences = listOf(
+        ProjectExperience(
+          projectName = "Project A",
+          experiencePeriod = ExperienceYear.YEAR_01,
+          responsibilities = "Led the project development"
+        ),
+        ProjectExperience(
+          projectName = "Project B",
+          experiencePeriod = ExperienceYear.YEAR_02,
+          responsibilities = "Contributed to backend services"
+        )
+      ),
+      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
+      selfDescription = "Passionate software engineer with a focus on backend development."
+    )
+  }
+
+  internal fun generateActiveResume(): Resume {
+    return Resume(
+      id = "resume-id-active",
+      title = "Software Engineer",
+      userId = "John-id",
+      userName = "John Doe",
+      userGender = Gender.MALE,
+      userBirthDate = LocalDate.of(1990, 1, 1),
+      userPhoneNumber = "010-1234-5678",
+      userEmail = "john.doe@example.com",
+      userProfileImageUrl = "http://example.com/profile.jpg",
+      desiredJobs = listOf(
+        Job(
+          id = "job1",
+          name = "Backend Developer"
+        ),
+        Job(
+          id = "job2",
+          name = "Frontend Developer"
+        )
+      ),
+      isActive = true,
       techStacks = listOf(
         TechStack(
           id = "tech1",

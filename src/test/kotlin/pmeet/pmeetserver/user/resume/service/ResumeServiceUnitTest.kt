@@ -106,12 +106,12 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           result.userPhoneNumber shouldBe resume.userPhoneNumber
           result.userEmail shouldBe resume.userEmail
           result.userProfileImageUrl shouldBe resume.userProfileImageUrl
-          result.desiredJobs.first.name shouldBe resume.desiredJobs.first.name
-          result.techStacks.first.name shouldBe resume.techStacks.first.name
-          result.jobExperiences.first.companyName shouldBe resume.jobExperiences.first.companyName
-          result.projectExperiences.first.projectName shouldBe resume.projectExperiences.first.projectName
+          result.desiredJobs.first().name shouldBe resume.desiredJobs.first().name
+          result.techStacks.first().name shouldBe resume.techStacks.first().name
+          result.jobExperiences.first().companyName shouldBe resume.jobExperiences.first().companyName
+          result.projectExperiences.first().projectName shouldBe resume.projectExperiences.first().projectName
           result.portfolioFileUrl shouldBe resume.portfolioFileUrl
-          result.portfolioUrl.first shouldBe resume.portfolioUrl.first
+          result.portfolioUrl.first() shouldBe resume.portfolioUrl.first()
           result.selfDescription shouldBe resume.selfDescription
           result.createdAt shouldBeAfter requestTime
           result.updatedAt shouldBeAfter requestTime
@@ -143,12 +143,12 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           result.title shouldBe resumeUpdateRequestDto.title
           result.isActive shouldBe resumeUpdateRequestDto.isActive
           result.userProfileImageUrl shouldBe resumeUpdateRequestDto.userProfileImageUrl
-          result.desiredJobs.first.name shouldBe resumeUpdateRequestDto.desiredJobs.first.name
-          result.techStacks.first.name shouldBe resumeUpdateRequestDto.techStacks.first.name
-          result.jobExperiences.first.companyName shouldBe resumeUpdateRequestDto.jobExperiences.first.companyName
-          result.projectExperiences.first.projectName shouldBe resumeUpdateRequestDto.projectExperiences.first.projectName
+          result.desiredJobs.first().name shouldBe resumeUpdateRequestDto.desiredJobs.first().name
+          result.techStacks.first().name shouldBe resumeUpdateRequestDto.techStacks.first().name
+          result.jobExperiences.first().companyName shouldBe resumeUpdateRequestDto.jobExperiences.first().companyName
+          result.projectExperiences.first().projectName shouldBe resumeUpdateRequestDto.projectExperiences.first().projectName
           result.portfolioFileUrl shouldBe resumeUpdateRequestDto.portfolioFileUrl
-          result.portfolioUrl.first shouldBe resumeUpdateRequestDto.portfolioUrl.first
+          result.portfolioUrl.first() shouldBe resumeUpdateRequestDto.portfolioUrl.first()
           result.selfDescription shouldBe resumeUpdateRequestDto.selfDescription
         }
       }

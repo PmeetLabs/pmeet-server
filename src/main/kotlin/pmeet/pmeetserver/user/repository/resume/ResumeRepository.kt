@@ -12,4 +12,6 @@ interface ResumeRepository : ReactiveMongoRepository<Resume, String> {
   fun findByIdAndUserId(id: String, userId: String): Mono<Resume>
 
   fun findAllByUserId(userId: String): Flux<Resume>
+
+  fun findAllByIdIn(resumeIdList: List<String>): Flux<Resume>
 }

@@ -48,4 +48,9 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
     originalResume.isActive = targetStatus;
     resumeRepository.save(originalResume).awaitSingle()
   }
+
+  @Transactional(readOnly = true)
+  suspend fun getResumeListByResumeId(resumeIdList: List<String>): List<Resume> {
+    return resumeRepository.findAllByIdIn(resumeIdList).collectList().awaitSingle()
+  }
 }

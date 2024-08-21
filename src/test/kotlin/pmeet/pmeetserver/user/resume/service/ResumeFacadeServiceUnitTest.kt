@@ -18,6 +18,8 @@ import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.file.service.FileService
+import pmeet.pmeetserver.user.domain.User
+import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockChangeResumeActiveRequestDto
@@ -29,6 +31,7 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.generateCopiedResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
+import pmeet.pmeetserver.user.service.UserService
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import java.time.LocalDateTime
@@ -41,19 +44,36 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
 
   val resumeService = mockk<ResumeService>(relaxed = true)
   val fileService = mockk<FileService>(relaxed = true)
+  val userService = mockk<UserService>(relaxed = true)
 
   lateinit var resumeFacadeService: ResumeFacadeService
 
   lateinit var resume: Resume
+  lateinit var resumeId: String
   lateinit var resumeList: List<Resume>
+  lateinit var user: User
+  lateinit var userId: String
 
   beforeSpec {
     Dispatchers.setMain(testDispatcher)
 
-    resumeFacadeService = ResumeFacadeService(resumeService, fileService)
+    resumeFacadeService = ResumeFacadeService(resumeService, fileService, userService)
 
     resume = generateResume()
+    resumeId = resume.id!!
     resumeList = generateResumeList()
+
+    userId = "testUserId"
+
+    user = User(
+      id = userId,
+      email = "testEmail@test.com",
+      name = "testName",
+      nickname = "nickname",
+      phoneNumber = "phone",
+      gender = Gender.MALE,
+      profileImageUrl = "image-url"
+    )
   }
 
   afterSpec {
@@ -295,4 +315,56 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
     }
   }
 
+  describe("addBookmark") {
+    context("사용자가 타인의 이력서에 대해 북마크를 추가하는 경우") {
+      it("북마크가 추가된다.") {
+        runTest {
+          coEvery { userService.getUserById(any()) } answers { user }
+          coEvery { userService.update(any()) } answers { user }
+          coEvery { resumeService.getByResumeId(any()) } answers { resume }
+          coEvery { resumeService.update(any()) } answers { resume }
+
+          resumeFacadeService.addBookmark(userId, resumeId)
+
+          user.bookmarkedResumes.size shouldBe 1
+          resume.bookmarkers.size shouldBe 1
+        }
+      }
+    }
+  }
+
+  describe("deleteBookmark") {
+    context("사용자가 타인의 이력서에 대해 북마크를 추가하는 경우") {
+      it("북마크가 추가된다.") {
+        runTest {
+          coEvery { userService.getUserById(any()) } answers { user }
+          coEvery { userService.update(any()) } answers { user }
+          coEvery { resumeService.getByResumeId(any()) } answers { resume }
+          coEvery { resumeService.update(any()) } answers { resume }
+
+          resumeFacadeService.deleteBookmark(userId, resumeId)
+
+          user.bookmarkedResumes.size shouldBe 0
+          resume.bookmarkers.size shouldBe 0
+        }
+      }
+    }
+  }
+
+  describe("getBookmarkedResumeList") {
+    context("사용자가 북마크한 이력서 목록을 조회하는 경우") {
+      it("북마크한 이력서 목록이 조회된다.") {
+        runTest {
+          user.addBookmarkForResume(resumeId)
+          resume.isActive = true
+          coEvery { userService.getUserById(any()) } answers { user }
+          coEvery { resumeService.getResumeListByResumeId(any()) } answers { listOf(resume) }
+
+          val result = resumeFacadeService.getBookmarkedResumeList(userId)
+
+          result.size shouldBe 1
+        }
+      }
+    }
+  }
 })

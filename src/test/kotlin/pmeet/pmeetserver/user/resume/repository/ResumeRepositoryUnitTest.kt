@@ -153,4 +153,14 @@ internal class ResumeRepositoryUnitTest(
     }
   }
 
+  describe("findAllByIdIn") {
+    context("resume id 목록이 주어지면") {
+      it("해당 resume id 를 가진 resume 목록을 반환한다") {
+        runTest {
+          val result = resumeRepository.findAllByIdIn(resumeList.map { it.id!! }).collectList().block()
+          result?.size shouldBe resumeList.size
+        }
+      }
+    }
+  }
 })

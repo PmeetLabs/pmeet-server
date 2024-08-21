@@ -4,6 +4,15 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import pmeet.pmeetserver.user.domain.enum.Gender
 import java.time.LocalDate
+import java.time.LocalDateTime
+
+/**
+ * 좋아요를 누른 다른 사람의 이력서 id
+ */
+data class ResumeBookmark(
+  val resumeId: String,
+  val addedAt: LocalDateTime
+)
 
 @Document
 class User(
@@ -21,6 +30,7 @@ class User(
   var nicknameNumber: Int? = null,
   var isEmployed: Boolean = false,
   var profileImageUrl: String? = null,
+  var bookmarkedResumes: MutableList<ResumeBookmark> = mutableListOf(),
   var isDeleted: Boolean = false
 ) {
 
@@ -53,4 +63,15 @@ class User(
     this.isDeleted = true
   }
 
+  fun addBookmarkForResume(resumeId: String) {
+    val newResume = ResumeBookmark(resumeId, LocalDateTime.now())
+    bookmarkedResumes.indexOfFirst { it.resumeId == resumeId }
+      .takeIf { it != -1 }
+      ?.let { bookmarkedResumes[it] = newResume }
+      ?: bookmarkedResumes.add(newResume)
+  }
+
+  fun deleteBookmarkForResume(resumeId: String) {
+    bookmarkedResumes.removeIf { it.resumeId == resumeId }
+  }
 }
