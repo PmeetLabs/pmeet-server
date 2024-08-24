@@ -1,16 +1,22 @@
 package pmeet.pmeetserver.user.service.resume
 
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Slice
+import org.springframework.data.domain.SliceImpl
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
+import pmeet.pmeetserver.common.utils.page.SliceResponse
 import pmeet.pmeetserver.file.service.FileService
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
+import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
 import pmeet.pmeetserver.user.dto.resume.request.ChangeResumeActiveRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
-import pmeet.pmeetserver.user.dto.resume.response.BookmarkedResumeResponseDto
+import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.service.UserService
 
@@ -131,14 +137,33 @@ class ResumeFacadeService(
   }
 
   @Transactional
-  suspend fun getBookmarkedResumeList(userId: String): List<BookmarkedResumeResponseDto> {
+  suspend fun getBookmarkedResumeList(userId: String): List<SearchedResumeResponseDto> {
     val user = userService.getUserById(userId)
     val resumeList = resumeService.getResumeListByResumeId(user.bookmarkedResumes.map { it.resumeId })
     return resumeList.filter { it.isActive }.map {
-      BookmarkedResumeResponseDto.of(
+      SearchedResumeResponseDto.of(
         it,
         it.userProfileImageUrl?.let { it1 -> fileService.generatePreSignedUrlToDownload(it1) }
       )
     }.toList()
+  }
+
+  @Transactional
+  suspend fun searchResumeSlice(
+    filterType: ResumeFilterType,
+    filterValue: String,
+    orderType: ResumeOrderType,
+    pageable: PageRequest
+  ): Slice<SearchedResumeResponseDto> {
+    val resumes = resumeService.searchSliceByFilter(filterType, filterValue, orderType, pageable)
+    return SliceImpl(
+      resumes.content.map {
+        SearchedResumeResponseDto.of(
+          it,
+          it.userProfileImageUrl?.let { it1 -> fileService.generatePreSignedUrlToDownload(it1) })
+      },
+      resumes.pageable,
+      resumes.hasNext()
+    )
   }
 }

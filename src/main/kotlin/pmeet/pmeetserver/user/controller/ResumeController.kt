@@ -2,11 +2,15 @@ package pmeet.pmeetserver.user.controller
 
 import jakarta.validation.Valid
 import kotlinx.coroutines.reactor.awaitSingle
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Slice
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
+import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
 import pmeet.pmeetserver.user.dto.resume.request.*
-import pmeet.pmeetserver.user.dto.resume.response.BookmarkedResumeResponseDto
+import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
 import reactor.core.publisher.Mono
@@ -44,7 +48,10 @@ class ResumeController(
 
   @PutMapping
   @ResponseStatus(HttpStatus.OK)
-  suspend fun updateResume(@AuthenticationPrincipal userId: Mono<String>, @Valid @RequestBody requestDto: UpdateResumeRequestDto): ResumeResponseDto {
+  suspend fun updateResume(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @Valid @RequestBody requestDto: UpdateResumeRequestDto
+  ): ResumeResponseDto {
     val requestUserId = userId.awaitSingle()
     return resumeFacadeService.updateResume(requestUserId, requestDto)
   }
@@ -58,14 +65,20 @@ class ResumeController(
 
   @PostMapping("/copy")
   @ResponseStatus(HttpStatus.CREATED)
-  suspend fun copyResume(@AuthenticationPrincipal userId: Mono<String>, @Valid @RequestBody requestDto: CopyResumeRequestDto): ResumeResponseDto {
+  suspend fun copyResume(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @Valid @RequestBody requestDto: CopyResumeRequestDto
+  ): ResumeResponseDto {
     val requestUserId = userId.awaitSingle()
     return resumeFacadeService.copyResume(requestUserId, requestDto)
   }
 
   @PatchMapping("/active")
   @ResponseStatus(HttpStatus.OK)
-  suspend fun changeResumeActive(@AuthenticationPrincipal userId: Mono<String>, @Valid @RequestBody requestDto: ChangeResumeActiveRequestDto) {
+  suspend fun changeResumeActive(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @Valid @RequestBody requestDto: ChangeResumeActiveRequestDto
+  ) {
     val requestUserId = userId.awaitSingle()
     resumeFacadeService.changeResumeActiveStatus(requestUserId, requestDto)
   }
@@ -92,7 +105,19 @@ class ResumeController(
   @ResponseStatus(HttpStatus.OK)
   suspend fun getBookmarkedResumeList(
     @AuthenticationPrincipal userId: Mono<String>
-  ): List<BookmarkedResumeResponseDto> {
+  ): List<SearchedResumeResponseDto> {
     return resumeFacadeService.getBookmarkedResumeList(userId.awaitSingle())
+  }
+
+  @GetMapping("/search-slice")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun getResumeListByCondition(
+    @RequestParam(required = true) filterType: ResumeFilterType,
+    @RequestParam(required = true) filterValue: String,
+    @RequestParam(required = true) orderType: ResumeOrderType,
+    @RequestParam(defaultValue = "0") page: Int,
+    @RequestParam(defaultValue = "8") size: Int,
+  ): Slice<SearchedResumeResponseDto> {
+    return resumeFacadeService.searchResumeSlice(filterType, filterValue, orderType, PageRequest.of(page, size))
   }
 }
