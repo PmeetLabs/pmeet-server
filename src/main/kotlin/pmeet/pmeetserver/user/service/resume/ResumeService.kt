@@ -2,11 +2,16 @@ package pmeet.pmeetserver.user.service.resume
 
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.coroutines.reactor.awaitSingleOrNull
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Slice
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.BadRequestException
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
+import pmeet.pmeetserver.common.utils.page.SliceResponse
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
+import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 
@@ -52,5 +57,18 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
   @Transactional(readOnly = true)
   suspend fun getResumeListByResumeId(resumeIdList: List<String>): List<Resume> {
     return resumeRepository.findAllByIdIn(resumeIdList).collectList().awaitSingle()
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun searchSliceByFilter(
+    filterType: ResumeFilterType,
+    filterValue: String,
+    orderType: ResumeOrderType,
+    pageable: PageRequest
+  ): Slice<Resume> {
+    return SliceResponse.of(
+      resumeRepository.findAllByFilter(filterType, filterValue, orderType, pageable).collectList().awaitSingle(),
+      pageable
+    )
   }
 }

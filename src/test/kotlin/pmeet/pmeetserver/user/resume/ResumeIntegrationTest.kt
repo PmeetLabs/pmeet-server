@@ -26,7 +26,7 @@ import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
-import pmeet.pmeetserver.user.dto.resume.response.BookmarkedResumeResponseDto
+import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.repository.UserRepository
 import pmeet.pmeetserver.user.repository.job.JobRepository
@@ -442,7 +442,7 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
 
         it("북마크된 이력서 목록이 조회된다") {
           performRequest.expectStatus().isOk
-          performRequest.expectBody<List<BookmarkedResumeResponseDto>>().consumeWith { result ->
+          performRequest.expectBody<List<SearchedResumeResponseDto>>().consumeWith { result ->
             val returnedResumeList = result.responseBody!!
             returnedResumeList.size shouldBe 1
           }

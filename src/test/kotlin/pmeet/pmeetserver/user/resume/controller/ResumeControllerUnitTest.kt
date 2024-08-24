@@ -15,7 +15,7 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.user.controller.ResumeController
-import pmeet.pmeetserver.user.dto.resume.response.BookmarkedResumeResponseDto
+import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockChangeResumeActiveRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCopyResumeRequestDto
@@ -407,7 +407,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         val userId = "userId"
         val resume = generateResume()
         resume.addBookmark(userId)
-        val responseDto = listOf(BookmarkedResumeResponseDto.of(resume, "user_profile_image_url"))
+        val responseDto = listOf(SearchedResumeResponseDto.of(resume, "user_profile_image_url"))
 
         coEvery { resumeFacadeService.getBookmarkedResumeList(userId) } answers { responseDto }
 
@@ -420,7 +420,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
 
         it("북마크된 이력서 목록이 조회된다") {
           performRequest.expectStatus().isOk
-          performRequest.expectBody<List<BookmarkedResumeResponseDto>>().consumeWith { result ->
+          performRequest.expectBody<List<SearchedResumeResponseDto>>().consumeWith { result ->
             val returnedResumeList = result.responseBody!!
             returnedResumeList.size shouldBe 1
           }

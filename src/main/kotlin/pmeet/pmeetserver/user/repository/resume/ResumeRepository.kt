@@ -5,7 +5,7 @@ import pmeet.pmeetserver.user.domain.resume.Resume
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
-interface ResumeRepository : ReactiveMongoRepository<Resume, String> {
+interface ResumeRepository : ReactiveMongoRepository<Resume, String>, CustomResumeRepository {
 
   fun countByUserId(userId: String): Mono<Long>
 
