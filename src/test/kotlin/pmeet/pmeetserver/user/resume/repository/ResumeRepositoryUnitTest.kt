@@ -9,10 +9,13 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.support.ReactiveMongoRepositoryFactory
 import pmeet.pmeetserver.config.BaseMongoDBTestForRepository
 import pmeet.pmeetserver.user.domain.enum.ExperienceYear
+import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.domain.resume.JobExperience
 import pmeet.pmeetserver.user.domain.resume.ProjectExperience
@@ -20,11 +23,13 @@ import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.repository.job.CustomJobRepositoryImpl
 import pmeet.pmeetserver.user.repository.job.JobRepository
+import pmeet.pmeetserver.user.repository.resume.CustomResumeRepositoryImpl
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.repository.techStack.CustomTechStackRepositoryImpl
 import pmeet.pmeetserver.user.repository.techStack.TechStackRepository
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeListForSlice
 
 @ExperimentalCoroutinesApi
 internal class ResumeRepositoryUnitTest(
@@ -41,7 +46,9 @@ internal class ResumeRepositoryUnitTest(
   val customTechStackRepository = CustomTechStackRepositoryImpl(template)
   val techStackRepository = factory.getRepository(TechStackRepository::class.java, customTechStackRepository)
 
-  val resumeRepository = factory.getRepository(ResumeRepository::class.java)
+  val customResumeRepository = CustomResumeRepositoryImpl(template)
+
+  val resumeRepository = factory.getRepository(ResumeRepository::class.java, customResumeRepository)
 
   lateinit var job: Job
   lateinit var techStack: TechStack
@@ -49,6 +56,7 @@ internal class ResumeRepositoryUnitTest(
   lateinit var projectExperience: ProjectExperience
   lateinit var resume: Resume
   lateinit var resumeList: List<Resume>
+  lateinit var resumeListForSlice: List<Resume>
 
   beforeSpec {
     job = Job(
@@ -80,6 +88,8 @@ internal class ResumeRepositoryUnitTest(
     resume = savedResume ?: resume
 
     resumeList = resumeRepository.saveAll(generateResumeList()).collectList().block().orEmpty()
+
+    resumeListForSlice = resumeRepository.saveAll(generateResumeListForSlice()).collectList().block().orEmpty()
 
     Dispatchers.setMain(testDispatcher)
   }
@@ -163,4 +173,162 @@ internal class ResumeRepositoryUnitTest(
       }
     }
   }
+
+  describe("findAllByFilter") {
+    context("전체 검색이고, 검색어가 있으며 인기순 조회인 경우") {
+      it("조건에 맞는 Resume 를 반환한다.") {
+        runTest {
+          val result = resumeRepository.findAllByFilter(
+            ResumeFilterType.ALL,
+            "1",
+            ResumeOrderType.POPULAR,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          result?.size shouldBe 9
+          result?.get(0)?.title shouldBe resumeListForSlice.get(12).title
+
+          val resultWithTitle = resumeRepository.findAllByFilter(
+            ResumeFilterType.ALL,
+            "5",
+            ResumeOrderType.POPULAR,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          resultWithTitle?.size shouldBe 1
+          resultWithTitle?.get(0)?.title shouldBe resumeListForSlice.get(4).title
+        }
+      }
+    }
+
+    context("전체 검색이고, 검색어가 없으며 인기순 조회인 경우") {
+      it("조건에 맞는 Resume 를 반환한다.") {
+        runTest {
+          val result = resumeRepository.findAllByFilter(
+            ResumeFilterType.ALL,
+            "",
+            ResumeOrderType.POPULAR,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          result?.size shouldBe 9
+          result?.get(0)?.title shouldBe resumeListForSlice.get(12).title
+        }
+      }
+    }
+
+    context("전체 검색이고, 검색어가 있으며 최신 수정일 조회인 경우") {
+      it("조건에 맞는 Resume 를 반환한다.") {
+        runTest {
+          val result = resumeRepository.findAllByFilter(
+            ResumeFilterType.ALL,
+            "title",
+            ResumeOrderType.RECENT,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          result?.size shouldBe 9
+          result?.get(0)?.title shouldBe resumeListForSlice.get(0).title
+
+          val resultWithTitle = resumeRepository.findAllByFilter(
+            ResumeFilterType.ALL,
+            "nickname1",
+            ResumeOrderType.RECENT,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          resultWithTitle?.size shouldBe 5
+          resultWithTitle?.get(0)?.title shouldBe resumeListForSlice.get(0).title
+        }
+      }
+    }
+
+    context("이력서 제목 검색이고, 검색어가 있으며 인기순 조회인 경우") {
+      it("조건에 맞는 Resume 를 반환한다.") {
+        runTest {
+          val result = resumeRepository.findAllByFilter(
+            ResumeFilterType.TITLE,
+            "title",
+            ResumeOrderType.POPULAR,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          result?.size shouldBe 9
+          result?.get(0)?.title shouldBe resumeListForSlice.get(12).title
+
+          val resultWithTitle = resumeRepository.findAllByFilter(
+            ResumeFilterType.TITLE,
+            "no_title",
+            ResumeOrderType.POPULAR,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          resultWithTitle?.size shouldBe 0
+        }
+      }
+    }
+
+    context("이력서 제목 검색이고, 검색어가 있으며 최신 수정일 조회인 경우") {
+      it("조건에 맞는 Resume 를 반환한다.") {
+        runTest {
+          val result = resumeRepository.findAllByFilter(
+            ResumeFilterType.TITLE,
+            "title",
+            ResumeOrderType.RECENT,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          result?.size shouldBe 9
+          result?.get(0)?.title shouldBe resumeListForSlice.get(0).title
+
+          val resultWithTitle = resumeRepository.findAllByFilter(
+            ResumeFilterType.TITLE,
+            "no_title",
+            ResumeOrderType.RECENT,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          resultWithTitle?.size shouldBe 0
+        }
+      }
+    }
+
+    context("직무 이름 검색이고, 검색어가 있으며 인기순 조회인 경우") {
+      it("조건에 맞는 Resume 를 반환한다.") {
+        runTest {
+          val result = resumeRepository.findAllByFilter(
+            ResumeFilterType.JOB,
+            "job",
+            ResumeOrderType.POPULAR,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          result?.size shouldBe 9
+          result?.get(0)?.title shouldBe resumeListForSlice.get(12).title
+
+          val resultWithTitle = resumeRepository.findAllByFilter(
+            ResumeFilterType.JOB,
+            "no_job",
+            ResumeOrderType.POPULAR,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          resultWithTitle?.size shouldBe 0
+        }
+      }
+    }
+
+    context("넥네임 검색이고, 검색어가 있으며 인기순 조회인 경우") {
+      it("조건에 맞는 Resume 를 반환한다.") {
+        runTest {
+          val result = resumeRepository.findAllByFilter(
+            ResumeFilterType.JOB,
+            "job",
+            ResumeOrderType.RECENT,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          result?.size shouldBe 9
+          result?.get(0)?.title shouldBe resumeListForSlice.get(0).title
+
+          val resultWithTitle = resumeRepository.findAllByFilter(
+            ResumeFilterType.JOB,
+            "no_job",
+            ResumeOrderType.RECENT,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          resultWithTitle?.size shouldBe 0
+        }
+      }
+    }
+  }
+
 })

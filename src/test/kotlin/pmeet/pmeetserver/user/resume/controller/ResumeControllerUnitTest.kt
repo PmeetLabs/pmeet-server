@@ -8,6 +8,8 @@ import io.mockk.coVerify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.context.annotation.Import
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.SliceImpl
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers
 import org.springframework.security.test.web.reactive.server.SecurityMockServerConfigurers.mockAuthentication
@@ -15,8 +17,10 @@ import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.user.controller.ResumeController
-import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
+import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
+import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockChangeResumeActiveRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCopyResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeRequestDto
@@ -25,9 +29,11 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeCopyRespons
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockResumeResponseDtoList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateMockResumeListForSlice
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
+import pmeet.pmeetserver.util.RestSliceImpl
 
 @WebFluxTest(ResumeController::class)
 @Import(TestSecurityConfig::class)
@@ -48,12 +54,8 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         coEvery { resumeFacadeService.createResume(requestDto) } answers { responseDto }
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
         val performRequest =
-          webTestClient
-            .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
-            .post()
-            .uri("/api/v1/resumes")
-            .bodyValue(requestDto)
-            .exchange()
+          webTestClient.mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication)).post()
+            .uri("/api/v1/resumes").bodyValue(requestDto).exchange()
 
         it("서비스를 통해 데이터를 생성한다") {
           coVerify(exactly = 1) { resumeFacadeService.createResume(requestDto) }
@@ -72,12 +74,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
       }
       context("인증되지 않은 유저의 이력서 생성 요청이 들어오면") {
         val requestDto = createMockCreateResumeRequestDto()
-        val performRequest =
-          webTestClient
-            .post()
-            .uri("/api/v1/resumes")
-            .bodyValue(requestDto)
-            .exchange()
+        val performRequest = webTestClient.post().uri("/api/v1/resumes").bodyValue(requestDto).exchange()
         it("요청은 실패한다") {
           performRequest.expectStatus().isUnauthorized
         }
@@ -94,16 +91,9 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
 
         coEvery { resumeFacadeService.findResumeById(resumeId) } answers { resumeResponse }
 
-        val performRequest =
-          webTestClient
-            .mutateWith(mockAuthentication(mockAuthentication))
-            .get()
-            .uri {
-              it.path("/api/v1/resumes")
-                .queryParam("resumeId", resumeId)
-                .build()
-            }
-            .exchange()
+        val performRequest = webTestClient.mutateWith(mockAuthentication(mockAuthentication)).get().uri {
+          it.path("/api/v1/resumes").queryParam("resumeId", resumeId).build()
+        }.exchange()
 
         it("서비스를 통해 데이터를 검색한다") {
           coVerify(exactly = 1) { resumeFacadeService.findResumeById(resumeId) }
@@ -139,15 +129,9 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
 
     context("인증되지 않은 유저의 이력서 조회 요청이 들어오면") {
       val resumeId = "resume-id"
-      val performRequest =
-        webTestClient
-          .get()
-          .uri {
-            it.path("/api/v1/resumes")
-              .queryParam("resumeId", resumeId)
-              .build()
-          }
-          .exchange()
+      val performRequest = webTestClient.get().uri {
+        it.path("/api/v1/resumes").queryParam("resumeId", resumeId).build()
+      }.exchange()
       it("요청은 실패한다") {
         performRequest.expectStatus().isUnauthorized
       }
@@ -161,15 +145,9 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
 
         coEvery { resumeFacadeService.findResumeListByUserId(userId) } answers { resumeList }
 
-        val performRequest =
-          webTestClient
-            .mutateWith(mockAuthentication(mockAuthentication))
-            .get()
-            .uri {
-              it.path("/api/v1/resumes/list")
-                .build()
-            }
-            .exchange()
+        val performRequest = webTestClient.mutateWith(mockAuthentication(mockAuthentication)).get().uri {
+          it.path("/api/v1/resumes/list").build()
+        }.exchange()
 
         it("서비스를 통해 데이터를 검색한다") {
           coVerify(exactly = 1) { resumeFacadeService.findResumeListByUserId(userId) }
@@ -191,15 +169,9 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
 
     context("인증되지 않은 유저의 이력서 목록 조회 요청이 들어오면") {
       val resumeId = "resume-id"
-      val performRequest =
-        webTestClient
-          .get()
-          .uri {
-            it.path("/api/v1/resumes/list")
-              .queryParam("resumeId", resumeId)
-              .build()
-          }
-          .exchange()
+      val performRequest = webTestClient.get().uri {
+        it.path("/api/v1/resumes/list").queryParam("resumeId", resumeId).build()
+      }.exchange()
       it("요청은 실패한다") {
         performRequest.expectStatus().isUnauthorized
       }
@@ -212,12 +184,9 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         val responseDto = createMockResumeResponseDto()
         coEvery { resumeFacadeService.updateResume(userId, requestDto) } answers { responseDto }
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
-        val performRequest = webTestClient
-          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
-          .put()
-          .uri("/api/v1/resumes")
-          .bodyValue(requestDto)
-          .exchange()
+        val performRequest =
+          webTestClient.mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication)).put()
+            .uri("/api/v1/resumes").bodyValue(requestDto).exchange()
 
         it("서비스를 통해 데이터를 업데이트한다") {
           coVerify(exactly = 1) { resumeFacadeService.updateResume(userId, requestDto) }
@@ -237,11 +206,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
 
       context("인증되지 않은 유저의 이력서 수정 요청이 들어오면") {
         val requestDto = createMockUpdateResumeRequestDto()
-        val performRequest = webTestClient
-          .put()
-          .uri("/api/v1/resumes")
-          .bodyValue(requestDto)
-          .exchange()
+        val performRequest = webTestClient.put().uri("/api/v1/resumes").bodyValue(requestDto).exchange()
         it("요청은 실패한다") {
           performRequest.expectStatus().isUnauthorized
         }
@@ -256,11 +221,9 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         coEvery { resumeFacadeService.findResumeById(requestDto.id) } answers { mockResume }
         coEvery { resumeFacadeService.deleteResume(requestDto) } answers { }
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
-        val performRequest = webTestClient
-          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
-          .delete()
-          .uri("/api/v1/resumes?id=${requestDto.id}")
-          .exchange()
+        val performRequest =
+          webTestClient.mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication)).delete()
+            .uri("/api/v1/resumes?id=${requestDto.id}").exchange()
 
         it("서비스를 통해 데이터를 업데이트한다") {
           coVerify(exactly = 1) { resumeFacadeService.deleteResume(requestDto) }
@@ -273,10 +236,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
 
       context("인증되지 않은 유저의 이력서 삭제 요청이 들어오면") {
         val requestDto = createMockDeleteResumeRequestDto()
-        val performRequest = webTestClient
-          .delete()
-          .uri("/api/v1/resumes?id=${requestDto.id}")
-          .exchange()
+        val performRequest = webTestClient.delete().uri("/api/v1/resumes?id=${requestDto.id}").exchange()
 
         it("요청은 실패한다") {
           performRequest.expectStatus().isUnauthorized
@@ -292,12 +252,9 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         val userId = mockOriginalResume.userId
         coEvery { resumeFacadeService.copyResume(userId, requestDto) } answers { mockResume }
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
-        val performRequest = webTestClient
-          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
-          .post()
-          .uri("/api/v1/resumes/copy")
-          .bodyValue(requestDto)
-          .exchange()
+        val performRequest =
+          webTestClient.mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication)).post()
+            .uri("/api/v1/resumes/copy").bodyValue(requestDto).exchange()
 
         it("서비스를 통해 이력서를 복사한다.") {
           coVerify(exactly = 1) { resumeFacadeService.copyResume(userId, requestDto) }
@@ -339,12 +296,9 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         coEvery { resumeFacadeService.changeResumeActiveStatus(userId, requestDto) } answers { }
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
 
-        val performRequest = webTestClient
-          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
-          .patch()
-          .uri("/api/v1/resumes/active")
-          .bodyValue(requestDto)
-          .exchange()
+        val performRequest =
+          webTestClient.mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication)).patch()
+            .uri("/api/v1/resumes/active").bodyValue(requestDto).exchange()
 
         it("서비스를 통해 데이터를 업데이트한다") {
           coVerify(exactly = 1) { resumeFacadeService.changeResumeActiveStatus(userId, requestDto) }
@@ -357,11 +311,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
 
       context("인증되지 않은 유저의 이력서 삭제 요청이 들어오면") {
         val requestDto = createMockChangeResumeActiveRequestDto(true)
-        val performRequest = webTestClient
-          .patch()
-          .uri("/api/v1/resumes/active")
-          .bodyValue(requestDto)
-          .exchange()
+        val performRequest = webTestClient.patch().uri("/api/v1/resumes/active").bodyValue(requestDto).exchange()
 
         it("요청은 실패한다") {
           performRequest.expectStatus().isUnauthorized
@@ -374,11 +324,8 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         val resumeId = "resumeId"
         val userId = "userId"
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
-        webTestClient
-          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
-          .put()
-          .uri("/api/v1/resumes/${resumeId}/bookmark")
-          .exchange()
+        webTestClient.mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication)).put()
+          .uri("/api/v1/resumes/${resumeId}/bookmark").exchange()
         it("해당 이력서에 대한 북마크가 등록된다") {
           coVerify(exactly = 1) { resumeFacadeService.addBookmark(userId, resumeId) }
         }
@@ -390,11 +337,8 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         val resumeId = "resumeId"
         val userId = "userId"
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
-        webTestClient
-          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
-          .delete()
-          .uri("/api/v1/resumes/${resumeId}/bookmark")
-          .exchange()
+        webTestClient.mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication)).delete()
+          .uri("/api/v1/resumes/${resumeId}/bookmark").exchange()
         it("해당 이력서에 대한 북마크가 삭제된다") {
           coVerify(exactly = 1) { resumeFacadeService.deleteBookmark(userId, resumeId) }
         }
@@ -412,11 +356,9 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
         coEvery { resumeFacadeService.getBookmarkedResumeList(userId) } answers { responseDto }
 
         val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
-        val performRequest = webTestClient
-          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
-          .get()
-          .uri("/api/v1/resumes/bookmark-list")
-          .exchange()
+        val performRequest =
+          webTestClient.mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication)).get()
+            .uri("/api/v1/resumes/bookmark-list").exchange()
 
         it("북마크된 이력서 목록이 조회된다") {
           performRequest.expectStatus().isOk
@@ -425,6 +367,50 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
             returnedResumeList.size shouldBe 1
           }
         }
+      }
+    }
+
+    describe("GET api/v1/resumes/search-slice") {
+      context("인증된 유저의 이력서 조건 조회") {
+
+        val userId = "userId"
+        val pageSize = 10
+        val pageNumber = 0
+        val resume =
+          generateMockResumeListForSlice().subList(0, pageSize + 1).map { SearchedResumeResponseDto.of(it, null) }
+
+        coEvery {
+          resumeFacadeService.searchResumeSlice(
+            ResumeFilterType.ALL, "", ResumeOrderType.POPULAR, PageRequest.of(pageNumber, pageSize)
+          )
+        } answers {
+          SliceImpl(
+            resume.toMutableList(), PageRequest.of(pageNumber, pageSize), true
+          )
+        }
+
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest =
+          webTestClient.mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication)).get().uri {
+            it.path("/api/v1/resumes/search-slice").queryParam("filterType", ResumeFilterType.ALL)
+              .queryParam("filterValue", "").queryParam("orderType", ResumeOrderType.POPULAR)
+              .queryParam("page", pageNumber).queryParam("size", pageSize).build()
+          }.exchange()
+
+        coVerify(exactly = 1) {
+          resumeFacadeService.searchResumeSlice(
+            ResumeFilterType.ALL, "", ResumeOrderType.POPULAR, PageRequest.of(pageNumber, pageSize)
+          )
+        }
+
+        it("조건에 따라 조회된 Slice<Resume> 가 조회된다.") {
+          performRequest.expectStatus().isOk
+          performRequest.expectBody<RestSliceImpl<SearchedResumeResponseDto>>().consumeWith { result ->
+            val returnedResumeList = result.responseBody!!
+            returnedResumeList.size shouldBe pageSize
+          }
+        }
+
       }
     }
   }

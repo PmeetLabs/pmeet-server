@@ -14,12 +14,16 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.springframework.data.domain.PageRequest
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
+import pmeet.pmeetserver.common.utils.page.SliceResponse
 import pmeet.pmeetserver.file.service.FileService
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
+import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockChangeResumeActiveRequestDto
@@ -28,6 +32,7 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockCreateResumeReque
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockDeleteResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateCopiedResume
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateMockResumeListForSlice
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
@@ -365,6 +370,38 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           result.size shouldBe 1
         }
       }
+    }
+  }
+
+  describe("searchResumeSlice") {
+    context("사용자가 조건에 따른 이력서 목록을 조회하는 경우") {
+      val pageNumber = 0
+      val pageSize = 10
+      val resumeListForSlice = generateMockResumeListForSlice().subList(0, pageSize + 1)
+
+      it("조건에 따라서 Slice<Resume> 가 조회된다.") {
+        runTest {
+          coEvery { resumeService.searchSliceByFilter(any(), any(), any(), any()) } answers {
+            SliceResponse.of(
+              resumeListForSlice.toMutableList(),
+              PageRequest.of(pageNumber, pageSize)
+            )
+          }
+          coEvery { fileService.generatePreSignedUrlToDownload(any()) } answers { "profile-url" }
+
+          val result = resumeFacadeService.searchResumeSlice(
+            ResumeFilterType.ALL,
+            "",
+            ResumeOrderType.RECENT,
+            PageRequest.of(pageNumber, pageSize)
+          )
+
+          result.size shouldBe pageSize
+          result.isFirst shouldBe true
+          result.isLast shouldBe false
+        }
+      }
+
     }
   }
 })

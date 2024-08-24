@@ -15,9 +15,12 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.springframework.data.domain.PageRequest
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.BadRequestException
 import pmeet.pmeetserver.user.domain.enum.ExperienceYear
+import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.domain.resume.JobExperience
 import pmeet.pmeetserver.user.domain.resume.ProjectExperience
@@ -26,6 +29,7 @@ import pmeet.pmeetserver.user.domain.techStack.TechStack
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
 import pmeet.pmeetserver.user.resume.ResumeGenerator
 import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeRequestDto
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateMockResumeListForSlice
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
@@ -210,6 +214,39 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           val result = resumeService.getAllByUserId("user2")
 
           result.size shouldBe resumeList.size
+        }
+      }
+    }
+  }
+
+  describe("searchSliceByFilter") {
+    context("검색 조건이 주어지면") {
+      it("Slice<Resume>를 반환한다") {
+        val pageNumber = 0
+        val pageSize = 10
+        val resumeListForSlice = generateMockResumeListForSlice().subList(0, pageSize)
+
+        runTest {
+          every {
+            resumeRepository.findAllByFilter(
+              any(),
+              any(),
+              any(),
+              any()
+            )
+          } answers { Flux.fromIterable(resumeListForSlice) }
+
+          val result = resumeService.searchSliceByFilter(
+            ResumeFilterType.ALL,
+            "",
+            ResumeOrderType.RECENT,
+            PageRequest.of(pageNumber, pageSize)
+          )
+
+          result.size shouldBe pageSize
+          for (i in 0..resumeListForSlice.size - 1) {
+            result.content.get(i).title shouldBe resumeListForSlice[i].title
+          }
         }
       }
     }
