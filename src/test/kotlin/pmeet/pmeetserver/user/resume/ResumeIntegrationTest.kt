@@ -23,11 +23,13 @@ import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.BaseMongoDBTestForIntegration
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
+import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.domain.job.Job
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.techStack.TechStack
-import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
+import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
 import pmeet.pmeetserver.user.repository.UserRepository
 import pmeet.pmeetserver.user.repository.job.JobRepository
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
@@ -40,8 +42,10 @@ import pmeet.pmeetserver.user.resume.ResumeGenerator.createMockUpdateResumeReque
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateActiveResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeListForSlice
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateUpdatedResume
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
+import pmeet.pmeetserver.util.RestSliceImpl
 import java.time.LocalDateTime
 
 @ExtendWith(SpringExtension::class)
@@ -77,6 +81,7 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
   lateinit var activeResume: Resume
   lateinit var resumeId: String
   lateinit var resumeList: List<Resume>
+  lateinit var resumeListForSlice: List<Resume>
 
   lateinit var user: User
   lateinit var userId: String
@@ -107,6 +112,8 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
     activeResume = generateActiveResume()
 
     resumeList = generateResumeList()
+
+    resumeListForSlice = generateResumeListForSlice()
 
     user = User(
       email = "testEmail@test.com",
@@ -447,6 +454,32 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
             returnedResumeList.size shouldBe 1
           }
         }
+      }
+    }
+
+    describe("GET api/v1/resumes/search-slice") {
+      context("인증된 유저의 이력서 조건 조회") {
+
+        val userId = "userId"
+        val pageSize = 10
+        val pageNumber = 0
+
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest =
+          webTestClient.mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication)).get().uri {
+            it.path("/api/v1/resumes/search-slice").queryParam("filterType", ResumeFilterType.ALL)
+              .queryParam("filterValue", "").queryParam("orderType", ResumeOrderType.RECENT)
+              .queryParam("page", pageNumber).queryParam("size", pageSize).build()
+          }.exchange()
+
+        it("조건에 따라 조회된 Slice<Resume> 가 조회된다.") {
+          performRequest.expectStatus().isOk
+          performRequest.expectBody<RestSliceImpl<SearchedResumeResponseDto>>().consumeWith { result ->
+            val returnedResumeList = result.responseBody!!
+            returnedResumeList.size shouldBe pageSize
+          }
+        }
+
       }
     }
   }
