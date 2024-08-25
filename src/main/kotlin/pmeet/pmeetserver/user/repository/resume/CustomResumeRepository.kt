@@ -1,8 +1,8 @@
 package pmeet.pmeetserver.user.repository.resume
 
-import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
-import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
 import org.springframework.data.domain.Pageable
+import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.domain.resume.Resume
 import reactor.core.publisher.Flux
 
@@ -18,6 +18,7 @@ interface CustomResumeRepository {
    *
    */
   fun findAllByFilter(
+    searchedUserId: String,
     filterType: ResumeFilterType,
     filterValue: String,
     orderType: ResumeOrderType,

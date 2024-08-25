@@ -232,11 +232,13 @@ internal class ResumeServiceUnitTest : DescribeSpec({
               any(),
               any(),
               any(),
+              any(),
               any()
             )
           } answers { Flux.fromIterable(resumeListForSlice) }
 
           val result = resumeService.searchSliceByFilter(
+            "testUserId",
             ResumeFilterType.ALL,
             "",
             ResumeOrderType.RECENT,
