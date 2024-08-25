@@ -382,7 +382,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
 
       it("조건에 따라서 Slice<Resume> 가 조회된다.") {
         runTest {
-          coEvery { resumeService.searchSliceByFilter(any(), any(), any(), any()) } answers {
+          coEvery { resumeService.searchSliceByFilter(any(), any(), any(), any(), any()) } answers {
             SliceResponse.of(
               resumeListForSlice.toMutableList(),
               PageRequest.of(pageNumber, pageSize)

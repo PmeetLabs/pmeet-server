@@ -4,16 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
-import org.springframework.data.mongodb.core.aggregate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
-import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators
 import org.springframework.data.mongodb.core.aggregation.ArrayOperators
-import org.springframework.data.mongodb.core.aggregation.ComparisonOperators
 import org.springframework.data.mongodb.core.aggregation.ConditionalOperators
-import org.springframework.data.mongodb.core.aggregation.DateOperators
 import org.springframework.data.mongodb.core.query.Criteria
-import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.resume.ResumeBookMarker
 import reactor.core.publisher.Flux
@@ -24,6 +20,7 @@ class CustomResumeRepositoryImpl(
 
   companion object {
     private const val DOCUMENT_NAME = "resume"
+    private const val PROPERTY_NAME_USER_ID = "userId"
     private const val PROPERTY_NAME_BOOK_MARKERS = "bookmarkers"
     private const val PROPERTY_NAME_BOOK_MARKERS_SIZE = "bookmarkersSize"
     private const val PROPERTY_NAME_UPDATEDAT = "updatedAt"
@@ -34,18 +31,20 @@ class CustomResumeRepositoryImpl(
   }
 
   override fun findAllByFilter(
+    searchedUserId: String,
     filterType: ResumeFilterType,
     filterValue: String,
     orderType: ResumeOrderType,
     pageable: Pageable
   ): Flux<Resume> {
-    val criteria = createCriteria(filterType, filterValue)
+    val criteria = createCriteria(filterType, filterValue).andOperator(
+      Criteria.where(PROPERTY_NAME_USER_ID).ne(searchedUserId)
+    )
     return aggregateResumes(orderType, criteria, pageable)
   }
 
   /**
    * 이력서 필터 조건인 Criteria 생성
-   *
    * @param filterType 필터 타입(TOTAL, TITLE, JOB, NICKNAME)
    * @param filterValue 필터 값
    */

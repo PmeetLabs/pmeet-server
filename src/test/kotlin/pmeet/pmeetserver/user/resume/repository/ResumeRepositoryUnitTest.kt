@@ -175,10 +175,12 @@ internal class ResumeRepositoryUnitTest(
   }
 
   describe("findAllByFilter") {
+    val userId = "testUserId"
     context("전체 검색이고, 검색어가 있으며 인기순 조회인 경우") {
       it("조건에 맞는 Resume 를 반환한다.") {
         runTest {
           val result = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.ALL,
             "1",
             ResumeOrderType.POPULAR,
@@ -188,6 +190,7 @@ internal class ResumeRepositoryUnitTest(
           result?.get(0)?.title shouldBe resumeListForSlice.get(12).title
 
           val resultWithTitle = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.ALL,
             "5",
             ResumeOrderType.POPULAR,
@@ -203,6 +206,7 @@ internal class ResumeRepositoryUnitTest(
       it("조건에 맞는 Resume 를 반환한다.") {
         runTest {
           val result = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.ALL,
             "",
             ResumeOrderType.POPULAR,
@@ -218,6 +222,7 @@ internal class ResumeRepositoryUnitTest(
       it("조건에 맞는 Resume 를 반환한다.") {
         runTest {
           val result = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.ALL,
             "title",
             ResumeOrderType.RECENT,
@@ -227,6 +232,7 @@ internal class ResumeRepositoryUnitTest(
           result?.get(0)?.title shouldBe resumeListForSlice.get(0).title
 
           val resultWithTitle = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.ALL,
             "nickname1",
             ResumeOrderType.RECENT,
@@ -242,6 +248,7 @@ internal class ResumeRepositoryUnitTest(
       it("조건에 맞는 Resume 를 반환한다.") {
         runTest {
           val result = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.TITLE,
             "title",
             ResumeOrderType.POPULAR,
@@ -251,6 +258,7 @@ internal class ResumeRepositoryUnitTest(
           result?.get(0)?.title shouldBe resumeListForSlice.get(12).title
 
           val resultWithTitle = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.TITLE,
             "no_title",
             ResumeOrderType.POPULAR,
@@ -265,6 +273,7 @@ internal class ResumeRepositoryUnitTest(
       it("조건에 맞는 Resume 를 반환한다.") {
         runTest {
           val result = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.TITLE,
             "title",
             ResumeOrderType.RECENT,
@@ -274,6 +283,7 @@ internal class ResumeRepositoryUnitTest(
           result?.get(0)?.title shouldBe resumeListForSlice.get(0).title
 
           val resultWithTitle = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.TITLE,
             "no_title",
             ResumeOrderType.RECENT,
@@ -288,6 +298,7 @@ internal class ResumeRepositoryUnitTest(
       it("조건에 맞는 Resume 를 반환한다.") {
         runTest {
           val result = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.JOB,
             "job",
             ResumeOrderType.POPULAR,
@@ -297,6 +308,7 @@ internal class ResumeRepositoryUnitTest(
           result?.get(0)?.title shouldBe resumeListForSlice.get(12).title
 
           val resultWithTitle = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.JOB,
             "no_job",
             ResumeOrderType.POPULAR,
@@ -311,6 +323,7 @@ internal class ResumeRepositoryUnitTest(
       it("조건에 맞는 Resume 를 반환한다.") {
         runTest {
           val result = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.JOB,
             "job",
             ResumeOrderType.RECENT,
@@ -320,12 +333,28 @@ internal class ResumeRepositoryUnitTest(
           result?.get(0)?.title shouldBe resumeListForSlice.get(0).title
 
           val resultWithTitle = resumeRepository.findAllByFilter(
+            userId,
             ResumeFilterType.JOB,
             "no_job",
             ResumeOrderType.RECENT,
             PageRequest.of(0, 8)
           ).collectList().block()
           resultWithTitle?.size shouldBe 0
+        }
+      }
+    }
+
+    context("조회를 하는 경우에 ") {
+      it("조회 요청자의 이력서는 제외하고 조건에 맞는 Resume 를 반환한다.") {
+        runTest {
+          val result = resumeRepository.findAllByFilter(
+            "John-id",
+            ResumeFilterType.TITLE,
+            "title",
+            ResumeOrderType.RECENT,
+            PageRequest.of(0, 8)
+          ).collectList().block()
+          result?.size shouldBe 0
         }
       }
     }

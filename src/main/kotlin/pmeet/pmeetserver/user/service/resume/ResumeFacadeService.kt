@@ -156,7 +156,7 @@ class ResumeFacadeService(
     orderType: ResumeOrderType,
     pageable: PageRequest
   ): Slice<SearchedResumeResponseDto> {
-    val resumes = resumeService.searchSliceByFilter(filterType, filterValue, orderType, pageable)
+    val resumes = resumeService.searchSliceByFilter(userId, filterType, filterValue, orderType, pageable)
     return SliceImpl(
       resumes.content.map {
         SearchedResumeResponseDto.of(
