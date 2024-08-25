@@ -6,12 +6,26 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Slice
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.annotation.AuthenticationPrincipal
-import org.springframework.web.bind.annotation.*
-import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
-import pmeet.pmeetserver.user.dto.resume.request.*
-import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
+import pmeet.pmeetserver.user.dto.resume.request.ChangeResumeActiveRequestDto
+import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
+import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
+import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
+import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
+import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
 import pmeet.pmeetserver.user.service.resume.ResumeFacadeService
 import reactor.core.publisher.Mono
 
@@ -112,12 +126,19 @@ class ResumeController(
   @GetMapping("/search-slice")
   @ResponseStatus(HttpStatus.OK)
   suspend fun getResumeListByCondition(
+    @AuthenticationPrincipal userId: Mono<String>,
     @RequestParam(required = true) filterType: ResumeFilterType,
     @RequestParam(required = true) filterValue: String,
     @RequestParam(required = true) orderType: ResumeOrderType,
     @RequestParam(defaultValue = "0") page: Int,
     @RequestParam(defaultValue = "8") size: Int,
   ): Slice<SearchedResumeResponseDto> {
-    return resumeFacadeService.searchResumeSlice(filterType, filterValue, orderType, PageRequest.of(page, size))
+    return resumeFacadeService.searchResumeSlice(
+      userId.awaitSingle(),
+      filterType,
+      filterValue,
+      orderType,
+      PageRequest.of(page, size)
+    )
   }
 }
