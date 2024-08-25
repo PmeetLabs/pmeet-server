@@ -8,6 +8,7 @@ import io.mockk.coVerify
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
 import org.springframework.context.annotation.Import
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.SliceImpl
 import org.springframework.data.domain.Sort
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -21,6 +22,7 @@ import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
+import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.RecruitmentResponseDto
@@ -608,6 +610,83 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
         val performRequest = webTestClient
           .delete()
           .uri("/api/v1/projects/$projectId/bookmark")
+          .exchange()
+
+        it("요청은 실패한다") {
+          performRequest.expectStatus().isUnauthorized
+        }
+      }
+    }
+
+    describe("GET /api/v1/projects/my-project-slice") {
+      context("인증된 유저의 나의 Project SLice 조회 요청이 들어오면") {
+        val userId = "1234"
+        val pageNumber = 0
+        val pageSize = 6
+        val pageable = PageRequest.of(pageNumber, pageSize)
+        val responseDto = mutableListOf<GetMyProjectResponseDto>()
+        for (i in 1..20) {
+          val myProjectResponseDto = GetMyProjectResponseDto(
+            id = "testId$i",
+            title = "testTitle$i",
+            startDate = LocalDateTime.of(2024, 7, i, 0, 0, 0),
+            thumbNailUrl = "testThumbNailUrl$i",
+            description = "testDescription$i",
+            isCompleted = false,
+            createdAt = LocalDateTime.of(2024, 8, i, 0, 0, 0)
+          )
+          responseDto.add(myProjectResponseDto)
+        }
+        coEvery { projectFacadeService.getMyProjectSlice(userId, pageable) } answers {
+          SliceImpl(responseDto.subList(0, pageSize), pageable, true)
+        }
+
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .get()
+          .uri { uriBuilder ->
+            uriBuilder.path("/api/v1/projects/my-project-slice")
+              .queryParam("page", pageNumber)
+              .queryParam("size", pageSize)
+              .build()
+          }
+          .exchange()
+
+        it("서비스를 통해 데이터를 조회한다") {
+          coVerify(exactly = 1) { projectFacadeService.getMyProjectSlice(userId, pageable) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("조회한 나의 Project 정보를 반환한다") {
+          performRequest.expectBody<RestSliceImpl<GetMyProjectResponseDto>>().consumeWith { response ->
+            response.responseBody?.content?.size shouldBe pageSize
+            response.responseBody?.content?.forEachIndexed { index, getMyProjectResponseDto ->
+              getMyProjectResponseDto.id shouldBe responseDto[index].id
+              getMyProjectResponseDto.title shouldBe responseDto[index].title
+              getMyProjectResponseDto.startDate shouldBe responseDto[index].startDate
+              getMyProjectResponseDto.thumbNailUrl shouldBe responseDto[index].thumbNailUrl
+              getMyProjectResponseDto.description shouldBe responseDto[index].description
+              getMyProjectResponseDto.isCompleted shouldBe responseDto[index].isCompleted
+              getMyProjectResponseDto.createdAt shouldBe responseDto[index].createdAt
+            }
+          }
+        }
+      }
+      context("인증되지 않은 유저의 나의 Project SLice 조회 요청이 들어오면") {
+        val pageNumber = 0
+        val pageSize = 6
+        val performRequest = webTestClient
+          .get()
+          .uri { uriBuilder ->
+            uriBuilder.path("/api/v1/projects/my-project-slice")
+              .queryParam("page", pageNumber)
+              .queryParam("size", pageSize)
+              .build()
+          }
           .exchange()
 
         it("요청은 실패한다") {

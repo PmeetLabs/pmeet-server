@@ -1,6 +1,6 @@
 package pmeet.pmeetserver.project.service
 
-import java.time.LocalDateTime
+import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Slice
 import org.springframework.data.domain.SliceImpl
 import org.springframework.stereotype.Service
@@ -20,6 +20,7 @@ import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
+import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
@@ -28,6 +29,7 @@ import pmeet.pmeetserver.project.dto.tryout.request.PatchProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.tryout.response.ProjectTryoutResponseDto
 import pmeet.pmeetserver.user.service.UserService
 import pmeet.pmeetserver.user.service.resume.ResumeService
+import java.time.LocalDateTime
 
 @Service
 class ProjectFacadeService(
@@ -264,6 +266,21 @@ class ProjectFacadeService(
     val projectMember = projectMemberService.findMemberById(memberId);
     projectTryoutService.deleteTryout(projectMember.tryoutId)
     projectMemberService.deleteProjectMember(memberId)
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun getMyProjectSlice(userId: String, pageable: Pageable): Slice<GetMyProjectResponseDto> {
+    val projects = projectService.getProjectSliceByUserIdOrderByCreatedAtDesc(userId, pageable)
+    return SliceImpl(
+      projects.content.map {
+        GetMyProjectResponseDto.of(
+          it,
+          it.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+        )
+      },
+      projects.pageable,
+      projects.hasNext()
+    )
   }
 
   /**

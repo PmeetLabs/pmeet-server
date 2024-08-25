@@ -14,13 +14,18 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.SliceImpl
 import org.springframework.data.domain.Sort
 import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.file.service.FileService
-import pmeet.pmeetserver.project.domain.*
+import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.ProjectBookmark
+import pmeet.pmeetserver.project.domain.ProjectComment
+import pmeet.pmeetserver.project.domain.ProjectTryout
+import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.comment.request.CreateProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
@@ -662,6 +667,57 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
           projectFacadeService.pathProjectTryoutStatusToReject(userId, requestDto)
 
           coVerify(exactly = 1) { projectTryoutService.updateTryoutStatus(tryoutId, ProjectTryoutStatus.REJECTED) }
+        }
+      }
+    }
+  }
+
+  describe("getMyProjectSlice") {
+    context("userId와 pageable이 주어지면") {
+      val pageNumber = 0
+      val pageSize = 10
+      val pageable = PageRequest.of(pageNumber, pageSize)
+      it("Slice<GetMyProjectResponseDto>를 반환한다") {
+        runTest {
+          val projects: MutableList<Project> = mutableListOf();
+          val downloadUrls = mutableListOf<String>()
+          for (i in 1..20) {
+            val newProject = Project(
+              id = "testId$i",
+              userId = userId,
+              title = "testTitle$i",
+              startDate = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
+              endDate = LocalDateTime.of(2021, 12, 31, 23, 59, 59),
+              thumbNailUrl = "testThumbNailUrl",
+              techStacks = listOf("testTechStack1", "testTechStack2"),
+              recruitments = recruitments,
+              description = "testDescription"
+            )
+            projects.add(newProject)
+            downloadUrls.add("testThumbNailDownloadUrl%i")
+          }
+          coEvery {
+            projectService.getProjectSliceByUserIdOrderByCreatedAtDesc(
+              userId,
+              pageable
+            )
+          } answers { SliceImpl(projects.subList(0, pageable.pageSize), pageable, true) }
+          coEvery { fileService.generatePreSignedUrlToDownload(any()) } answers { downloadUrls.iterator().next() }
+
+          val result = projectFacadeService.getMyProjectSlice(userId, pageable)
+
+          result.size shouldBe pageable.pageSize
+          result.content.forEachIndexed { index, getMyProjectResponseDto ->
+            getMyProjectResponseDto.id shouldBe projects[index].id
+            getMyProjectResponseDto.title shouldBe projects[index].title
+            getMyProjectResponseDto.startDate shouldBe projects[index].startDate
+            getMyProjectResponseDto.thumbNailUrl shouldBe downloadUrls[index]
+            getMyProjectResponseDto.description shouldBe projects[index].description
+            getMyProjectResponseDto.isCompleted shouldBe projects[index].isCompleted
+            getMyProjectResponseDto.createdAt shouldBe projects[index].createdAt
+          }
+          result.isFirst shouldBe true
+          result.isLast shouldBe false
         }
       }
     }

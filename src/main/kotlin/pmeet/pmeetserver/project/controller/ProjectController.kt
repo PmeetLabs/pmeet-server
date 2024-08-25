@@ -2,6 +2,7 @@ package pmeet.pmeetserver.project.controller
 
 import jakarta.validation.Valid
 import kotlinx.coroutines.reactor.awaitSingle
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Slice
 import org.springframework.data.domain.Sort.Direction
 import org.springframework.http.HttpStatus
@@ -20,6 +21,7 @@ import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentWithChild
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
+import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
@@ -110,5 +112,15 @@ class ProjectController(
     @PathVariable projectId: String
   ) {
     projectFacadeService.deleteBookmark(userId.awaitSingle(), projectId)
+  }
+
+  @GetMapping("/my-project-slice")
+  @ResponseStatus(HttpStatus.OK)
+  suspend fun getMyProjectSlice(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @RequestParam(defaultValue = "0") page: Int,
+    @RequestParam(defaultValue = "6") size: Int
+  ): Slice<GetMyProjectResponseDto> {
+    return projectFacadeService.getMyProjectSlice(userId.awaitSingle(), PageRequest.of(page, size))
   }
 }

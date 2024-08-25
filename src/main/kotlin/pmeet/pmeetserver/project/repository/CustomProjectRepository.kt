@@ -21,4 +21,13 @@ interface CustomProjectRepository {
     filterValue: String?,
     pageable: Pageable
   ): Flux<Project>
+
+
+  /**
+   * User ID로 프로젝트 목록 조회
+   *
+   * @param userId 사용자 ID
+   * @param pageable 페이징 정보
+   */
+  fun findProjectByUserIdOrderByCreatedAtDesc(userId: String, pageable: Pageable): Flux<Project>
 }

@@ -404,4 +404,50 @@ internal class ProjectRepositoryUnitTest(
     }
   }
 
+  describe("findProjectByUserIdOrderByCreatedAtDesc") {
+    context("주어진 userId에 해당하는 Project가 존재하지 않으면") {
+      it("빈 Flux를 반환한다") {
+        val result = projectRepository.findProjectByUserIdOrderByCreatedAtDesc(
+          "notExistUserId",
+          PageRequest.of(0, 10)
+        ).collectList().block()
+
+        result?.size shouldBe 0
+      }
+    }
+    context("주어진 userId에 해당하는 Project가 존재하면") {
+      it("생성일 내림차순으로 Project를 반환한다") {
+        for (i in 1..20) {
+          val project = Project(
+            userId = userId,
+            title = "testTitle$i",
+            startDate = LocalDateTime.of(2024, 7, 21, 0, 0, 0),
+            endDate = LocalDateTime.of(2024, 7, 22, 0, 0, 0),
+            recruitments = listOf(
+              Recruitment(
+                jobName = "testJobName$i",
+                numberOfRecruitment = 1
+              )
+            ),
+            description = "testDescription$i"
+          )
+          ReflectionTestUtils.setField(
+            project,
+            "createdAt",
+            LocalDateTime.of(2024, 8, 23, 0, 0, 0).plusDays(i.toLong())
+          )
+          projectRepository.save(project).block()
+        }
+        val result = projectRepository.findProjectByUserIdOrderByCreatedAtDesc(
+          userId,
+          PageRequest.of(0, 10)
+        ).collectList().block()
+
+        result?.size shouldBe 11
+        result?.first()?.title shouldBe "testTitle20"
+        result?.last()?.title shouldBe "testTitle10"
+      }
+    }
+  }
+
 })
