@@ -377,6 +377,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
     context("사용자가 조건에 따른 이력서 목록을 조회하는 경우") {
       val pageNumber = 0
       val pageSize = 10
+      val userId = "1"
       val resumeListForSlice = generateMockResumeListForSlice().subList(0, pageSize + 1)
 
       it("조건에 따라서 Slice<Resume> 가 조회된다.") {
@@ -390,6 +391,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           coEvery { fileService.generatePreSignedUrlToDownload(any()) } answers { "profile-url" }
 
           val result = resumeFacadeService.searchResumeSlice(
+            userId,
             ResumeFilterType.ALL,
             "",
             ResumeOrderType.RECENT,
@@ -399,9 +401,11 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           result.size shouldBe pageSize
           result.isFirst shouldBe true
           result.isLast shouldBe false
+          for (i in 1..<pageSize) {
+            result.content.get(i).isMyBookmark shouldBe true
+          }
         }
       }
-
     }
   }
 })

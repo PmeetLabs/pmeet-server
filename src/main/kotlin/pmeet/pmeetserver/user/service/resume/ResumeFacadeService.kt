@@ -7,17 +7,16 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.ForbiddenRequestException
-import pmeet.pmeetserver.common.utils.page.SliceResponse
 import pmeet.pmeetserver.file.service.FileService
-import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
+import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.dto.resume.request.ChangeResumeActiveRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CopyResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.CreateResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.DeleteResumeRequestDto
 import pmeet.pmeetserver.user.dto.resume.request.UpdateResumeRequestDto
-import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
 import pmeet.pmeetserver.user.dto.resume.response.ResumeResponseDto
+import pmeet.pmeetserver.user.dto.resume.response.SearchedResumeResponseDto
 import pmeet.pmeetserver.user.service.UserService
 
 @Service
@@ -143,13 +142,15 @@ class ResumeFacadeService(
     return resumeList.filter { it.isActive }.map {
       SearchedResumeResponseDto.of(
         it,
-        it.userProfileImageUrl?.let { it1 -> fileService.generatePreSignedUrlToDownload(it1) }
+        it.userProfileImageUrl?.let { it1 -> fileService.generatePreSignedUrlToDownload(it1) },
+        userId
       )
     }.toList()
   }
 
   @Transactional
   suspend fun searchResumeSlice(
+    userId: String,
     filterType: ResumeFilterType,
     filterValue: String,
     orderType: ResumeOrderType,
@@ -160,7 +161,9 @@ class ResumeFacadeService(
       resumes.content.map {
         SearchedResumeResponseDto.of(
           it,
-          it.userProfileImageUrl?.let { it1 -> fileService.generatePreSignedUrlToDownload(it1) })
+          it.userProfileImageUrl?.let { it1 -> fileService.generatePreSignedUrlToDownload(it1) },
+          userId
+        )
       },
       resumes.pageable,
       resumes.hasNext()

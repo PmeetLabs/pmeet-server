@@ -381,7 +381,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
 
         coEvery {
           resumeFacadeService.searchResumeSlice(
-            ResumeFilterType.ALL, "", ResumeOrderType.POPULAR, PageRequest.of(pageNumber, pageSize)
+            userId, ResumeFilterType.ALL, "", ResumeOrderType.POPULAR, PageRequest.of(pageNumber, pageSize)
           )
         } answers {
           SliceImpl(
@@ -399,7 +399,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
 
         coVerify(exactly = 1) {
           resumeFacadeService.searchResumeSlice(
-            ResumeFilterType.ALL, "", ResumeOrderType.POPULAR, PageRequest.of(pageNumber, pageSize)
+            userId, ResumeFilterType.ALL, "", ResumeOrderType.POPULAR, PageRequest.of(pageNumber, pageSize)
           )
         }
 
