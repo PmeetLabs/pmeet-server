@@ -24,6 +24,8 @@ class CustomProjectRepositoryImpl(
     private const val PROPERTY_NAME_TITLE = "title"
     private const val PROPERTY_NAME_IS_COMPLETED = "isCompleted"
     private const val PROPERTY_NAME_BOOK_MARKERS_SIZE = "bookmarkersSize"
+    private const val PROPERTY_NAME_USER_ID = "userId"
+    private const val PROPERTY_NAME_CREATED_AT = "createdAt"
   }
 
   override fun findAllByFilter(
@@ -34,6 +36,25 @@ class CustomProjectRepositoryImpl(
   ): Flux<Project> {
     val criteria = createCriteria(filterType, filterValue)
     return aggregateProjects(isCompleted, criteria, pageable)
+  }
+
+  override fun findProjectByUserIdOrderByCreatedAtDesc(userId: String, pageable: Pageable): Flux<Project> {
+    val criteria = Criteria.where(PROPERTY_NAME_USER_ID).`is`(userId)
+    val sort = Sort.by(Sort.Order.desc(PROPERTY_NAME_CREATED_AT))
+
+    val limit = Aggregation.limit(pageable.pageSize.toLong() + 1)
+    val skip = Aggregation.skip((pageable.pageNumber * pageable.pageSize).toLong())
+
+    return mongoTemplate.aggregate(
+      Aggregation.newAggregation(
+        Aggregation.match(criteria),
+        Aggregation.sort(sort),
+        skip,
+        limit
+      ),
+      DOCUMENT_NAME,
+      Project::class.java
+    )
   }
 
   /**

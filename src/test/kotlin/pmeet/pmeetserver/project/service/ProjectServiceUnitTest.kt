@@ -245,4 +245,51 @@ internal class ProjectServiceUnitTest : DescribeSpec({
       }
     }
   }
+
+  describe("getProjectSliceByUserIdOrderByCreatedAtDesc") {
+    context("유저 ID와 페이지 정보가 주어지면") {
+      it("Slice<Project>를 반환한다") {
+        val pageNumber = 0
+        val pageSize = 10
+        val projects: MutableList<Project> = mutableListOf();
+        for (i in 1..20) {
+          val newProject = Project(
+            userId = userId,
+            title = "testTitle$i",
+            startDate = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
+            endDate = LocalDateTime.of(2021, 12, 31, 23, 59, 59),
+            thumbNailUrl = "testThumbNailUrl",
+            techStacks = listOf("testTechStack1", "testTechStack2"),
+            recruitments = recruitments,
+            description = "testDescription"
+          )
+          ReflectionTestUtils.setField(newProject, "createdAt", LocalDateTime.of(2024, 8, i, 0, 0, 0))
+          projects.add(newProject)
+        }
+        runTest {
+          every {
+            projectRepository.findProjectByUserIdOrderByCreatedAtDesc(
+              any(),
+              any()
+            )
+          } answers { Flux.fromIterable(projects.subList(0, pageSize + 1)) }
+
+          val result = projectService.getProjectSliceByUserIdOrderByCreatedAtDesc(
+            userId = userId,
+            pageable = PageRequest.of(
+              pageNumber,
+              pageSize
+            )
+          )
+
+          result.size shouldBe pageSize
+          result.content shouldBe projects.subList(0, pageSize)
+          result.content.first().id shouldBe projects[0].id
+          result.content.last().id shouldBe projects[pageSize - 1].id
+          result.isFirst shouldBe true
+          result.isLast shouldBe false
+        }
+      }
+    }
+  }
 })

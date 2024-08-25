@@ -56,4 +56,15 @@ class ProjectService(
       pageable
     )
   }
+
+  @Transactional(readOnly = true)
+  suspend fun getProjectSliceByUserIdOrderByCreatedAtDesc(userId: String, pageable: Pageable): Slice<Project> {
+    return SliceResponse.of(
+      projectRepository.findProjectByUserIdOrderByCreatedAtDesc(
+        userId,
+        pageable
+      ).collectList().awaitSingle(),
+      pageable
+    )
+  }
 }
