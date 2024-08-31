@@ -9,7 +9,7 @@ object AggregationGenerator {
 
   fun generateAggregationFindByNameSearchSlice(name: String?, pageable: Pageable): Aggregation {
     val criteria = if (name != null) {
-      Criteria.where("name").regex(".*${name}.*")
+      Criteria.where("name").regex(".*${name}.*", "i")
     } else {
       Criteria()
     }

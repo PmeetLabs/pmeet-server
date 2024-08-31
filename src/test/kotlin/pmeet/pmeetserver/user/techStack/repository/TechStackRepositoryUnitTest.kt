@@ -67,6 +67,9 @@ internal class TechStackRepositoryUnitTest(
       for (i in 1..pageSize) {
         techStackRepository.save(TechStack(name = name + i)).block()
       }
+      val capitalName = "ABCDEFGH"
+      techStackRepository.save(TechStack(name = capitalName)).block()
+
       it("이름을 포함하는 기술 스택들은 이름 오름차순, 이름 길이 오름차순으로 반환한다") {
         runTest {
           val result =
@@ -75,6 +78,16 @@ internal class TechStackRepositoryUnitTest(
           result?.size shouldBe pageSize + 1
           result?.first()?.name shouldBe name
           result?.last()?.name shouldBe name + pageSize
+        }
+      }
+
+      it("대소문자 구분 없이 기술 스택을 검색해서 반환한다") {
+        runTest {
+          val result =
+            techStackRepository.findByNameSearchSlice("abc", PageRequest.of(pageNumber, pageSize)).collectList().block()
+
+          result?.size shouldBe 1
+          result?.first()?.name shouldBe capitalName
         }
       }
     }

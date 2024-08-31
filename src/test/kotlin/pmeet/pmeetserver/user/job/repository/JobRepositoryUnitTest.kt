@@ -67,6 +67,9 @@ internal class JobRepositoryUnitTest(
       for (i in 1..pageSize) {
         jobRepository.save(Job(name = name + i)).block()
       }
+      val capitalName = "ABCDEFGH"
+      jobRepository.save(Job(name = capitalName)).block()
+
       it("이름을 포함하는 직무들을 이름 오름차순, 이름 길이 오름차순으로 반환한다") {
         runTest {
           val result =
@@ -75,6 +78,15 @@ internal class JobRepositoryUnitTest(
           result?.size shouldBe pageSize + 1
           result?.first()?.name shouldBe name
           result?.last()?.name shouldBe name + pageSize
+        }
+      }
+      it("직무 이름 검색에는 대소문자 구분 없이 검색된 결과를 반환한다") {
+        runTest {
+          val result =
+            jobRepository.findByNameSearchSlice("abc", PageRequest.of(pageNumber, pageSize)).collectList().block()
+
+          result?.size shouldBe 1
+          result?.first()?.name shouldBe capitalName
         }
       }
     }
