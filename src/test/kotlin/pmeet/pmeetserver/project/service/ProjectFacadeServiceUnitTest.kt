@@ -27,9 +27,9 @@ import pmeet.pmeetserver.project.domain.ProjectComment
 import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
+import pmeet.pmeetserver.project.dto.comment.ProjectCommentWithChildDto
 import pmeet.pmeetserver.project.dto.comment.request.CreateProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
-import pmeet.pmeetserver.project.dto.comment.ProjectCommentWithChildDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
@@ -42,6 +42,7 @@ import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.service.UserService
+import pmeet.pmeetserver.user.service.notification.NotificationService
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import java.time.LocalDateTime
 
@@ -59,6 +60,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   val projectMemberService = mockk<ProjectMemberService>(relaxed = true)
   val userService = mockk<UserService>(relaxed = true)
   val fileService = mockk<FileService>(relaxed = true)
+  val notificationService = mockk<NotificationService>(relaxed = true)
 
   lateinit var projectFacadeService: ProjectFacadeService
 
@@ -80,7 +82,8 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
       projectTryoutService,
       projectMemberService,
       userService,
-      fileService
+      fileService,
+      notificationService
     )
 
     userId = "testUserId"
