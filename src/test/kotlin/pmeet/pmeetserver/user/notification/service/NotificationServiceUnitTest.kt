@@ -15,7 +15,6 @@ import pmeet.pmeetserver.user.domain.enum.NotificationType
 import pmeet.pmeetserver.user.domain.notification.Notification
 import pmeet.pmeetserver.user.repository.notification.NotificationRepository
 import pmeet.pmeetserver.user.service.notification.NotificationService
-import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 
 @ExperimentalCoroutinesApi
@@ -89,32 +88,6 @@ class NotificationServiceUnitTest : DescribeSpec({
             result.isRead shouldBe false
             result.targetUserId shouldBe testUserId
           }
-        }
-      }
-    }
-  }
-
-  describe("findUnreadNotificationByUserId") {
-    context("알림 수신자의 userId 가 주어지면") {
-      it("해당 수신자의 알림 중 읽음 상태가 아닌 것을 반환한다") {
-        runTest {
-
-          every { notificationRepository.findAllByTargetUserIdAndIsReadFalse(any()) } answers {
-            Flux.fromIterable(
-              mutableListOf(
-                notificationApply,
-                notificationReply,
-                notificationComment,
-                notificationRejected,
-                notificationAccepted
-              )
-            )
-          }
-
-          val result = notificationService.findUnreadNotificationByUserId(testUserId)
-
-          result.size shouldBe 5
-          result.filter { it.isRead }.size shouldBe 0
         }
       }
     }

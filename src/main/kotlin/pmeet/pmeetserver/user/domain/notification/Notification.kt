@@ -11,7 +11,7 @@ class Notification(
   var id: String? = null,
   val notificationType: NotificationType,
   val targetUserId: String,
-  val isRead: Boolean = false,
+  var isRead: Boolean = false,
   val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
 

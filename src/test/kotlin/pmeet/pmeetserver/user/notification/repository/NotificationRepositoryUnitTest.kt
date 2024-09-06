@@ -2,17 +2,20 @@ package pmeet.pmeetserver.user.notification.repository
 
 import io.kotest.core.spec.IsolationMode
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.support.ReactiveMongoRepositoryFactory
 import pmeet.pmeetserver.config.BaseMongoDBTestForRepository
 import pmeet.pmeetserver.user.domain.enum.NotificationType
 import pmeet.pmeetserver.user.domain.notification.Notification
+import pmeet.pmeetserver.user.repository.notification.CustomNotificationRepositoryImpl
 import pmeet.pmeetserver.user.repository.notification.NotificationRepository
 
 @ExperimentalCoroutinesApi
@@ -25,14 +28,16 @@ class NotificationRepositoryUnitTest(
   val testDispatcher = StandardTestDispatcher()
 
   val factory = ReactiveMongoRepositoryFactory(template)
-
-  val notificationRepository = factory.getRepository(NotificationRepository::class.java)
+  val customNotificationRepository = CustomNotificationRepositoryImpl()
+  val notificationRepository = factory.getRepository(NotificationRepository::class.java, customNotificationRepository)
 
   var commentNotification: Notification
 
   val testUserId = "test-user-id"
+  val testUserId2 = "test-user-id-2"
 
   beforeSpec {
+    Dispatchers.setMain(testDispatcher)
     commentNotification = Notification(notificationType = NotificationType.COMMENT, targetUserId = testUserId)
 
     notificationRepository.save(commentNotification).block()
@@ -57,5 +62,18 @@ class NotificationRepositoryUnitTest(
       }
     }
   }
+  describe("save") {
+    context("notification 이 주어지면") {
+      it("해당하는 알림을 저장한다") {
+        runTest {
+          val newNotification = Notification(notificationType = NotificationType.COMMENT, targetUserId = testUserId2)
+          val savedNotification = notificationRepository.save(newNotification).block()
 
+          savedNotification!!.id shouldNotBe null
+          savedNotification.notificationType shouldBe NotificationType.COMMENT
+          savedNotification.targetUserId shouldBe testUserId2
+        }
+      }
+    }
+  }
 })

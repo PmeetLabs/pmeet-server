@@ -4,7 +4,7 @@ import org.springframework.data.mongodb.repository.ReactiveMongoRepository
 import pmeet.pmeetserver.user.domain.notification.Notification
 import reactor.core.publisher.Flux
 
-interface NotificationRepository : ReactiveMongoRepository<Notification, String> {
+interface NotificationRepository : ReactiveMongoRepository<Notification, String>, CustomNotificationRepository {
 
   fun findAllByTargetUserIdAndIsReadFalse(userId: String): Flux<Notification>
 
