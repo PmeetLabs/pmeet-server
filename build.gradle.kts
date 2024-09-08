@@ -6,6 +6,7 @@ plugins {
   id("io.spring.dependency-management") version "1.1.4"
   kotlin("jvm") version "1.9.22"
   kotlin("plugin.spring") version "1.9.22"
+  id("jacoco")
 }
 
 val kotestVersion = "5.8.1"
@@ -97,11 +98,39 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
   jvmArgs("-XX:+EnableDynamicAgentLoading")
+  useJUnitPlatform()
+  finalizedBy(tasks.jacocoTestReport)
 }
 
-tasks.withType<Test> {
-  useJUnitPlatform()
+tasks.jacocoTestReport {
+  dependsOn(tasks.test)
+  reports {
+    xml.required.set(true)
+    csv.required.set(false)
+    html.required.set(true)
+  }
 }
+
+tasks.jacocoTestCoverageVerification {
+  violationRules {
+    rule {
+      limit {
+        minimum = "0.8".toBigDecimal()
+      }
+    }
+  }
+}
+
+tasks.jacocoTestCoverageVerification {
+  violationRules {
+    rule {
+      limit {
+        minimum = "0.8".toBigDecimal()
+      }
+    }
+  }
+}
+
 
 tasks {
   named<Jar>("jar") {

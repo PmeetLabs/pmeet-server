@@ -40,4 +40,86 @@ jobs:
           commit: ${{ github.event.workflow_run.head_sha }}
           event_file: artifacts/Event File/event.json
           event_name: ${{ github.event.workflow_run.event }}
-          files: "artifacts/**/*.xml"
+          files: "artifacts/**/TEST-*.xml"
+
+      - name: Find JaCoCo Report
+        id: find_jacoco
+        run: |
+          JACOCO_PATH=$(find ${{ github.workspace }}/artifacts -name "jacocoTestReport.xml" -type f | head -n 1)
+          echo "JACOCO_PATH=${JACOCO_PATH}" >> $GITHUB_OUTPUT
+          if [ -z "$JACOCO_PATH" ]; then
+            echo "JaCoCo report not found"
+            exit 1
+          fi
+
+      - name: Install xml2js
+        run: npm install xml2js
+
+      - name: Parse JaCoCo Report and Create Comment
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const fs = require('fs');
+            const xml2js = require('xml2js');
+            
+            const xmlFile = '${{ steps.find_jacoco.outputs.JACOCO_PATH }}';
+            const xmlData = fs.readFileSync(xmlFile, 'utf8');
+            
+            xml2js.parseString(xmlData, (err, result) => {
+              if (err) {
+                console.error('Error parsing XML:', err);
+                return;
+              }
+            
+              const counters = result.report.counter;
+              const coverage = {};
+            
+              counters.forEach(counter => {
+                const type = counter.$.type;
+                const missed = parseInt(counter.$.missed);
+                const covered = parseInt(counter.$.covered);
+                const total = missed + covered;
+                const percentage = ((covered / total) * 100).toFixed(2);
+            
+                coverage[type] = {
+                  covered,
+                  missed,
+                  total,
+                  percentage
+                };
+              });
+            
+              const coverageComment = `## JaCoCo Code Coverage Summary
+            
+              | Type | Coverage | Covered | Missed | Total |
+              |------|----------|---------|--------|-------|
+              ${Object.entries(coverage).map(([type, data]) => 
+                `| ${type} | ${data.percentage}% | ${data.covered} | ${data.missed} | ${data.total} |`
+              ).join('\n')}
+            
+              [Detailed coverage report](${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID})
+              `;
+            
+              // Find the associated pull request
+              const { owner, repo } = context.repo;
+              const head_sha = '${{ github.event.workflow_run.head_sha }}';
+              github.rest.pulls.list({ owner, repo, state: 'open', sort: 'updated', direction: 'desc', per_page: 100 })
+                .then(pulls => {
+                  const pr = pulls.data.find(pr => pr.head.sha === head_sha);
+                  if (pr) {
+                    // Create a comment on the pull request
+                    return github.rest.issues.createComment({
+                      issue_number: pr.number,
+                      owner: owner,
+                      repo: repo,
+                      body: coverageComment
+                    });
+                  } else {
+                    console.log('No matching PR found');
+                  }
+                })
+                .catch(error => {
+                  console.error('Error:', error);
+                });
+            });

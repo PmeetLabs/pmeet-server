@@ -45,3 +45,10 @@ jobs:
           name: Test Results
           path: |
             build/test-results/test/TEST-*.xml
+
+      - name: Upload JaCoCo Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: JaCoCo Report
+          path: build/reports/jacoco/test/jacocoTestReport.xml
