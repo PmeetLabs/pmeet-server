@@ -27,7 +27,9 @@ import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.tryout.request.PatchProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.tryout.response.ProjectTryoutResponseDto
+import pmeet.pmeetserver.user.domain.enum.NotificationType
 import pmeet.pmeetserver.user.service.UserService
+import pmeet.pmeetserver.user.service.notification.NotificationService
 import pmeet.pmeetserver.user.service.resume.ResumeService
 import java.time.LocalDateTime
 
@@ -39,7 +41,8 @@ class ProjectFacadeService(
   private val projectTryoutService: ProjectTryoutService,
   private val projectMemberService: ProjectMemberService,
   private val userService: UserService,
-  private val fileService: FileService
+  private val fileService: FileService,
+  private val notificationService: NotificationService
 ) {
 
   @Transactional
@@ -107,7 +110,10 @@ class ProjectFacadeService(
       content = requestDto.content
     )
 
-    return ProjectCommentResponseDto.from(projectCommentService.save(projectComment))
+    val savedProjectComment = projectCommentService.save(projectComment)
+    notificationService.createNotification(NotificationType.COMMENT, project.userId)
+
+    return ProjectCommentResponseDto.from(savedProjectComment)
   }
 
   @Transactional
@@ -155,7 +161,12 @@ class ProjectFacadeService(
       createdAt = LocalDateTime.now()
     )
 
-    return ProjectTryoutResponseDto.from(projectTryoutService.save(projectTryout))
+    val savedProjectTryout = projectTryoutService.save(projectTryout)
+
+    val project = projectService.getProjectById(requestDto.projectId)
+    notificationService.createNotification(NotificationType.APPLY, project.userId)
+
+    return ProjectTryoutResponseDto.from(savedProjectTryout)
   }
 
   @Transactional(readOnly = true)
@@ -245,7 +256,8 @@ class ProjectFacadeService(
     checkUserHasAuthToProject(patchRequest.projectId, userId, ErrorCode.PROJECT_TRYOUT_VIEW_FORBIDDEN)
     val projectTryout = projectTryoutService.updateTryoutStatus(patchRequest.tryoutId, ProjectTryoutStatus.ACCEPTED)
     projectMemberService.save(projectTryout.createProjectMember())
-    // TODO 프밋 시작 알림
+    notificationService.createNotification(NotificationType.ACCEPTED, projectTryout.userId)
+
     return ProjectTryoutResponseDto.from(projectTryout)
   }
 
@@ -256,7 +268,8 @@ class ProjectFacadeService(
   ): ProjectTryoutResponseDto {
     checkUserHasAuthToProject(patchRequest.projectId, userId, ErrorCode.PROJECT_TRYOUT_VIEW_FORBIDDEN)
     val projectTryout = projectTryoutService.updateTryoutStatus(patchRequest.tryoutId, ProjectTryoutStatus.REJECTED)
-    // TODO 프밋 지원 마감 알림
+    notificationService.createNotification(NotificationType.REJECTED, projectTryout.userId)
+
     return ProjectTryoutResponseDto.from(projectTryout)
   }
 

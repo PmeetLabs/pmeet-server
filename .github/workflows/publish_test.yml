@@ -40,4 +40,13 @@ jobs:
           commit: ${{ github.event.workflow_run.head_sha }}
           event_file: artifacts/Event File/event.json
           event_name: ${{ github.event.workflow_run.event }}
-          files: "artifacts/**/*.xml"
+          files: "artifacts/**/TEST-*.xml"
+
+      - name: Publish JaCoCo Coverage Report
+        uses: madrapps/jacoco-report@v1.2
+        with:
+          title: 📊 JaCoCo Test Coverage Report
+          paths: artifacts/**/jacocoTestReport.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          min-coverage-overall: 80
+          min-coverage-changed-files: 80
