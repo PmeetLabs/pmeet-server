@@ -224,5 +224,106 @@ class NotificationIntegrationTest : BaseMongoDBTestForIntegration() {
         }
       }
     }
+
+    describe("PUT /api/v1/notifications/read/all/{userId}") {
+      context("유저의 모든 알림 읽음 처리 요청이 들어오면") {
+        beforeTest {
+          notificationRepository.deleteAll().block()
+          listOf(NotificationType.APPLY, NotificationType.ACCEPTED, NotificationType.REJECTED).forEach {
+            notificationRepository.save(
+              Notification(
+                notificationType = it,
+                targetUserId = userId,
+              )
+            ).block()
+          }
+        }
+
+        it("모든 알림을 읽음 처리하고 업데이트된 알림 목록을 반환한다") {
+          webTestClient
+            .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+            .put()
+            .uri("/api/v1/notifications/read/all/$userId")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<List<Notification>>()
+            .consumeWith { result ->
+              val notifications = result.responseBody!!
+              notifications.size shouldBe 3
+              notifications.all { it.isRead } shouldBe true
+            }
+        }
+      }
+    }
+
+    describe("DELETE /api/v1/notifications/{id}/delete") {
+      context("특정 알림 삭제 요청이 들어오면") {
+        lateinit var notificationId: String
+
+        beforeTest {
+          val notification = notificationRepository.save(
+            Notification(
+              notificationType = NotificationType.APPLY,
+              targetUserId = userId,
+            )
+          ).block()
+          notificationId = notification!!.id!!
+        }
+
+        it("해당 알림을 삭제한다") {
+          webTestClient
+            .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+            .delete()
+            .uri("/api/v1/notifications/$notificationId/delete")
+            .exchange()
+            .expectStatus().isOk
+
+          // Verify the notification is deleted
+          webTestClient
+            .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+            .get()
+            .uri("/api/v1/notifications/unread-count/$userId")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<Int>()
+            .isEqualTo(0)
+        }
+      }
+    }
+
+    describe("DELETE /api/v1/notifications/delete/all/{userId}") {
+      context("유저의 모든 알림 삭제 요청이 들어오면") {
+        beforeTest {
+          notificationRepository.deleteAll().block()
+          listOf(NotificationType.APPLY, NotificationType.ACCEPTED, NotificationType.REJECTED).forEach {
+            notificationRepository.save(
+              Notification(
+                notificationType = it,
+                targetUserId = userId,
+              )
+            ).block()
+          }
+        }
+
+        it("해당 유저의 모든 알림을 삭제한다") {
+          webTestClient
+            .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+            .delete()
+            .uri("/api/v1/notifications/delete/all/$userId")
+            .exchange()
+            .expectStatus().isOk
+
+          // Verify all notifications are deleted
+          webTestClient
+            .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+            .get()
+            .uri("/api/v1/notifications/unread-count/$userId")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody<Int>()
+            .isEqualTo(0)
+        }
+      }
+    }
   }
 }

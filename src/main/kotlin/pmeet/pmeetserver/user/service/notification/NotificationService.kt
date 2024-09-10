@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.reactive.awaitFirstOrNull
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.http.codec.ServerSentEvent
 import org.springframework.stereotype.Service
@@ -42,8 +43,32 @@ class NotificationService(
     return notificationRepository.save(notification).awaitSingle()
   }
 
+  @Transactional
   suspend fun getUnreadNotificationsCount(userId: String): Int {
     return notificationRepository.findAllByTargetUserIdAndIsReadFalse(userId).collectList().awaitSingle().size
+  }
+
+  @Transactional
+  suspend fun markAllNotificationAsRead(userId: String): List<Notification> {
+    return notificationRepository.findAllByTargetUserId(userId)
+      .map { notification ->
+        notification.apply { isRead = true }
+      }
+      .let { flow ->
+        notificationRepository.saveAll(flow)
+          .collectList()
+          .awaitSingle()
+      }
+  }
+
+  @Transactional
+  suspend fun deleteNotification(id: String) {
+    notificationRepository.deleteById(id).awaitFirstOrNull()
+  }
+
+  @Transactional
+  suspend fun deleteAllNotification(userId: String) {
+    notificationRepository.deleteAllByTargetUserId(userId).awaitFirstOrNull()
   }
 }
 

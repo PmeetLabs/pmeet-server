@@ -199,4 +199,62 @@ class NotificationServiceUnitTest : DescribeSpec({
     }
   }
 
+  describe("markAllNotificationAsRead") {
+    context("userId가 주어지면") {
+      it("해당 사용자의 모든 알림을 읽음 처리한다") {
+        runTest {
+          val notifications = listOf(notificationApply, notificationComment, notificationReply)
+
+          coEvery { notificationRepository.findAllByTargetUserId(testUserId) } returns Flux.fromIterable(notifications)
+          coEvery { notificationRepository.saveAll(any<Flux<Notification>>()) } returns Flux.fromIterable(
+            notifications.map { it.apply { isRead = true } }
+          )
+
+          val result = notificationService.markAllNotificationAsRead(testUserId)
+
+          result.size shouldBe 3
+          result.all { it.isRead } shouldBe true
+
+          coVerify(exactly = 1) {
+            notificationRepository.findAllByTargetUserId(testUserId)
+            notificationRepository.saveAll(any<Flux<Notification>>())
+          }
+        }
+      }
+    }
+  }
+
+  describe("deleteNotification") {
+    context("알림 id가 주어지면") {
+      it("해당 알림을 삭제한다") {
+        runTest {
+          val notificationId = "test-notification-id"
+
+          coEvery { notificationRepository.deleteById(notificationId) } returns Mono.empty()
+
+          notificationService.deleteNotification(notificationId)
+
+          coVerify(exactly = 1) {
+            notificationRepository.deleteById(notificationId)
+          }
+        }
+      }
+    }
+  }
+
+  describe("deleteAllNotification") {
+    context("userId가 주어지면") {
+      it("해당 사용자의 모든 알림을 삭제한다") {
+        runTest {
+          coEvery { notificationRepository.deleteAllByTargetUserId(testUserId) } returns Mono.just(true)
+
+          notificationService.deleteAllNotification(testUserId)
+
+          coVerify(exactly = 1) {
+            notificationRepository.deleteAllByTargetUserId(testUserId)
+          }
+        }
+      }
+    }
+  }
 })

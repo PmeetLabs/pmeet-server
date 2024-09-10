@@ -76,4 +76,28 @@ class NotificationRepositoryUnitTest(
       }
     }
   }
+
+  describe("deleteAllByTargetUserId") {
+    context("targetUserId가 주어지면") {
+      it("해당 사용자의 모든 알림을 삭제한다") {
+        runTest {
+          // Setup
+          val notification1 = Notification(notificationType = NotificationType.COMMENT, targetUserId = testUserId)
+          val notification2 = Notification(notificationType = NotificationType.REPLY, targetUserId = testUserId)
+          val otherUserNotification =
+            Notification(notificationType = NotificationType.COMMENT, targetUserId = testUserId2)
+
+          notificationRepository.saveAll(listOf(notification1, notification2, otherUserNotification)).collectList()
+            .block()
+
+          // Execute
+          notificationRepository.deleteAllByTargetUserId(testUserId).block()
+
+          // Verify
+          notificationRepository.findAllByTargetUserId(testUserId).collectList().block()?.size shouldBe 0
+          notificationRepository.findAllByTargetUserId(testUserId2).collectList().block()?.size shouldBe 1
+        }
+      }
+    }
+  }
 })

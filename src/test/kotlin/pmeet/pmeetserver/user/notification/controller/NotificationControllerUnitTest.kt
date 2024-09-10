@@ -5,6 +5,8 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.just
+import io.mockk.runs
 import kotlinx.coroutines.flow.flowOf
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest
@@ -128,6 +130,81 @@ internal class NotificationControllerUnitTest : DescribeSpec() {
 
             returnedNotification shouldBe unreadCount
           }
+        }
+      }
+    }
+
+    describe("PUT /api/v1/notifications/read/all/{userId}") {
+      context("유저의 모든 알림 읽음 처리 요청이 들어오면") {
+        val updatedNotifications = listOf(
+          Notification(id = "1", notificationType = NotificationType.COMMENT, targetUserId = userId, isRead = true),
+          Notification(id = "2", notificationType = NotificationType.REPLY, targetUserId = userId, isRead = true)
+        )
+
+        coEvery { notificationService.markAllNotificationAsRead(userId) } returns updatedNotifications
+
+        val performedRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .put()
+          .uri("/api/v1/notifications/read/all/$userId")
+          .exchange()
+
+        it("모든 알림 읽음 처리 로직이 수행된다") {
+          coVerify(exactly = 1) { notificationService.markAllNotificationAsRead(userId) }
+        }
+
+        it("요청은 성공한다") {
+          performedRequest.expectStatus().isOk
+        }
+
+        it("응답으로 오는 모든 알림은 읽음으로 반환된다") {
+          performedRequest.expectBody<List<Notification>>().consumeWith { result ->
+            val returnedNotifications = result.responseBody!!
+            returnedNotifications.size shouldBe 2
+            returnedNotifications.all { it.isRead } shouldBe true
+          }
+        }
+      }
+    }
+
+    describe("DELETE /api/v1/notifications/{id}/delete") {
+      context("유저의 특정 알림 삭제 요청이 들어오면") {
+        val notificationId = "test-notification-id"
+
+        coEvery { notificationService.deleteNotification(notificationId) } just runs
+
+        val performedRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/notifications/$notificationId/delete")
+          .exchange()
+
+        it("알림 삭제 로직이 수행된다") {
+          coVerify(exactly = 1) { notificationService.deleteNotification(notificationId) }
+        }
+
+        it("요청은 성공한다") {
+          performedRequest.expectStatus().isOk
+        }
+      }
+    }
+
+    describe("DELETE /api/v1/notifications/delete/all/{userId}") {
+      context("유저의 모든 알림 삭제 요청이 들어오면") {
+        coEvery { notificationService.deleteAllNotification(userId) } just runs
+
+        val performedRequest = webTestClient
+          .mutateWith(SecurityMockServerConfigurers.mockAuthentication(mockAuthentication))
+          .delete()
+          .uri("/api/v1/notifications/delete/all/$userId")
+          .exchange()
+
+        it("모든 알림 삭제 로직이 수행된다") {
+          coVerify(exactly = 1) { notificationService.deleteAllNotification(userId) }
+        }
+
+        it("요청은 성공한다") {
+          performedRequest.expectStatus().isOk
         }
       }
     }
