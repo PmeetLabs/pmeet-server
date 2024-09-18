@@ -11,6 +11,9 @@ interface ProjectTryoutRepository : ReactiveMongoRepository<ProjectTryout, Strin
 
   fun findAllByProjectId(projectId: String): Flux<ProjectTryout>
 
-  fun findAllByProjectIdAndTryoutStatusIs(projectId: String, tryoutStatus: ProjectTryoutStatus): Flux<ProjectTryout>
+  fun findAllByProjectIdAndTryoutStatusIsOrderByUpdatedAtDesc(
+    projectId: String,
+    tryoutStatus: ProjectTryoutStatus
+  ): Flux<ProjectTryout>
 
 }

@@ -30,7 +30,10 @@ class ProjectTryoutService(
 
   @Transactional(readOnly = true)
   suspend fun findAllAcceptedTryoutByProjectId(projectId: String): List<ProjectTryout> {
-    return projectTryoutRepository.findAllByProjectIdAndTryoutStatusIs(projectId, ProjectTryoutStatus.ACCEPTED)
+    return projectTryoutRepository.findAllByProjectIdAndTryoutStatusIsOrderByUpdatedAtDesc(
+      projectId,
+      ProjectTryoutStatus.ACCEPTED
+    )
       .collectList().awaitSingle()
   }
 

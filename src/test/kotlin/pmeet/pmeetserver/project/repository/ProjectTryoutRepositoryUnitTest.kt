@@ -111,7 +111,7 @@ internal class ProjectTryoutRepositoryUnitTest(
   describe("findAllByProjectIdAndTryoutStatus") {
     context("프로젝트 ID와 TryoutStatus가 주어지면") {
       it("해당하는 프로젝트 ID와 TryoutStatus의 지원 이력 목록을 조회한다") {
-        val result = projectTryoutRepository.findAllByProjectIdAndTryoutStatusIs(
+        val result = projectTryoutRepository.findAllByProjectIdAndTryoutStatusIsOrderByUpdatedAtDesc(
           projectTryout.projectId,
           ProjectTryoutStatus.ACCEPTED
         ).collectList().awaitSingle()

@@ -184,7 +184,10 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
         runTest {
           val projectId = acceptedProjectTryout.projectId
           every {
-            projectTryoutRepository.findAllByProjectIdAndTryoutStatusIs(projectId, ProjectTryoutStatus.ACCEPTED)
+            projectTryoutRepository.findAllByProjectIdAndTryoutStatusIsOrderByUpdatedAtDesc(
+              projectId,
+              ProjectTryoutStatus.ACCEPTED
+            )
           } returns Flux.fromIterable(listOf(acceptedProjectTryout))
 
           val result = projectTryoutService.findAllAcceptedTryoutByProjectId(projectId)
@@ -194,7 +197,10 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
           result.all { it.projectId == projectId } shouldBe true
 
           verify(exactly = 1) {
-            projectTryoutRepository.findAllByProjectIdAndTryoutStatusIs(projectId, ProjectTryoutStatus.ACCEPTED)
+            projectTryoutRepository.findAllByProjectIdAndTryoutStatusIsOrderByUpdatedAtDesc(
+              projectId,
+              ProjectTryoutStatus.ACCEPTED
+            )
           }
         }
       }
