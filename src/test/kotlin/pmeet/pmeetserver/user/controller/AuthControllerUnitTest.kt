@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import org.springframework.web.util.UriBuilder
-import pmeet.pmeetserver.user.service.oauth.OauthFacadeService
 import pmeet.pmeetserver.config.TestSecurityConfig
 import pmeet.pmeetserver.user.dto.request.CheckMailRequestDto
 import pmeet.pmeetserver.user.dto.request.CheckNickNameRequestDto
@@ -23,6 +22,7 @@ import pmeet.pmeetserver.user.dto.request.VerifyVerificationCodeRequestDto
 import pmeet.pmeetserver.user.dto.response.UserJwtDto
 import pmeet.pmeetserver.user.dto.response.UserSignUpResponseDto
 import pmeet.pmeetserver.user.service.UserFacadeService
+import pmeet.pmeetserver.user.service.oauth.OauthFacadeService
 
 @WebFluxTest(AuthController::class)
 @Import(TestSecurityConfig::class)
@@ -117,7 +117,7 @@ internal class AuthControllerUnitTest : DescribeSpec() {
         it("리다이렉트 URL을 반환한다") {
           performRequest.expectHeader().valueEquals(
             "Location",
-            "https://pmeet.site/?userId=${responseDto.userId}&accessToken=${responseDto.accessToken}&refreshToken=${responseDto.refreshToken}"
+            "https://pmeet.site/?userId=${responseDto.userId}&accessToken=${responseDto.accessToken}"
           )
         }
       }
@@ -148,7 +148,7 @@ internal class AuthControllerUnitTest : DescribeSpec() {
         it("리다이렉트 URL을 반환한다") {
           performRequest.expectHeader().valueEquals(
             "Location",
-            "https://pmeet.site/?userId=${responseDto.userId}&accessToken=${responseDto.accessToken}&refreshToken=${responseDto.refreshToken}"
+            "https://pmeet.site/?userId=${responseDto.userId}&accessToken=${responseDto.accessToken}"
           )
         }
       }
@@ -176,7 +176,7 @@ internal class AuthControllerUnitTest : DescribeSpec() {
           it("리다이렉트 URL을 반환한다") {
             performRequest.expectHeader().valueEquals(
               "Location",
-              "https://pmeet.site/?userId=${responseDto.userId}&accessToken=${responseDto.accessToken}&refreshToken=${responseDto.refreshToken}"
+              "https://pmeet.site/?userId=${responseDto.userId}&accessToken=${responseDto.accessToken}"
             )
           }
         }
