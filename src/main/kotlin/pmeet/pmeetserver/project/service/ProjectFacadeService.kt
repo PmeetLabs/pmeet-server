@@ -177,6 +177,16 @@ class ProjectFacadeService(
   }
 
   @Transactional(readOnly = true)
+  suspend fun getAcceptedProjectTryoutListByProjectId(
+    requestedUserId: String,
+    projectId: String
+  ): List<ProjectTryoutResponseDto> {
+    checkUserHasAuthToProject(projectId, requestedUserId, ErrorCode.PROJECT_TRYOUT_VIEW_FORBIDDEN)
+    val projectTryoutList = projectTryoutService.findAllAcceptedTryoutByProjectId(projectId)
+    return projectTryoutList.map { ProjectTryoutResponseDto.from(it) }
+  }
+
+  @Transactional(readOnly = true)
   suspend fun getProjectCommentList(projectId: String): List<GetProjectCommentWithChildResponseDto> {
     val projectCommentWithChild = projectCommentService.getProjectCommentWithChildByProjectId(projectId)
 

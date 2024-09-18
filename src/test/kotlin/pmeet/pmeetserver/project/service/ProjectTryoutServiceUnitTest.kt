@@ -27,6 +27,7 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
 
   lateinit var projectTryoutService: ProjectTryoutService
   lateinit var projectTryout: ProjectTryout
+  lateinit var acceptedProjectTryout: ProjectTryout
   lateinit var projectTryoutForList: ProjectTryout
   lateinit var userId: String
 
@@ -46,6 +47,18 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
       tryoutStatus = ProjectTryoutStatus.INREVIEW,
       createdAt = LocalDateTime.now()
     )
+
+    acceptedProjectTryout = ProjectTryout(
+      projectId = "testProjectId",
+      userId = "testUserId2",
+      resumeId = "resumeId2",
+      userName = "testUserName2",
+      userSelfDescription = "userSelfDescription2",
+      positionName = "testPosition2",
+      tryoutStatus = ProjectTryoutStatus.ACCEPTED,
+      createdAt = LocalDateTime.of(2024, 7, 24, 0, 0, 0)
+    )
+
     ReflectionTestUtils.setField(projectTryout, "id", "testTryoutId")
 
     projectTryoutForList = ProjectTryout(
@@ -103,7 +116,14 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
     context("프로젝트 ID 가 주어지면") {
       it("해당 프로젝트에 지원한 모든 지원 목록을 반환한다") {
         runTest {
-          every { projectTryoutRepository.findAllByProjectId(any()) } answers { Flux.fromIterable(mutableListOf(projectTryout, projectTryoutForList)) }
+          every { projectTryoutRepository.findAllByProjectId(any()) } answers {
+            Flux.fromIterable(
+              mutableListOf(
+                projectTryout,
+                projectTryoutForList
+              )
+            )
+          }
 
           val result = projectTryoutService.findAllByProjectId(projectTryout.projectId)
 
@@ -158,6 +178,26 @@ internal class ProjectTryoutServiceUnitTest : DescribeSpec({
     }
   }
 
+  describe("findAllAcceptedTryoutByProjectId") {
+    context("프로젝트 ID가 주어지면") {
+      it("해당 프로젝트의 승인된 지원 목록을 반환한다") {
+        runTest {
+          val projectId = acceptedProjectTryout.projectId
+          every {
+            projectTryoutRepository.findAllByProjectIdAndTryoutStatusIs(projectId, ProjectTryoutStatus.ACCEPTED)
+          } returns Flux.fromIterable(listOf(acceptedProjectTryout))
 
+          val result = projectTryoutService.findAllAcceptedTryoutByProjectId(projectId)
 
+          result.size shouldBe 1
+          result.all { it.tryoutStatus == ProjectTryoutStatus.ACCEPTED } shouldBe true
+          result.all { it.projectId == projectId } shouldBe true
+
+          verify(exactly = 1) {
+            projectTryoutRepository.findAllByProjectIdAndTryoutStatusIs(projectId, ProjectTryoutStatus.ACCEPTED)
+          }
+        }
+      }
+    }
+  }
 })

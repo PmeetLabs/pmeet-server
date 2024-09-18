@@ -3,6 +3,7 @@ package pmeet.pmeetserver.project.controller
 import com.ninjasquad.springmockk.MockkBean
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import org.springframework.beans.factory.annotation.Autowired
@@ -240,6 +241,98 @@ internal class ProjectTryoutControllerUnitTest : DescribeSpec() {
 
         it("요청은 성공한다") {
           performRequest.expectStatus().isOk
+        }
+      }
+    }
+
+    describe("getAcceptedProjectTryoutList") {
+      context("인증된 유저의 프로젝트에 대한 승인된 지원자 목록 조회 요청이 들어오면") {
+        val userId = "testUserId"
+        val projectId = "testProjectId"
+        val createdAt = LocalDateTime.now()
+        val acceptedTryouts = listOf(
+          ProjectTryoutResponseDto(
+            id = "testTryoutId1",
+            resumeId = "resumeId1",
+            userId = "userId1",
+            projectId = projectId,
+            userName = "userName1",
+            userSelfDescription = "userSelfDescription1",
+            positionName = "positionName1",
+            tryoutStatus = ProjectTryoutStatus.ACCEPTED,
+            createdAt = createdAt
+          ),
+          ProjectTryoutResponseDto(
+            id = "testTryoutId2",
+            resumeId = "resumeId2",
+            userId = "userId2",
+            projectId = projectId,
+            userName = "userName2",
+            userSelfDescription = "userSelfDescription2",
+            positionName = "positionName2",
+            tryoutStatus = ProjectTryoutStatus.ACCEPTED,
+            createdAt = createdAt.plusHours(1)
+          )
+        )
+
+        coEvery {
+          projectFacadeService.getAcceptedProjectTryoutListByProjectId(userId, projectId)
+        } returns acceptedTryouts
+
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .get()
+          .uri("/api/v1/project-tryouts/$projectId/accept")
+          .exchange()
+
+        it("서비스를 통해 데이터를 조회한다") {
+          coVerify(exactly = 1) { projectFacadeService.getAcceptedProjectTryoutListByProjectId(userId, projectId) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("승인된 지원자 목록을 반환한다") {
+          performRequest.expectBody<List<ProjectTryoutResponseDto>>().consumeWith { response ->
+            val responseBody = response.responseBody
+            responseBody shouldNotBe null
+            responseBody!!.size shouldBe 2
+
+            responseBody[0].id shouldBe acceptedTryouts[0].id
+            responseBody[0].resumeId shouldBe acceptedTryouts[0].resumeId
+            responseBody[0].userId shouldBe acceptedTryouts[0].userId
+            responseBody[0].projectId shouldBe acceptedTryouts[0].projectId
+            responseBody[0].userName shouldBe acceptedTryouts[0].userName
+            responseBody[0].userSelfDescription shouldBe acceptedTryouts[0].userSelfDescription
+            responseBody[0].positionName shouldBe acceptedTryouts[0].positionName
+            responseBody[0].tryoutStatus shouldBe ProjectTryoutStatus.ACCEPTED
+            responseBody[0].createdAt shouldBe acceptedTryouts[0].createdAt
+
+            responseBody[1].id shouldBe acceptedTryouts[1].id
+            responseBody[1].resumeId shouldBe acceptedTryouts[1].resumeId
+            responseBody[1].userId shouldBe acceptedTryouts[1].userId
+            responseBody[1].projectId shouldBe acceptedTryouts[1].projectId
+            responseBody[1].userName shouldBe acceptedTryouts[1].userName
+            responseBody[1].userSelfDescription shouldBe acceptedTryouts[1].userSelfDescription
+            responseBody[1].positionName shouldBe acceptedTryouts[1].positionName
+            responseBody[1].tryoutStatus shouldBe ProjectTryoutStatus.ACCEPTED
+            responseBody[1].createdAt shouldBe acceptedTryouts[1].createdAt
+          }
+        }
+      }
+
+      context("인증되지 않은 유저의 요청이 들어오면") {
+        val projectId = "testProjectId"
+
+        val performRequest = webTestClient
+          .get()
+          .uri("/api/v1/project-tryouts/$projectId/accept")
+          .exchange()
+
+        it("인증 에러를 반환한다") {
+          performRequest.expectStatus().isUnauthorized
         }
       }
     }

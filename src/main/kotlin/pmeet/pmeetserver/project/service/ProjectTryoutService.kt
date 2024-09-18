@@ -28,6 +28,13 @@ class ProjectTryoutService(
     return projectTryoutRepository.findAllByProjectId(projectId).collectList().awaitSingle()
   }
 
+  @Transactional(readOnly = true)
+  suspend fun findAllAcceptedTryoutByProjectId(projectId: String): List<ProjectTryout> {
+    return projectTryoutRepository.findAllByProjectIdAndTryoutStatusIs(projectId, ProjectTryoutStatus.ACCEPTED)
+      .collectList().awaitSingle()
+  }
+
+
   @Transactional
   suspend fun updateTryoutStatus(tryoutId: String, accepted: ProjectTryoutStatus): ProjectTryout {
     val projectTryout = projectTryoutRepository.findById(tryoutId).awaitSingle()
@@ -39,5 +46,4 @@ class ProjectTryoutService(
   suspend fun deleteTryout(tryoutId: String) {
     projectTryoutRepository.deleteById(tryoutId).awaitSingleOrNull()
   }
-
 }

@@ -725,4 +725,76 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
       }
     }
   }
+
+  describe("getAcceptedProjectTryoutListByProjectId") {
+    val projectId = "testProjectId"
+    val requestedUserId = "testUserId"
+
+    val acceptedTryout1 = ProjectTryout(
+      id = "testTryoutId1",
+      projectId = projectId,
+      userId = "testUserId2",
+      resumeId = "resumeId2",
+      userName = "testUserName2",
+      userSelfDescription = "userSelfDescription2",
+      positionName = "testPosition2",
+      tryoutStatus = ProjectTryoutStatus.ACCEPTED,
+      createdAt = LocalDateTime.of(2024, 7, 24, 0, 0, 0)
+    )
+
+    val acceptedTryout2 = ProjectTryout(
+      id = "testTryoutId2",
+      projectId = projectId,
+      userId = "testUserId2",
+      resumeId = "resumeId2",
+      userName = "testUserName2",
+      userSelfDescription = "userSelfDescription2",
+      positionName = "testPosition2",
+      tryoutStatus = ProjectTryoutStatus.ACCEPTED,
+      createdAt = LocalDateTime.of(2024, 7, 24, 0, 0, 0)
+    )
+
+    context("프로젝트 생성자가 요청한 경우") {
+      it("승인된 지원 목록을 반환한다") {
+        runTest {
+          val acceptedTryouts = listOf(acceptedTryout1, acceptedTryout2)
+
+          coEvery { projectService.getProjectById(projectId) } returns project
+          coEvery { projectTryoutService.findAllAcceptedTryoutByProjectId(projectId) } returns acceptedTryouts
+
+          val result = projectFacadeService.getAcceptedProjectTryoutListByProjectId(requestedUserId, projectId)
+
+          result.size shouldBe 2
+          result[0].id shouldBe acceptedTryout1.id
+          result[0].userName shouldBe acceptedTryout1.userName
+          result[0].tryoutStatus shouldBe ProjectTryoutStatus.ACCEPTED
+          result[1].id shouldBe acceptedTryout2.id
+          result[1].userName shouldBe acceptedTryout2.userName
+          result[1].tryoutStatus shouldBe ProjectTryoutStatus.ACCEPTED
+
+          coVerify(exactly = 1) { projectService.getProjectById(projectId) }
+          coVerify(exactly = 1) { projectTryoutService.findAllAcceptedTryoutByProjectId(projectId) }
+        }
+      }
+    }
+
+    context("프로젝트 생성자가 아닌 사용자가 요청한 경우") {
+      it("ForbiddenRequestException을 던진다") {
+        runTest {
+          val unauthorizedUserId = "unauthorizedUserId"
+
+          coEvery { projectService.getProjectById(projectId) } returns project
+
+          val exception = shouldThrow<ForbiddenRequestException> {
+            projectFacadeService.getAcceptedProjectTryoutListByProjectId(unauthorizedUserId, projectId)
+          }
+
+          exception.errorCode shouldBe ErrorCode.PROJECT_TRYOUT_VIEW_FORBIDDEN
+
+          coVerify(exactly = 1) { projectService.getProjectById(projectId) }
+          coVerify(exactly = 0) { projectTryoutService.findAllAcceptedTryoutByProjectId(any()) }
+        }
+      }
+    }
+  }
 })
