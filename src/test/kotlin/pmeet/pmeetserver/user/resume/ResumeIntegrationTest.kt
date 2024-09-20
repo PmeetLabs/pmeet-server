@@ -262,7 +262,7 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
           performRequest.expectBody<List<ResumeResponseDto>>().consumeWith { result ->
             val returnedResumeList = result.responseBody!!
 
-            returnedResumeList.size shouldBe resumeList.size
+            returnedResumeList.size shouldBe resumeList.count { it.userId == userId }
           }
         }
       }

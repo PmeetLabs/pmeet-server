@@ -10,6 +10,7 @@ import pmeet.pmeetserver.common.exception.ForbiddenRequestException
 import pmeet.pmeetserver.file.service.FileService
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectComment
+import pmeet.pmeetserver.project.domain.ProjectMember
 import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
@@ -17,11 +18,13 @@ import pmeet.pmeetserver.project.dto.comment.request.CreateProjectCommentRequest
 import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentResponseDto
 import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentWithChildResponseDto
 import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.request.CompleteProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.ProjectWithTryoutResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
@@ -287,7 +290,9 @@ class ProjectFacadeService(
   suspend fun deleteProjectMember(userId: String, projectId: String, memberId: String) {
     checkUserHasAuthToProject(projectId, userId, ErrorCode.PROJECT_MEMBER_MODIFY_FORBIDDEN)
     val projectMember = projectMemberService.findMemberById(memberId);
-    projectTryoutService.deleteTryout(projectMember.tryoutId)
+    projectMember.tryoutId?.let { tryoutId ->
+      projectTryoutService.deleteTryout(tryoutId)
+    }
     projectMemberService.deleteProjectMember(memberId)
   }
 
@@ -306,8 +311,44 @@ class ProjectFacadeService(
     )
   }
 
+  @Transactional(readOnly = true)
+  suspend fun getCompleteProject(userId: String, projectId: String): ProjectWithTryoutResponseDto {
+    val project = checkUserHasAuthToProject(userId, projectId, ErrorCode.PROJECT_COMPLETE_FORBIDDEN)
+    val thumbNailUrl =
+      project.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    return ProjectWithTryoutResponseDto.from(project, thumbNailUrl)
+  }
+
+  @Transactional
+  suspend fun updateCompleteProject(
+    userId: String,
+    projectId: String,
+    requestDto: CompleteProjectRequestDto
+  ): ProjectWithTryoutResponseDto {
+    var project = checkUserHasAuthToProject(userId, projectId, ErrorCode.PROJECT_COMPLETE_FORBIDDEN)
+    project = projectService.completeProject(project, requestDto)
+
+    val projectMemberList = resumeService.getResumeListByResumeId(requestDto.projectMemberResumeId)
+    projectMemberService.updateAllProjectMember(projectId, projectMemberList.map { it ->
+      ProjectMember(
+        resumeId = it.id!!,
+        userId = it.userId,
+        tryoutId = null,
+        userName = it.userName,
+        userSelfDescription = it.selfDescription.orEmpty(),
+        userThumbnail = it.userProfileImageUrl,
+        projectId = projectId,
+        createdAt = LocalDateTime.now()
+      )
+    }.toList())
+
+    val thumbNailUrl =
+      project.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+    return ProjectWithTryoutResponseDto.from(project, thumbNailUrl)
+  }
+
   /**
-   * 요청을 보낸 사용자가 해당 프밋의 생성자인지 검증한다.
+  }   * 요청을 보낸 사용자가 해당 프밋의 생성자인지 검증한다.
    * 생성자가 맞는 경우엔 Project 를 반환한다.
    */
   private suspend fun checkUserHasAuthToProject(projectId: String, userId: String, errorCode: ErrorCode): Project {

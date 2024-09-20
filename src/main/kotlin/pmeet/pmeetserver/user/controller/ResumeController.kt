@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.user.controller
 
+import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.domain.PageRequest
@@ -140,5 +141,15 @@ class ResumeController(
       orderType,
       PageRequest.of(page, size)
     )
+  }
+
+  @GetMapping("/list/{projectId}")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "프로젝트 참여자 이력서 목록 조회", description = "완료 프밋 작성을 위한 해당 프로젝트 참여자 이력서 조회")
+  suspend fun getReumseListByProjectId(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @PathVariable projectId: String
+  ): List<ResumeResponseDto> {
+    return resumeFacadeService.findResumeListByProjectId(userId.awaitSingle(), projectId)
   }
 }

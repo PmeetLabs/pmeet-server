@@ -30,8 +30,10 @@ class Project(
   var description: String,
   var isCompleted: Boolean = false,
   var bookmarkers: MutableList<ProjectBookmark> = mutableListOf(), // 북마크를 한 유저 ID 리스트
+  var completeAttachments: List<String> = listOf(),
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  var updatedAt: LocalDateTime = LocalDateTime.now() // 조회 시 정렬을 위해 now()로 초기화
+  var updatedAt: LocalDateTime = LocalDateTime.now(), // 조회 시 정렬을 위해 now()로 초기화
+  var completedAt: LocalDateTime? = null,
 ) {
 
   fun update(
@@ -41,7 +43,8 @@ class Project(
     thumbNailUrl: String? = null,
     techStacks: List<String>? = null,
     recruitments: List<Recruitment>? = null,
-    description: String? = null
+    description: String? = null,
+    completeAttachments: List<String>? = null,
   ) = apply {
     title?.let { this.title = it }
     startDate?.let { this.startDate = it }
@@ -50,6 +53,7 @@ class Project(
     techStacks?.let { this.techStacks = it }
     recruitments?.let { this.recruitments = it }
     description?.let { this.description = it }
+    completeAttachments?.let { this.completeAttachments = it }
     this.updatedAt = LocalDateTime.now()
   }
 
@@ -63,6 +67,11 @@ class Project(
 
   fun deleteBookmark(userId: String) {
     bookmarkers.removeIf { it.userId == userId }
+  }
+
+  fun complete() {
+    this.isCompleted = true
+    this.completedAt = LocalDateTime.now()
   }
 
 }

@@ -10,6 +10,7 @@ import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.utils.page.SliceResponse
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.dto.request.CompleteProjectRequestDto
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.repository.ProjectRepository
 
@@ -66,5 +67,20 @@ class ProjectService(
       ).collectList().awaitSingle(),
       pageable
     )
+  }
+
+  @Transactional
+  suspend fun completeProject(project: Project, requestDto: CompleteProjectRequestDto): Project {
+    project.update(
+      title = requestDto.title,
+      startDate = requestDto.startDate,
+      endDate = requestDto.endDate,
+      thumbNailUrl = requestDto.thumbNailUrl,
+      techStacks = requestDto.techStacks,
+      description = requestDto.description,
+      completeAttachments = requestDto.attachmentUrls
+    )
+    project.complete()
+    return projectRepository.save(project).awaitSingle()
   }
 }

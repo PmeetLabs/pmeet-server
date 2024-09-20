@@ -407,9 +407,9 @@ object ResumeGenerator {
   }
 
   internal fun generateResumeList(): List<Resume> {
-    val resume1 = generateResumeByResumeIdUserId("resume1", "user2")
+    val resume1 = generateResumeByResumeIdUserId("resume1", "user1")
     val resume2 = generateResumeByResumeIdUserId("resume2", "user2")
-    val resume3 = generateResumeByResumeIdUserId("resume3", "user2")
+    val resume3 = generateResumeByResumeIdUserId("resume3", "user3")
     return mutableListOf(resume1, resume2, resume3)
   }
 

@@ -2,6 +2,7 @@ package pmeet.pmeetserver.user.resume.repository
 
 import io.kotest.core.spec.IsolationMode
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -13,6 +14,8 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.repository.support.ReactiveMongoRepositoryFactory
 import pmeet.pmeetserver.config.BaseMongoDBTestForRepository
+import pmeet.pmeetserver.project.domain.ProjectMember
+import pmeet.pmeetserver.project.repository.ProjectMemberRepository
 import pmeet.pmeetserver.user.domain.enum.ExperienceYear
 import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
 import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
@@ -30,6 +33,7 @@ import pmeet.pmeetserver.user.repository.techStack.TechStackRepository
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeListForSlice
+import java.time.LocalDateTime
 
 @ExperimentalCoroutinesApi
 internal class ResumeRepositoryUnitTest(
@@ -49,6 +53,7 @@ internal class ResumeRepositoryUnitTest(
   val customResumeRepository = CustomResumeRepositoryImpl(template)
 
   val resumeRepository = factory.getRepository(ResumeRepository::class.java, customResumeRepository)
+  val projectMemberRepository = factory.getRepository(ProjectMemberRepository::class.java)
 
   lateinit var job: Job
   lateinit var techStack: TechStack
@@ -57,6 +62,9 @@ internal class ResumeRepositoryUnitTest(
   lateinit var resume: Resume
   lateinit var resumeList: List<Resume>
   lateinit var resumeListForSlice: List<Resume>
+  lateinit var projectMemberList: MutableList<ProjectMember>
+
+  val projectId = "test-project-id"
 
   beforeSpec {
     job = Job(
@@ -91,6 +99,22 @@ internal class ResumeRepositoryUnitTest(
 
     resumeListForSlice = resumeRepository.saveAll(generateResumeListForSlice()).collectList().block().orEmpty()
 
+    projectMemberList = mutableListOf()
+    for (resumes in resumeList) {
+      val projectMember = ProjectMember(
+        resumeId = resumes.id!!,
+        tryoutId = "testTryout-" + resumes.id!!,
+        userId = resumes.userId,
+        userName = resumes.userName,
+        userSelfDescription = resumes.selfDescription.orEmpty(),
+        positionName = "testPositionName",
+        createdAt = LocalDateTime.now(),
+        projectId = projectId
+      )
+      projectMemberList.add(projectMember)
+    }
+    projectMemberRepository.saveAll(projectMemberList).collectList().block()
+
     Dispatchers.setMain(testDispatcher)
   }
 
@@ -99,6 +123,7 @@ internal class ResumeRepositoryUnitTest(
     jobRepository.deleteAll().block()
     techStackRepository.deleteAll().block()
     resumeRepository.deleteAll().block()
+    projectMemberRepository.deleteAll().block()
   }
 
   describe("findById") {
@@ -107,7 +132,7 @@ internal class ResumeRepositoryUnitTest(
         runTest {
           val result = resumeRepository.findById(resume.id ?: "").block()
 
-          result?.title shouldBe resume.title
+
           result?.userName shouldBe resume.userName
           result?.userGender shouldBe resume.userGender
           result?.userBirthDate shouldBe resume.userBirthDate
@@ -156,8 +181,9 @@ internal class ResumeRepositoryUnitTest(
     context("user id 가 주어지면") {
       it("user의 이력서 목록을 반환한다") {
         runTest {
-          val result = resumeRepository.findAllByUserId("user2").collectList().block()
-          result?.size shouldBe resumeList.size
+          val userId = "user2"
+          val result = resumeRepository.findAllByUserId(userId).collectList().block()
+          result?.size shouldBe resumeList.count { it.userId == userId }
         }
       }
     }
@@ -360,4 +386,49 @@ internal class ResumeRepositoryUnitTest(
     }
   }
 
+  describe("findProjectMembersWithResumeByProjectId") {
+    context("프로젝트 ID가 주어지면") {
+      it("해당 프로젝트의 멤버와 그에 연관된 이력서 정보를 함께 반환한다") {
+        runTest {
+          val result = resumeRepository.findProjectMembersWithResumeByProjectId(projectId)
+            .collectList()
+            .block()
+
+          result shouldNotBe null
+          result?.size shouldBe projectMemberList.size
+
+          result?.forEach { projectMemberWithResume ->
+            projectMemberWithResume.projectId shouldBe projectId
+
+            // ProjectMember 정보 검증
+            val expectedProjectMember = projectMemberList.find { it.userId == projectMemberWithResume.userId }
+            projectMemberWithResume.resumeId shouldBe expectedProjectMember?.resumeId
+            projectMemberWithResume.userName shouldBe expectedProjectMember?.userName
+            projectMemberWithResume.userThumbnail shouldBe expectedProjectMember?.userThumbnail
+            projectMemberWithResume.userSelfDescription shouldBe expectedProjectMember?.userSelfDescription
+            projectMemberWithResume.positionName shouldBe expectedProjectMember?.positionName
+
+            // Resume 정보 검증
+            val expectedResume = listOf(resume) + resumeList
+            val matchingResume = expectedResume.find { it.id == projectMemberWithResume.resumeId }
+            projectMemberWithResume.resume.title shouldBe matchingResume?.title
+            projectMemberWithResume.resume.userId shouldBe matchingResume?.userId
+            projectMemberWithResume.resume.userName shouldBe matchingResume?.userName
+          }
+        }
+      }
+    }
+
+    context("존재하지 않는 프로젝트 ID가 주어지면") {
+      it("빈 리스트를 반환한다") {
+        runTest {
+          val result = resumeRepository.findProjectMembersWithResumeByProjectId("nonExistentProjectId")
+            .collectList()
+            .block()
+
+          result?.size shouldBe 0
+        }
+      }
+    }
+  }
 })

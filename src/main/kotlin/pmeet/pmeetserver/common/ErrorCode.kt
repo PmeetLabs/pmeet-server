@@ -39,7 +39,8 @@ enum class ErrorCode(private val code: String, private val message: String) {
   PROJECT_NOT_FOUND("PROJECT-40400", "해당하는 ID의 프로젝트를 찾을 수 없습니다."),
   PROJECT_UPDATE_FORBIDDEN("PROJECT-40300", "해당하는 프로젝트를 수정할 권한이 없습니다."),
   PROJECT_DELETE_FORBIDDEN("PROJECT-40301", "해당하는 프로젝트를 삭제할 권한이 없습니다."),
-  PROJECT_TRYOUT_VIEW_FORBIDDEN("PRJECT-40302", "해당하는 프로젝트의 지원자를 볼 권한이 없습니다."),
+  PROJECT_TRYOUT_VIEW_FORBIDDEN("PROJECT-40302", "해당하는 프로젝트의 지원자를 볼 권한이 없습니다."),
+  PROJECT_COMPLETE_FORBIDDEN("PROJECT-40303", "해당하는 프로젝트의 완료처리를 진핼할 권한이 없습니다."),
 
   // Project Comment
   PROJECT_COMMENT_NOT_FOUND("PROJECT-COMMENT-40400", "해당하는 ID의 댓글을 찾을 수 없습니다."),

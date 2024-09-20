@@ -14,6 +14,7 @@ import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
 import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.repository.resume.ResumeRepository
+import pmeet.pmeetserver.user.repository.resume.vo.ProjectMemberWithResume
 
 @Service
 class ResumeService(private val resumeRepository: ResumeRepository) {
@@ -72,5 +73,10 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
         .awaitSingle(),
       pageable
     )
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun getAllByProjectId(projectId: String): List<ProjectMemberWithResume> {
+    return resumeRepository.findProjectMembersWithResumeByProjectId(projectId).collectList().awaitSingle()
   }
 }

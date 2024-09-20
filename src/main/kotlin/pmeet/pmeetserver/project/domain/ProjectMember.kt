@@ -6,15 +6,16 @@ import java.time.LocalDateTime
 
 @Document
 class ProjectMember(
-    @Id
-    var id: String? = null,
-    val resumeId: String,
-    val tryoutId: String,
-    val userId: String,
-    val userName: String,
-    val userSelfDescription: String,
-    var positionName: String? = null,
-    val projectId: String,
-    val createdAt: LocalDateTime,
+  @Id
+  var id: String? = null,
+  val resumeId: String,
+  val tryoutId: String? = null,
+  val userId: String,
+  val userName: String,
+  val userThumbnail: String? = null,
+  val userSelfDescription: String,
+  var positionName: String? = null,
+  val projectId: String,
+  val createdAt: LocalDateTime,
 ) {
 }

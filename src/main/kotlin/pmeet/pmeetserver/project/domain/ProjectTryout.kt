@@ -15,6 +15,7 @@ class ProjectTryout(
   val userId: String,
   val userName: String,
   val userSelfDescription: String,
+  val userProfileImageUrl: String? = null,
   val positionName: String,
   var tryoutStatus: ProjectTryoutStatus,
   val projectId: String,
@@ -37,6 +38,7 @@ class ProjectTryout(
       tryoutId = id!!,
       userName = userName,
       userSelfDescription = userSelfDescription,
+      userThumbnail = userProfileImageUrl,
       projectId = projectId,
       createdAt = LocalDateTime.now()
     )

@@ -169,4 +169,15 @@ class ResumeFacadeService(
       resumes.hasNext()
     )
   }
+
+  @Transactional(readOnly = true)
+  suspend fun findResumeListByProjectId(userId: String, projectId: String): List<ResumeResponseDto> {
+    val resumeListInProject = resumeService.getAllByProjectId(projectId)
+    return resumeListInProject.map {
+      ResumeResponseDto.of(
+        resume = it.resume,
+        profileImageDownloadUrl = it.resume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
+      )
+    }
+  }
 }

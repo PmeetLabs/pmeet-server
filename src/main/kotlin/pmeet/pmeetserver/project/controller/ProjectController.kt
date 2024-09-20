@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.project.controller
 
+import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import kotlinx.coroutines.reactor.awaitSingle
 import org.springframework.data.domain.PageRequest
@@ -18,11 +19,13 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.request.CompleteProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.ProjectWithTryoutResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.enums.ProjectFilterType
@@ -122,5 +125,26 @@ class ProjectController(
     @RequestParam(defaultValue = "6") size: Int
   ): Slice<GetMyProjectResponseDto> {
     return projectFacadeService.getMyProjectSlice(userId.awaitSingle(), PageRequest.of(page, size))
+  }
+
+  @GetMapping("/{projectId}/complete")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "완료 프밋 상세 조회", description = "완료된 프밋 작성을 위한 프밋 상세 조회")
+  suspend fun getCompleteProject(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @PathVariable projectId: String
+  ): ProjectWithTryoutResponseDto {
+    return projectFacadeService.getCompleteProject(userId.awaitSingle(), projectId)
+  }
+
+  @PutMapping("/{projectId}/complete")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "완료 프밋 생성 요청", description = "완료된 프밋에 대한 생성 요청")
+  suspend fun updateCompleteProject(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @PathVariable projectId: String,
+    @RequestBody @Valid requestDto: CompleteProjectRequestDto
+  ): ProjectWithTryoutResponseDto {
+    return projectFacadeService.updateCompleteProject(userId.awaitSingle(), projectId, requestDto)
   }
 }

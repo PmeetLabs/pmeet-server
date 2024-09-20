@@ -12,6 +12,7 @@ import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
 import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.domain.resume.ResumeBookMarker
+import pmeet.pmeetserver.user.repository.resume.vo.ProjectMemberWithResume
 import reactor.core.publisher.Flux
 
 class CustomResumeRepositoryImpl(
@@ -28,6 +29,16 @@ class CustomResumeRepositoryImpl(
     private const val PROPERTY_NAME_NICKNAME = "userName"
     private const val PROPERTY_NAME_JOB_NAME = "desiredJobs.name"
     private const val PROPERTY_NAME_ISACTIVE = "isActive"
+
+    private const val PROPERTY_NAME_ID = "_id"
+    private const val PROPERTY_NAME_PROJECT_ID = "projectId"
+    private const val PROPERTY_NAME_RESUME_ID = "resumeId"
+    private const val PROPERTY_NAME_USER_NAME = "userName"
+    private const val PROPERTY_NAME_USER_THUMBNAIL = "userThumbnail"
+    private const val PROPERTY_NAME_USER_SELF_DESCRIPTION = "userSelfDescription"
+    private const val PROPERTY_NAME_POSITION_NAME = "positionName"
+    private const val PROPERTY_NAME_CREATED_AT = "createdAt"
+    private const val PROPERTY_NAME_RESUME = "resume"
   }
 
   override fun findAllByFilter(
@@ -41,6 +52,27 @@ class CustomResumeRepositoryImpl(
       Criteria.where(PROPERTY_NAME_USER_ID).ne(searchedUserId)
     )
     return aggregateResumes(orderType, criteria, pageable)
+  }
+
+  override fun findProjectMembersWithResumeByProjectId(projectId: String): Flux<ProjectMemberWithResume> {
+    val aggregation = Aggregation.newAggregation(
+      Aggregation.match(Criteria.where(PROPERTY_NAME_PROJECT_ID).`is`(projectId)),
+      Aggregation.lookup(DOCUMENT_NAME, PROPERTY_NAME_RESUME_ID, PROPERTY_NAME_ID, PROPERTY_NAME_RESUME),
+      Aggregation.unwind(PROPERTY_NAME_RESUME),
+      Aggregation.project()
+        .andExpression(PROPERTY_NAME_ID).`as`(PROPERTY_NAME_ID)
+        .andExpression(PROPERTY_NAME_RESUME_ID).`as`(PROPERTY_NAME_RESUME_ID)
+        .andExpression(PROPERTY_NAME_USER_ID).`as`(PROPERTY_NAME_USER_ID)
+        .andExpression(PROPERTY_NAME_USER_NAME).`as`(PROPERTY_NAME_USER_NAME)
+        .andExpression(PROPERTY_NAME_USER_THUMBNAIL).`as`(PROPERTY_NAME_USER_THUMBNAIL)
+        .andExpression(PROPERTY_NAME_USER_SELF_DESCRIPTION).`as`(PROPERTY_NAME_USER_SELF_DESCRIPTION)
+        .andExpression(PROPERTY_NAME_POSITION_NAME).`as`(PROPERTY_NAME_POSITION_NAME)
+        .andExpression(PROPERTY_NAME_PROJECT_ID).`as`(PROPERTY_NAME_PROJECT_ID)
+        .andExpression(PROPERTY_NAME_CREATED_AT).`as`(PROPERTY_NAME_CREATED_AT)
+        .and(PROPERTY_NAME_RESUME).`as`(PROPERTY_NAME_RESUME)
+    )
+
+    return mongoTemplate.aggregate(aggregation, "projectMember", ProjectMemberWithResume::class.java)
   }
 
   /**

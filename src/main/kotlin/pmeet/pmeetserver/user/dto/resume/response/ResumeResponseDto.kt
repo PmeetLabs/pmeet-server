@@ -64,7 +64,11 @@ data class ResumeResponseDto(
   val createdAt: LocalDateTime,
 ) {
   companion object {
-    fun of(resume: Resume, profileImageDownloadUrl: String?, portfolioFileDownloadUrl: String?): ResumeResponseDto {
+    fun of(
+      resume: Resume,
+      profileImageDownloadUrl: String?,
+      portfolioFileDownloadUrl: String? = null
+    ): ResumeResponseDto {
       return ResumeResponseDto(
         id = resume.id!!,
         title = resume.title,

@@ -4,7 +4,9 @@ import org.springframework.data.domain.Pageable
 import pmeet.pmeetserver.user.domain.enum.ResumeFilterType
 import pmeet.pmeetserver.user.domain.enum.ResumeOrderType
 import pmeet.pmeetserver.user.domain.resume.Resume
+import pmeet.pmeetserver.user.repository.resume.vo.ProjectMemberWithResume
 import reactor.core.publisher.Flux
+
 
 interface CustomResumeRepository {
 
@@ -25,4 +27,5 @@ interface CustomResumeRepository {
     pageable: Pageable
   ): Flux<Resume>
 
+  fun findProjectMembersWithResumeByProjectId(projectId: String): Flux<ProjectMemberWithResume>
 }
