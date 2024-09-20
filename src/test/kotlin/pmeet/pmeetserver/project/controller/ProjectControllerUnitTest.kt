@@ -16,12 +16,15 @@ import org.springframework.security.test.web.reactive.server.SecurityMockServerC
 import org.springframework.test.web.reactive.server.WebTestClient
 import org.springframework.test.web.reactive.server.expectBody
 import pmeet.pmeetserver.config.TestSecurityConfig
-import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
 import pmeet.pmeetserver.project.dto.comment.ProjectCommentWithChildDto
+import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentWithChildResponseDto
+import pmeet.pmeetserver.project.dto.request.CompleteProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
+import pmeet.pmeetserver.project.dto.response.CompletedProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
@@ -35,8 +38,6 @@ import pmeet.pmeetserver.user.dto.response.UserResponseDtoInProject
 import pmeet.pmeetserver.util.RestSliceImpl
 import java.time.LocalDate
 import java.time.LocalDateTime
-import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentResponseDto
-import pmeet.pmeetserver.project.dto.comment.response.GetProjectCommentWithChildResponseDto
 
 @WebFluxTest(ProjectController::class)
 @Import(TestSecurityConfig::class)
@@ -691,6 +692,102 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
 
         it("요청은 실패한다") {
           performRequest.expectStatus().isUnauthorized
+        }
+      }
+    }
+
+    describe("PUT /api/v1/projects/{projectId}/complete") {
+      context("유효한 요청이 들어오면") {
+        val userId = "1234"
+        val projectId = "project-id"
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+
+        val requestDto = CompleteProjectRequestDto(
+          id = projectId,
+          title = "Updated Project Title",
+          startDate = LocalDateTime.now(),
+          endDate = LocalDateTime.now().plusMonths(1),
+          thumbNailUrl = "https://example.com/thumbnail.jpg",
+          techStacks = listOf("Kotlin", "Spring"),
+          projectMemberResumeId = listOf("resume-id-1", "resume-id-2"),
+          description = "Updated project description",
+          attachmentUrls = listOf("https://example.com/attachment1.pdf")
+        )
+
+        val responseDto = CompletedProjectResponseDto(
+          id = projectId,
+          title = requestDto.title,
+          startDate = requestDto.startDate,
+          endDate = requestDto.endDate,
+          thumbNailUrl = requestDto.thumbNailUrl,
+          techStacks = requestDto.techStacks.orEmpty(),
+          description = requestDto.description,
+          completedAttachmentList = emptyList(),
+          isCompleted = true,
+          createdAt = LocalDateTime.now(),
+        )
+
+        coEvery {
+          projectFacadeService.updateCompleteProject(userId, projectId, requestDto)
+        } returns responseDto
+
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .put()
+          .uri("/api/v1/projects/$projectId/complete")
+          .bodyValue(requestDto)
+          .exchange()
+
+        it("서비스를 통해 프로젝트를 완료 상태로 업데이트한다") {
+          coVerify(exactly = 1) { projectFacadeService.updateCompleteProject(userId, projectId, requestDto) }
+        }
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("업데이트된 프로젝트 정보를 반환한다") {
+          performRequest.expectBody<CompletedProjectResponseDto>().consumeWith { result ->
+            val returnedProject = result.responseBody!!
+
+            returnedProject.id shouldBe responseDto.id
+            returnedProject.title shouldBe responseDto.title
+            returnedProject.startDate shouldBe responseDto.startDate
+            returnedProject.endDate shouldBe responseDto.endDate
+            returnedProject.thumbNailUrl shouldBe responseDto.thumbNailUrl
+            returnedProject.description shouldBe responseDto.description
+            returnedProject.isCompleted shouldBe true
+            returnedProject.techStacks shouldBe responseDto.techStacks
+          }
+        }
+      }
+
+      context("유효하지 않은 요청이 들어오면") {
+        val userId = "1234"
+        val projectId = "project-id"
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+
+        val invalidRequestDto = CompleteProjectRequestDto(
+          id = projectId,
+          title = "", // 빈 문자열로 유효성 검사 실패 유도
+          startDate = LocalDateTime.now(),
+          endDate = LocalDateTime.now().minusDays(1), // 종료일이 시작일보다 앞서 유효성 검사 실패 유도
+          thumbNailUrl = null,
+          techStacks = null,
+          projectMemberResumeId = emptyList(),
+          description = "Description",
+          attachmentUrls = emptyList() // 빈 리스트로 유효성 검사 실패 유도
+        )
+
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .put()
+          .uri("/api/v1/projects/$projectId/complete")
+          .bodyValue(invalidRequestDto)
+          .exchange()
+
+        it("요청은 실패한다") {
+          performRequest.expectStatus().isBadRequest
         }
       }
     }

@@ -22,9 +22,9 @@ import pmeet.pmeetserver.project.dto.request.CompleteProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
+import pmeet.pmeetserver.project.dto.response.CompletedProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
-import pmeet.pmeetserver.project.dto.response.ProjectWithTryoutResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
@@ -312,11 +312,11 @@ class ProjectFacadeService(
   }
 
   @Transactional(readOnly = true)
-  suspend fun getCompleteProject(userId: String, projectId: String): ProjectWithTryoutResponseDto {
-    val project = checkUserHasAuthToProject(userId, projectId, ErrorCode.PROJECT_COMPLETE_FORBIDDEN)
+  suspend fun getCompleteProject(userId: String, projectId: String): CompletedProjectResponseDto {
+    val project = checkUserHasAuthToProject(projectId, userId, ErrorCode.PROJECT_COMPLETE_FORBIDDEN)
     val thumbNailUrl =
       project.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
-    return ProjectWithTryoutResponseDto.from(project, thumbNailUrl)
+    return CompletedProjectResponseDto.from(project, thumbNailUrl)
   }
 
   @Transactional
@@ -324,8 +324,8 @@ class ProjectFacadeService(
     userId: String,
     projectId: String,
     requestDto: CompleteProjectRequestDto
-  ): ProjectWithTryoutResponseDto {
-    var project = checkUserHasAuthToProject(userId, projectId, ErrorCode.PROJECT_COMPLETE_FORBIDDEN)
+  ): CompletedProjectResponseDto {
+    var project = checkUserHasAuthToProject(projectId, userId, ErrorCode.PROJECT_COMPLETE_FORBIDDEN)
     project = projectService.completeProject(project, requestDto)
 
     val projectMemberList = resumeService.getResumeListByResumeId(requestDto.projectMemberResumeId)
@@ -344,7 +344,7 @@ class ProjectFacadeService(
 
     val thumbNailUrl =
       project.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
-    return ProjectWithTryoutResponseDto.from(project, thumbNailUrl)
+    return CompletedProjectResponseDto.from(project, thumbNailUrl)
   }
 
   /**

@@ -23,9 +23,9 @@ import pmeet.pmeetserver.project.dto.request.CompleteProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
+import pmeet.pmeetserver.project.dto.response.CompletedProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
-import pmeet.pmeetserver.project.dto.response.ProjectWithTryoutResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.enums.ProjectFilterType
@@ -133,7 +133,7 @@ class ProjectController(
   suspend fun getCompleteProject(
     @AuthenticationPrincipal userId: Mono<String>,
     @PathVariable projectId: String
-  ): ProjectWithTryoutResponseDto {
+  ): CompletedProjectResponseDto {
     return projectFacadeService.getCompleteProject(userId.awaitSingle(), projectId)
   }
 
@@ -144,7 +144,7 @@ class ProjectController(
     @AuthenticationPrincipal userId: Mono<String>,
     @PathVariable projectId: String,
     @RequestBody @Valid requestDto: CompleteProjectRequestDto
-  ): ProjectWithTryoutResponseDto {
+  ): CompletedProjectResponseDto {
     return projectFacadeService.updateCompleteProject(userId.awaitSingle(), projectId, requestDto)
   }
 }

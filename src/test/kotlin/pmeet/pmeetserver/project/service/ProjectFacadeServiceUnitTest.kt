@@ -5,8 +5,10 @@ import io.kotest.core.spec.IsolationMode
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.just
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -30,6 +32,7 @@ import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.comment.ProjectCommentWithChildDto
 import pmeet.pmeetserver.project.dto.comment.request.CreateProjectCommentRequestDto
 import pmeet.pmeetserver.project.dto.comment.response.ProjectCommentResponseDto
+import pmeet.pmeetserver.project.dto.request.CompleteProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
@@ -41,6 +44,7 @@ import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.resume.Resume
 import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResume
+import pmeet.pmeetserver.user.resume.ResumeGenerator.generateResumeList
 import pmeet.pmeetserver.user.service.UserService
 import pmeet.pmeetserver.user.service.notification.NotificationService
 import pmeet.pmeetserver.user.service.resume.ResumeService
@@ -65,6 +69,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
   lateinit var projectFacadeService: ProjectFacadeService
 
   lateinit var project: Project
+  lateinit var completedProject: Project
   lateinit var projectComment: ProjectComment
   lateinit var userId: String
   lateinit var forbiddenUserId: String
@@ -123,6 +128,22 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     ReflectionTestUtils.setField(project, "id", "testId")
     ReflectionTestUtils.setField(project, "createdAt", LocalDateTime.of(2021, 5, 1, 0, 0, 0))
     ReflectionTestUtils.setField(project, "updatedAt", LocalDateTime.of(2021, 6, 1, 0, 0, 0))
+
+    completedProject = Project(
+      userId = userId,
+      title = "testTitle",
+      startDate = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
+      endDate = LocalDateTime.of(2021, 12, 31, 23, 59, 59),
+      thumbNailUrl = "testThumbNailUrl",
+      techStacks = listOf("testTechStack1", "testTechStack2"),
+      recruitments = recruitments,
+      description = "testDescription"
+    )
+    ReflectionTestUtils.setField(completedProject, "id", "completedProjectId")
+    ReflectionTestUtils.setField(completedProject, "createdAt", LocalDateTime.of(2021, 5, 1, 0, 0, 0))
+    ReflectionTestUtils.setField(completedProject, "updatedAt", LocalDateTime.of(2021, 6, 1, 0, 0, 0))
+    completedProject.complete()
+
     projectComment = ProjectComment(
       projectId = project.id!!,
       userId = userId,
@@ -793,6 +814,48 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
 
           coVerify(exactly = 1) { projectService.getProjectById(projectId) }
           coVerify(exactly = 0) { projectTryoutService.findAllAcceptedTryoutByProjectId(any()) }
+        }
+      }
+    }
+  }
+
+  describe("updateCompleteProject") {
+    context("유효한 userId와 projectId, 그리고 CompleteProjectRequestDto가 주어지면") {
+      it("프로젝트를 완료 상태로 업데이트하고 ProjectWithTryoutResponseDto를 반환한다") {
+        val projectId = completedProject.id!!
+        val resumeId1 = "resumeId1"
+        val resumeId2 = "resumeId2"
+
+        val requestDto = CompleteProjectRequestDto(
+          id = projectId,
+          title = project.title,
+          startDate = project.startDate,
+          endDate = project.endDate,
+          thumbNailUrl = project.thumbNailUrl,
+          techStacks = project.techStacks,
+          projectMemberResumeId = listOf(resumeId1, resumeId2),
+          description = project.description,
+          attachmentUrls = listOf("url1", "url2")
+        )
+        val resumeList = generateResumeList()
+        val thumbNailDownloadUrl = "thumbnailurl"
+
+        runTest {
+          // Given
+          coEvery { projectService.getProjectById(projectId) } answers { completedProject }
+          coEvery { projectService.completeProject(any(), any()) } answers { completedProject }
+          coEvery { resumeService.getResumeListByResumeId(any()) } returns resumeList
+          coEvery { projectMemberService.updateAllProjectMember(any(), any()) } just Runs
+          coEvery { fileService.generatePreSignedUrlToDownload(any()) } returns thumbNailDownloadUrl
+
+          // When
+          val result = projectFacadeService.updateCompleteProject(userId, projectId, requestDto)
+
+          // Then
+          result.id shouldBe completedProject.id
+          result.isCompleted shouldBe true
+          result.thumbNailUrl shouldBe thumbNailDownloadUrl
+
         }
       }
     }
