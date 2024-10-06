@@ -46,21 +46,22 @@ class Resume(
   var techStacks: List<TechStack>,
   var jobExperiences: List<JobExperience>,
   var projectExperiences: List<ProjectExperience>,
-  var portfolioFileUrl: String?,
+  var portfolioFileUrls: List<String>,
   var portfolioUrl: List<String>,
   var selfDescription: String?,
   var bookmarkers: MutableList<ResumeBookMarker> = mutableListOf(),
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
-  fun update(title: String? = null, userProfileImageUrl: String? = null,
-             desiredJobs: List<Job>? = null,
-             techStacks: List<TechStack>? = null,
-             jobExperiences: List<JobExperience>? = null,
-             projectExperiences: List<ProjectExperience>? = null,
-             portfolioFileUrl: String? = null,
-             portfolioUrl: List<String>? = null,
-             selfDescription: String? = null
+  fun update(
+    title: String? = null, userProfileImageUrl: String? = null,
+    desiredJobs: List<Job>? = null,
+    techStacks: List<TechStack>? = null,
+    jobExperiences: List<JobExperience>? = null,
+    projectExperiences: List<ProjectExperience>? = null,
+    portfolioFileUrls: List<String>? = null,
+    portfolioUrl: List<String>? = null,
+    selfDescription: String? = null
   ): Resume {
     if (title != null) this.title = title
     if (userProfileImageUrl != null) this.userProfileImageUrl = userProfileImageUrl
@@ -68,7 +69,7 @@ class Resume(
     if (techStacks != null) this.techStacks = techStacks
     if (jobExperiences != null) this.jobExperiences = jobExperiences
     if (projectExperiences != null) this.projectExperiences = projectExperiences
-    if (portfolioFileUrl != null) this.portfolioFileUrl = portfolioFileUrl
+    if (portfolioFileUrls != null) this.portfolioFileUrls = portfolioFileUrls
     if (portfolioUrl != null) this.portfolioUrl = portfolioUrl
     if (selfDescription != null) this.selfDescription = selfDescription
     this.updatedAt = LocalDateTime.now()
@@ -91,7 +92,7 @@ class Resume(
       techStacks = techStacks.toList(),
       jobExperiences = jobExperiences.toList(),
       projectExperiences = projectExperiences.toList(),
-      portfolioFileUrl = portfolioFileUrl,
+      portfolioFileUrls = portfolioFileUrls,
       portfolioUrl = portfolioUrl.toList(),
       bookmarkers = mutableListOf(),
       selfDescription = selfDescription

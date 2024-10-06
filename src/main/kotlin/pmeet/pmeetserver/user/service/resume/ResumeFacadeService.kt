@@ -32,7 +32,7 @@ class ResumeFacadeService(
     return ResumeResponseDto.of(
       resumeService.save(resume),
       resume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
-      resume.portfolioFileUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+      resume.portfolioFileUrls.let { fileService.generatePreSignedUrlsToDownload(it) }
     )
   }
 
@@ -42,7 +42,7 @@ class ResumeFacadeService(
     return ResumeResponseDto.of(
       resume,
       resume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
-      resume.portfolioFileUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+      resume.portfolioFileUrls.let { fileService.generatePreSignedUrlsToDownload(it) }
     )
   }
 
@@ -53,7 +53,7 @@ class ResumeFacadeService(
       ResumeResponseDto.of(
         it,
         it.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
-        it.portfolioFileUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+        it.portfolioFileUrls.let { fileService.generatePreSignedUrlsToDownload(it) }
       )
     }
   }
@@ -71,7 +71,7 @@ class ResumeFacadeService(
       techStacks = requestDto.techStacks.map { it.toEntity() },
       jobExperiences = requestDto.jobExperiences.map { it.toEntity() },
       projectExperiences = requestDto.projectExperiences.map { it.toEntity() },
-      portfolioFileUrl = requestDto.portfolioFileUrl,
+      portfolioFileUrls = requestDto.portfolioFileUrls,
       portfolioUrl = requestDto.portfolioUrl,
       selfDescription = requestDto.selfDescription
     )
@@ -79,7 +79,7 @@ class ResumeFacadeService(
     return ResumeResponseDto.of(
       updatedResume,
       updatedResume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
-      updatedResume.portfolioFileUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+      updatedResume.portfolioFileUrls.let { fileService.generatePreSignedUrlsToDownload(it) }
     )
   }
 
@@ -102,7 +102,7 @@ class ResumeFacadeService(
     return ResumeResponseDto.of(
       copiedResume,
       copiedResume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
-      copiedResume.portfolioFileUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+      copiedResume.portfolioFileUrls.let { fileService.generatePreSignedUrlsToDownload(it) }
     )
   }
 

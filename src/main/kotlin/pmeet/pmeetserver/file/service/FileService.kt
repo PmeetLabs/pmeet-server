@@ -73,6 +73,10 @@ class FileService(
       }
   }
 
+  suspend fun generatePreSignedUrlsToDownload(objectNames: List<String>): List<String>? {
+    return objectNames.takeIf { it.isNotEmpty() }?.mapNotNull { generatePreSignedUrlToDownload(it) }
+  }
+
   /**
    * 파일 고유 ID를 생성
    * @return 36자리의 UUID

@@ -92,9 +92,9 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           coEvery { resumeService.save(any()) } answers { resume }
           val resumeCreateRequest = createMockCreateResumeRequestDto()
           val profileImageDownloadUrl = "profile-image-download-url"
-          val portfolioFileDownloadUrl = "portfolio-file-download-url"
+          val portfolioFileDownloadUrls = listOf("portfolio-file-download-url", "portfolio-file-download-url2")
           coEvery { fileService.generatePreSignedUrlToDownload(resume.userProfileImageUrl!!) } answers { profileImageDownloadUrl }
-          coEvery { fileService.generatePreSignedUrlToDownload(resume.portfolioFileUrl!!) } answers { portfolioFileDownloadUrl }
+          coEvery { fileService.generatePreSignedUrlsToDownload(resume.portfolioFileUrls) } answers { portfolioFileDownloadUrls }
 
           val result = resumeFacadeService.createResume(resumeCreateRequest)
 
@@ -111,7 +111,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           result.techStacks.first().name shouldBe resume.techStacks.first().name
           result.jobExperiences.first().companyName shouldBe resume.jobExperiences.first().companyName
           result.projectExperiences.first().projectName shouldBe resume.projectExperiences.first().projectName
-          result.portfolioFileUrl shouldBe portfolioFileDownloadUrl
+          result.portfolioFileUrls shouldBe portfolioFileDownloadUrls
           result.portfolioUrl.first() shouldBe resume.portfolioUrl.first()
           result.selfDescription shouldBe resume.selfDescription
         }
@@ -126,9 +126,9 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           val requestTime = LocalDateTime.now().minusMinutes(1L)
           val updateRequest = createMockUpdateResumeRequestDto()
           val profileImageDownloadUrl = "profile-image-download-url"
-          val portfolioFileDownloadUrl = "portfolio-file-download-url"
+          val portfolioFileDownloadUrls = listOf("portfolio-file-download-url", "portfolio-file-download-url2")
           coEvery { fileService.generatePreSignedUrlToDownload(updateRequest.userProfileImageUrl!!) } answers { profileImageDownloadUrl }
-          coEvery { fileService.generatePreSignedUrlToDownload(updateRequest.portfolioFileUrl!!) } answers { portfolioFileDownloadUrl }
+          coEvery { fileService.generatePreSignedUrlsToDownload(updateRequest.portfolioFileUrls) } answers { portfolioFileDownloadUrls }
           coEvery { resumeService.getByResumeId(any()) } answers { resume }
           coEvery { resumeService.update(any()) } answers { generateUpdatedResume() }
 
@@ -141,7 +141,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           result.techStacks.first().name shouldBe updateRequest.techStacks.first().name
           result.jobExperiences.first().companyName shouldBe updateRequest.jobExperiences.first().companyName
           result.projectExperiences.first().projectName shouldBe updateRequest.projectExperiences.first().projectName
-          result.portfolioFileUrl shouldBe portfolioFileDownloadUrl
+          result.portfolioFileUrls shouldBe portfolioFileDownloadUrls
           result.portfolioUrl.first() shouldBe updateRequest.portfolioUrl.first()
           result.selfDescription shouldBe updateRequest.selfDescription
           result.updatedAt shouldBeAfter requestTime
@@ -159,7 +159,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           resume.techStacks.first().name shouldBe originalResume.techStacks.first().name
           resume.jobExperiences.first().companyName shouldBe originalResume.jobExperiences.first().companyName
           resume.projectExperiences.first().projectName shouldBe originalResume.projectExperiences.first().projectName
-          resume.portfolioFileUrl shouldBe originalResume.portfolioFileUrl
+          resume.portfolioFileUrls shouldBe originalResume.portfolioFileUrls
           resume.portfolioUrl.first() shouldBe originalResume.portfolioUrl.first()
           resume.selfDescription shouldBe originalResume.selfDescription
         }
@@ -246,9 +246,9 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           val originalResume = generateResume()
 
           val profileImageDownloadUrl = "profile-image-download-url"
-          val portfolioFileDownloadUrl = "portfolio-file-download-url"
+          val portfolioFileDownloadUrls = listOf("portfolio-file-download-url", "portfolio-file-download-url2")
           coEvery { fileService.generatePreSignedUrlToDownload(originalResume.userProfileImageUrl!!) } answers { profileImageDownloadUrl }
-          coEvery { fileService.generatePreSignedUrlToDownload(originalResume.portfolioFileUrl!!) } answers { portfolioFileDownloadUrl }
+          coEvery { fileService.generatePreSignedUrlsToDownload(originalResume.portfolioFileUrls) } answers { portfolioFileDownloadUrls }
 
           val result = resumeFacadeService.copyResume(resume.userId, copyRequest)
           result.title shouldBe "[복사] ${originalResume.title.toString()}"
@@ -258,7 +258,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           result.techStacks.first().name shouldBe originalResume.techStacks.first().name
           result.jobExperiences.first().companyName shouldBe originalResume.jobExperiences.first().companyName
           result.projectExperiences.first().projectName shouldBe originalResume.projectExperiences.first().projectName
-          result.portfolioFileUrl shouldBe portfolioFileDownloadUrl
+          result.portfolioFileUrls shouldBe portfolioFileDownloadUrls
           result.portfolioUrl.first() shouldBe originalResume.portfolioUrl.first()
           result.selfDescription shouldBe originalResume.selfDescription
         }

@@ -83,7 +83,7 @@ object ResumeGenerator {
           responsibilities = "Contributed to backend services"
         )
       ),
-      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioFileUrls = listOf("http://example.com/portfolio.pdf", "http://example.com/portfolio2.pdf"),
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
       selfDescription = "Passionate software engineer with a focus on backend development."
     )
@@ -145,7 +145,7 @@ object ResumeGenerator {
           responsibilities = "Contributed to backend services"
         )
       ),
-      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioFileUrls = listOf("http://example.com/portfolio.pdf", "http://example.com/portfolio2.pdf"),
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
       selfDescription = "Passionate software engineer with a focus on backend development.",
       updatedAt = LocalDateTime.now(),
@@ -155,7 +155,13 @@ object ResumeGenerator {
 
   internal fun createMockResumeResponseDtoList(): List<ResumeResponseDto> {
     val resumes = generateResumeList()
-    return resumes.map { ResumeResponseDto.of(it, "profileImageDownloadUrl", "portfolioFileDownloadUrl") }
+    return resumes.map {
+      ResumeResponseDto.of(
+        it,
+        "profileImageDownloadUrl",
+        listOf("portfolioFileDownloadUrl", "portfolioFileDownloadUrl2")
+      )
+    }
   }
 
   internal fun createMockResumeCopyResponseDto(): ResumeResponseDto {
@@ -214,7 +220,7 @@ object ResumeGenerator {
           responsibilities = "Contributed to backend services"
         )
       ),
-      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioFileUrls = listOf("http://example.com/portfolio.pdf", "http://example.com/portfolio2.pdf"),
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
       selfDescription = "Passionate software engineer with a focus on backend development.",
       updatedAt = LocalDateTime.now(),
@@ -277,7 +283,7 @@ object ResumeGenerator {
           responsibilities = "Contributed to backend services"
         )
       ),
-      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioFileUrls = listOf("http://example.com/portfolio.pdf", "http://example.com/portfolio2.pdf"),
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
       selfDescription = "Passionate software engineer with a focus on backend development."
     )
@@ -339,7 +345,7 @@ object ResumeGenerator {
           responsibilities = "Contributed to backend services"
         )
       ),
-      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioFileUrls = listOf("http://example.com/portfolio.pdf", "http://example.com/portfolio2.pdf"),
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
       selfDescription = "Passionate software engineer with a focus on backend development."
     )
@@ -400,7 +406,7 @@ object ResumeGenerator {
           responsibilities = "Contributed to backend services"
         )
       ),
-      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioFileUrls = listOf("http://example.com/portfolio.pdf", "http://example.com/portfolio2.pdf"),
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
       selfDescription = "Passionate software engineer with a focus on backend development."
     )
@@ -470,7 +476,7 @@ object ResumeGenerator {
           responsibilities = "Contributed to backend services"
         )
       ),
-      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioFileUrls = listOf("http://example.com/portfolio.pdf", "http://example.com/portfolio2.pdf"),
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
       selfDescription = "Passionate software engineer with a focus on backend development."
     )
@@ -532,7 +538,7 @@ object ResumeGenerator {
           responsibilities = "Contributed to backend services"
         )
       ),
-      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioFileUrls = listOf("http://example.com/portfolio.pdf", "http://example.com/portfolio2.pdf"),
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
       selfDescription = "Passionate software engineer with a focus on backend development."
     )
@@ -620,7 +626,7 @@ object ResumeGenerator {
           responsibilities = "Contributed to backend services"
         )
       ),
-      portfolioFileUrl = "http://example.com/portfolio.pdf",
+      portfolioFileUrls = listOf("http://example.com/portfolio.pdf", "http://example.com/portfolio2.pdf"),
       portfolioUrl = listOf("http://example.com/project1", "http://example.com/project2"),
       selfDescription = "Passionate software engineer with a focus on backend development.",
       updatedAt = LocalDateTime.of(2022, Month.DECEMBER, 5, 0, 0, 0).minusDays(bookmarkNumber.toLong()),

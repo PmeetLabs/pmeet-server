@@ -119,7 +119,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
             returnedResume.techStacks shouldBe resumeResponse.techStacks
             returnedResume.jobExperiences shouldBe resumeResponse.jobExperiences
             returnedResume.projectExperiences shouldBe resumeResponse.projectExperiences
-            returnedResume.portfolioFileUrl shouldBe resumeResponse.portfolioFileUrl
+            returnedResume.portfolioFileUrls shouldBe resumeResponse.portfolioFileUrls
             returnedResume.portfolioUrl shouldBe resumeResponse.portfolioUrl
             returnedResume.selfDescription shouldBe resumeResponse.selfDescription
           }
@@ -280,7 +280,7 @@ internal class ResumeControllerUnitTest : DescribeSpec() {
             returnedResume.techStacks.first().name shouldBe mockResume.techStacks.first().name
             returnedResume.jobExperiences.first().companyName shouldBe mockResume.jobExperiences.first().companyName
             returnedResume.projectExperiences.first().projectName shouldBe mockResume.projectExperiences.first().projectName
-            returnedResume.portfolioFileUrl shouldBe mockResume.portfolioFileUrl
+            returnedResume.portfolioFileUrls shouldBe mockResume.portfolioFileUrls
             returnedResume.portfolioUrl shouldBe mockResume.portfolioUrl
             returnedResume.selfDescription shouldBe mockResume.selfDescription
           }

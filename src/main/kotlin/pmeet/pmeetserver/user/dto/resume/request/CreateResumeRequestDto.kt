@@ -1,5 +1,6 @@
 package pmeet.pmeetserver.user.dto.resume.request
 
+import io.swagger.v3.oas.annotations.media.Schema
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -38,7 +39,9 @@ data class CreateResumeRequestDto(
   val techStacks: List<ResumeTechStackRequestDto>,
   val jobExperiences: List<ResumeJobExperienceRequestDto>,
   val projectExperiences: List<ResumeProjectExperienceRequestDto>,
-  val portfolioFileUrl: String?,
+  @field:Schema(description = "포트폴리오 파일 리스트 (null 불가, 빈 배열 허용)")
+  @field:NotNull(message = "포트폴리오 파일 리스트는 null 불가, 빈 리스트 허용")
+  val portfolioFileUrls: List<String> = emptyList(),
   @field:Size(max = 3, message = "최대 3개의 포트폴리오 링크만 입력 가능합니다.")
   val portfolioUrl: List<String>,
   @field:Size(max = 500, message = "자기소개는 최대 500자까지 입력 가능합니다.")
@@ -59,7 +62,7 @@ data class CreateResumeRequestDto(
       techStacks = this.techStacks.map { it.toEntity() },
       jobExperiences = this.jobExperiences.map { it.toEntity() },
       projectExperiences = this.projectExperiences.map { it.toEntity() },
-      portfolioFileUrl = this.portfolioFileUrl,
+      portfolioFileUrls = this.portfolioFileUrls,
       portfolioUrl = this.portfolioUrl,
       selfDescription = this.selfDescription
     )

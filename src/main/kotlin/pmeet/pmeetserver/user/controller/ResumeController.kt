@@ -38,6 +38,7 @@ class ResumeController(
 
   @PostMapping
   @ResponseStatus(HttpStatus.CREATED)
+  @Operation(summary = "이력서 생성", description = "포트폴리오 파일 리스트는 null 불가, 빈 리스트 허용")
   suspend fun createResume(
     @Valid @RequestBody requestDto: CreateResumeRequestDto
   ): ResumeResponseDto {
@@ -63,6 +64,7 @@ class ResumeController(
 
   @PutMapping
   @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "이력서 수정", description = "포트폴리오 파일 리스트는 null 불가, 빈 리스트 허용")
   suspend fun updateResume(
     @AuthenticationPrincipal userId: Mono<String>,
     @Valid @RequestBody requestDto: UpdateResumeRequestDto

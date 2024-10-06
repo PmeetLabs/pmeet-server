@@ -182,7 +182,7 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
             returnedResume.techStacks shouldBe resumeResponse.techStacks
             returnedResume.jobExperiences shouldBe resumeResponse.jobExperiences
             returnedResume.projectExperiences shouldBe resumeResponse.projectExperiences
-            returnedResume.portfolioFileUrl shouldNotBe resumeResponse.portfolioFileUrl
+            returnedResume.portfolioFileUrls shouldNotBe resumeResponse.portfolioFileUrls
             returnedResume.portfolioUrl shouldBe resumeResponse.portfolioUrl
             returnedResume.selfDescription shouldBe resumeResponse.selfDescription
           }
@@ -230,7 +230,7 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
             returnedResume.techStacks shouldBe resumeResponse.techStacks
             returnedResume.jobExperiences shouldBe resumeResponse.jobExperiences
             returnedResume.projectExperiences shouldBe resumeResponse.projectExperiences
-            returnedResume.portfolioFileUrl shouldNotBe resumeResponse.portfolioFileUrl
+            returnedResume.portfolioFileUrls shouldNotBe resumeResponse.portfolioFileUrls
             returnedResume.portfolioUrl shouldBe resumeResponse.portfolioUrl
             returnedResume.selfDescription shouldBe resumeResponse.selfDescription
           }
@@ -314,7 +314,7 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
             returnedResume.techStacks.first().name shouldBe resumeResponse.techStacks.first().name
             returnedResume.jobExperiences.first().companyName shouldBe resumeResponse.jobExperiences.first().companyName
             returnedResume.projectExperiences.first().projectName shouldBe resumeResponse.projectExperiences.first().projectName
-            returnedResume.portfolioFileUrl shouldNotBe resumeResponse.portfolioFileUrl
+            returnedResume.portfolioFileUrls shouldNotBe resumeResponse.portfolioFileUrls
             returnedResume.portfolioUrl shouldBe resumeResponse.portfolioUrl
             returnedResume.selfDescription shouldBe resumeResponse.selfDescription
             returnedResume.updatedAt shouldBeAfter requestTime
@@ -376,7 +376,7 @@ class ResumeIntegrationTest : BaseMongoDBTestForIntegration() {
             returnedResume.techStacks shouldBe resumeResponse.techStacks
             returnedResume.jobExperiences shouldBe resumeResponse.jobExperiences
             returnedResume.projectExperiences shouldBe resumeResponse.projectExperiences
-            returnedResume.portfolioFileUrl shouldNotBe resumeResponse.portfolioFileUrl
+            returnedResume.portfolioFileUrls shouldNotBe resumeResponse.portfolioFileUrls
             returnedResume.portfolioUrl shouldBe resumeResponse.portfolioUrl
             returnedResume.selfDescription shouldBe resumeResponse.selfDescription
           }

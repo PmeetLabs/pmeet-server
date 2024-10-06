@@ -114,7 +114,7 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           result.techStacks.first().name shouldBe resume.techStacks.first().name
           result.jobExperiences.first().companyName shouldBe resume.jobExperiences.first().companyName
           result.projectExperiences.first().projectName shouldBe resume.projectExperiences.first().projectName
-          result.portfolioFileUrl shouldBe resume.portfolioFileUrl
+          result.portfolioFileUrls shouldBe resume.portfolioFileUrls
           result.portfolioUrl.first() shouldBe resume.portfolioUrl.first()
           result.selfDescription shouldBe resume.selfDescription
           result.createdAt shouldBeAfter requestTime
@@ -151,7 +151,7 @@ internal class ResumeServiceUnitTest : DescribeSpec({
           result.techStacks.first().name shouldBe resumeUpdateRequestDto.techStacks.first().name
           result.jobExperiences.first().companyName shouldBe resumeUpdateRequestDto.jobExperiences.first().companyName
           result.projectExperiences.first().projectName shouldBe resumeUpdateRequestDto.projectExperiences.first().projectName
-          result.portfolioFileUrl shouldBe resumeUpdateRequestDto.portfolioFileUrl
+          result.portfolioFileUrls shouldBe resumeUpdateRequestDto.portfolioFileUrls
           result.portfolioUrl.first() shouldBe resumeUpdateRequestDto.portfolioUrl.first()
           result.selfDescription shouldBe resumeUpdateRequestDto.selfDescription
         }

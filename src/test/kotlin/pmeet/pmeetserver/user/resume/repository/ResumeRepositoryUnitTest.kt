@@ -143,7 +143,7 @@ internal class ResumeRepositoryUnitTest(
           result?.techStacks?.first()?.name shouldBe resume.techStacks.first().name
           result?.jobExperiences?.first()?.companyName shouldBe resume.jobExperiences.first().companyName
           result?.projectExperiences?.first()?.projectName shouldBe resume.projectExperiences.first().projectName
-          result?.portfolioFileUrl shouldBe resume.portfolioFileUrl
+          result?.portfolioFileUrls shouldBe resume.portfolioFileUrls
           result?.portfolioUrl?.first() shouldBe resume.portfolioUrl.first()
           result?.selfDescription shouldBe resume.selfDescription
         }
@@ -169,7 +169,7 @@ internal class ResumeRepositoryUnitTest(
           result?.techStacks?.first()?.name shouldBe resume.techStacks.first().name
           result?.jobExperiences?.first()?.companyName shouldBe resume.jobExperiences.first().companyName
           result?.projectExperiences?.first()?.projectName shouldBe resume.projectExperiences.first().projectName
-          result?.portfolioFileUrl shouldBe resume.portfolioFileUrl
+          result?.portfolioFileUrls shouldBe resume.portfolioFileUrls
           result?.portfolioUrl?.first() shouldBe resume.portfolioUrl.first()
           result?.selfDescription shouldBe resume.selfDescription
         }

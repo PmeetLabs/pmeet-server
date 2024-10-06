@@ -57,7 +57,7 @@ data class ResumeResponseDto(
   val techStacks: List<TechStackResponseDto>,
   val jobExperiences: List<ResumeJobExperienceResponseDto>,
   val projectExperiences: List<ResumeProjectExperienceResponseDto>,
-  val portfolioFileUrl: String?,
+  val portfolioFileUrls: List<String>?,
   val portfolioUrl: List<String>,
   val selfDescription: String,
   val updatedAt: LocalDateTime,
@@ -67,7 +67,7 @@ data class ResumeResponseDto(
     fun of(
       resume: Resume,
       profileImageDownloadUrl: String?,
-      portfolioFileDownloadUrl: String? = null
+      portfolioFileDownloadUrls: List<String>? = null
     ): ResumeResponseDto {
       return ResumeResponseDto(
         id = resume.id!!,
@@ -84,7 +84,7 @@ data class ResumeResponseDto(
         techStacks = resume.techStacks.map { TechStackResponseDto.from(it) },
         jobExperiences = resume.jobExperiences.map { ResumeJobExperienceResponseDto.from(it) },
         projectExperiences = resume.projectExperiences.map { ResumeProjectExperienceResponseDto.from(it) },
-        portfolioFileUrl = portfolioFileDownloadUrl,
+        portfolioFileUrls = portfolioFileDownloadUrls,
         portfolioUrl = resume.portfolioUrl,
         selfDescription = resume.selfDescription ?: "",
         updatedAt = resume.updatedAt,
