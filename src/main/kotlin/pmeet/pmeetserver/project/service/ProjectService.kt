@@ -45,6 +45,8 @@ class ProjectService(
     isCompleted: Boolean,
     filterType: ProjectFilterType?,
     filterValue: String?,
+    userId: String,
+    isMy: Boolean,
     pageable: Pageable
   ): Slice<Project> {
     return SliceResponse.of(
@@ -52,6 +54,8 @@ class ProjectService(
         isCompleted,
         filterType,
         filterValue,
+        userId,
+        isMy,
         pageable
       ).collectList().awaitSingle(),
       pageable

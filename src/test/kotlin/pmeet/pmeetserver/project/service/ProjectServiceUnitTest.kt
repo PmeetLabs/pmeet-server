@@ -222,6 +222,8 @@ internal class ProjectServiceUnitTest : DescribeSpec({
               any(),
               any(),
               any(),
+              any(),
+              any(),
               any()
             )
           } answers { Flux.fromIterable(projects.subList(0, pageSize + 1)) }
@@ -230,6 +232,8 @@ internal class ProjectServiceUnitTest : DescribeSpec({
             isCompleted = false,
             filterType = null,
             filterValue = null,
+            userId,
+            false,
             pageable = PageRequest.of(
               pageNumber,
               pageSize,

@@ -32,4 +32,9 @@ class ProjectMemberService(
     projectMemberRepository.deleteAllByProjectId(projectId).awaitSingle()
     projectMemberRepository.saveAll(projectMemberList).collectList().awaitSingle()
   }
+
+  @Transactional(readOnly = true)
+  suspend fun findAllMembersByProjectId(projectIdSet: Set<String>): List<ProjectMember> {
+    return projectMemberRepository.findAllByProjectIdIn(projectIdSet).collectList().awaitSingle()
+  }
 }

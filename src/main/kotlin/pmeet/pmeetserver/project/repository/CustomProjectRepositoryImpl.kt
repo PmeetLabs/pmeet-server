@@ -20,6 +20,7 @@ class CustomProjectRepositoryImpl(
   companion object {
     private const val DOCUMENT_NAME = "project"
     private const val PROPERTY_NAME_BOOK_MARKERS = "bookmarkers"
+    private const val PROPERTY_NAME_CREATOR_ID = "userId"
     private const val PROPERTY_NAME_JOB_NAME = "recruitments.jobName"
     private const val PROPERTY_NAME_TITLE = "title"
     private const val PROPERTY_NAME_IS_COMPLETED = "isCompleted"
@@ -32,9 +33,11 @@ class CustomProjectRepositoryImpl(
     isCompleted: Boolean,
     filterType: ProjectFilterType?,
     filterValue: String?,
+    userId: String,
+    isMy: Boolean?,
     pageable: Pageable
   ): Flux<Project> {
-    val criteria = createCriteria(filterType, filterValue)
+    val criteria = createCriteria(filterType, filterValue, userId, isMy)
     return aggregateProjects(isCompleted, criteria, pageable)
   }
 
@@ -63,8 +66,13 @@ class CustomProjectRepositoryImpl(
    * @param filterType ? 필터 타입(ALL, TITLE, JOB_NAME)
    * @param filterValue ? 필터 값
    */
-  private fun createCriteria(filterType: ProjectFilterType?, filterValue: String?): Criteria {
-    return if (filterType == null || filterValue == null) { // 필터가 없거나 값이 없는 경우 전체 조회
+  private fun createCriteria(
+    filterType: ProjectFilterType?,
+    filterValue: String?,
+    userId: String,
+    isMy: Boolean?
+  ): Criteria {
+    val baseCriteria = if (filterType == null || filterValue == null) {
       Criteria()
     } else {
       when (filterType) {
@@ -76,6 +84,12 @@ class CustomProjectRepositoryImpl(
         ProjectFilterType.TITLE -> Criteria.where(PROPERTY_NAME_TITLE).regex(".*${filterValue}.*")
         ProjectFilterType.JOB_NAME -> Criteria.where(PROPERTY_NAME_JOB_NAME).regex(".*${filterValue}.*")
       }
+    }
+
+    return if (isMy == true) {
+      baseCriteria.and(PROPERTY_NAME_CREATOR_ID).`is`(userId)
+    } else {
+      baseCriteria
     }
   }
 

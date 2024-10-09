@@ -25,6 +25,7 @@ import pmeet.pmeetserver.config.BaseMongoDBTestForIntegration
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectBookmark
 import pmeet.pmeetserver.project.domain.ProjectComment
+import pmeet.pmeetserver.project.domain.ProjectMember
 import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
@@ -35,10 +36,12 @@ import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
+import pmeet.pmeetserver.project.dto.response.SearchCompleteProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchProjectResponseDto
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import pmeet.pmeetserver.project.repository.ProjectCommentRepository
+import pmeet.pmeetserver.project.repository.ProjectMemberRepository
 import pmeet.pmeetserver.project.repository.ProjectRepository
 import pmeet.pmeetserver.project.repository.ProjectTryoutRepository
 import pmeet.pmeetserver.user.domain.User
@@ -69,6 +72,10 @@ internal class ProjectIntegrationTest : BaseMongoDBTestForIntegration() {
 
   @Autowired
   lateinit var userRepository: UserRepository
+
+
+  @Autowired
+  lateinit var projectMemberRepository: ProjectMemberRepository
 
   @Autowired
   lateinit var projectTryoutRepository: ProjectTryoutRepository
@@ -1035,6 +1042,190 @@ internal class ProjectIntegrationTest : BaseMongoDBTestForIntegration() {
             response.responseBody?.forEachIndexed { index, GetMyProjectResponseDto ->
               GetMyProjectResponseDto.id shouldBe "testId${20 - index}"
             }
+          }
+        }
+      }
+    }
+
+    describe("GET /api/v1/projects/complete/search-slice") {
+      withContext(Dispatchers.IO) {
+        projectRepository.deleteAll().block()
+        projectMemberRepository.deleteAll().block()
+      }
+      val userId = "1234"
+      val pageNumber = 0
+      val pageSize = 10
+      val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+
+      for (i in 1..20) {
+        val newProject = Project(
+          id = "testId$i",
+          userId = if (i % 2 == 0) userId else "not-id",
+          title = "testTitle$i",
+          startDate = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
+          endDate = LocalDateTime.of(2021, 12, 31, 23, 59, 59),
+          thumbNailUrl = "testThumbNailUrl$i",
+          techStacks = listOf("testTechStack1", "testTechStack2"),
+          recruitments = recruitments,
+          description = "testDescription$i",
+          isCompleted = true
+        )
+        ReflectionTestUtils.setField(
+          newProject,
+          "createdAt",
+          LocalDateTime.of(2021, 1, 1, 0, 0, 0).plusDays(i.toLong())
+        )
+        withContext(Dispatchers.IO) {
+          projectRepository.save(newProject).block()
+        }
+
+        val projectMember = ProjectMember(
+          projectId = "testId$i",
+          userId = "memberId$i",
+          resumeId = "resumeId$i",
+          userName = "testUser$i",
+          userThumbnail = "userThumbNail$i",
+          userSelfDescription = "description$i",
+          positionName = "position$i",
+          createdAt = LocalDateTime.now()
+        )
+        withContext(Dispatchers.IO) {
+          projectMemberRepository.save(projectMember).block()
+        }
+      }
+
+      context("인증된 유저가 Filter 없이 완료된 Project Slice 조회를 하면") {
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .get()
+          .uri {
+            it.path("/api/v1/projects/complete/search-slice")
+              .queryParam("page", pageNumber)
+              .queryParam("size", pageSize)
+              .queryParam("sortBy", ProjectSortProperty.CREATED_AT)
+              .queryParam("direction", Direction.DESC)
+              .build()
+          }
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("완료된 Project를 대상으로 PageSize만큼 Slice를 반환한다") {
+          performRequest.expectBody<RestSliceImpl<SearchCompleteProjectResponseDto>>().consumeWith { response ->
+            response.responseBody?.content?.size shouldBe pageSize
+            response.responseBody?.isFirst shouldBe true
+            response.responseBody?.isLast shouldBe false
+            response.responseBody?.hasNext() shouldBe true
+            response.responseBody?.forEachIndexed { index, searchCompleteProjectResponseDto ->
+              searchCompleteProjectResponseDto.id shouldBe "testId${20 - index}"
+              searchCompleteProjectResponseDto.title shouldBe "testTitle${20 - index}"
+              searchCompleteProjectResponseDto.thumbNailUrl shouldNotBe null
+              searchCompleteProjectResponseDto.description shouldBe "testDescription${20 - index}"
+              searchCompleteProjectResponseDto.createdAt shouldBe LocalDateTime.of(2021, 1, 1, 0, 0, 0)
+                .plusDays(20 - index.toLong())
+              searchCompleteProjectResponseDto.projectMembers.size shouldBe 1
+              searchCompleteProjectResponseDto.projectMembers[0].name shouldBe "testUser${20 - index}"
+              searchCompleteProjectResponseDto.projectMembers[0].profileImageUrl shouldBe ""
+            }
+          }
+        }
+      }
+
+      context("인증된 유저가 Title Type 필터로 완료된 Project를 조회하면") {
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .get()
+          .uri {
+            it.path("/api/v1/projects/complete/search-slice")
+              .queryParam("page", pageNumber)
+              .queryParam("size", pageSize)
+              .queryParam("sortBy", ProjectSortProperty.CREATED_AT)
+              .queryParam("direction", Direction.DESC)
+              .queryParam("filterType", ProjectFilterType.TITLE)
+              .queryParam("filterValue", "Title2")
+              .build()
+          }
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("Title에 'Title2'가 포함된 완료된 Project를 반환한다") {
+          performRequest.expectBody<RestSliceImpl<SearchCompleteProjectResponseDto>>().consumeWith { response ->
+            response.responseBody?.content?.size shouldBe 2
+            response.responseBody?.isFirst shouldBe true
+            response.responseBody?.isLast shouldBe true
+            response.responseBody?.hasNext() shouldBe false
+            response.responseBody?.content?.get(0)?.id shouldBe "testId20"
+            response.responseBody?.content?.get(1)?.id shouldBe "testId2"
+            response.responseBody?.content?.all { it.title.contains("Title2") } shouldBe true
+          }
+        }
+      }
+
+      context("인증된 유저가 북마크 순으로 완료된 Project를 조회하면") {
+        // 북마크 추가
+        withContext(Dispatchers.IO) {
+          val project = projectRepository.findById("testId20").block()
+          project?.bookmarkers?.add(ProjectBookmark(userId, LocalDateTime.now()))
+          projectRepository.save(project!!).block()
+        }
+
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .get()
+          .uri {
+            it.path("/api/v1/projects/complete/search-slice")
+              .queryParam("page", pageNumber)
+              .queryParam("size", pageSize)
+              .queryParam("sortBy", ProjectSortProperty.BOOK_MARKERS)
+              .queryParam("direction", Direction.DESC)
+              .build()
+          }
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("북마크 순으로 완료된 Project를 반환한다") {
+          performRequest.expectBody<RestSliceImpl<SearchCompleteProjectResponseDto>>().consumeWith { response ->
+            response.responseBody?.content?.get(0)?.id shouldBe "testId20"
+            response.responseBody?.content?.get(0)?.bookmarked shouldBe true
+          }
+        }
+      }
+
+      context("인증된 유저가 마이 페이지에서 내가 만든 완료한 Project를 조회하면") {
+
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .get()
+          .uri {
+            it.path("/api/v1/projects/complete/search-slice")
+              .queryParam("page", pageNumber)
+              .queryParam("size", pageSize)
+              .queryParam("sortBy", ProjectSortProperty.BOOK_MARKERS)
+              .queryParam("direction", Direction.DESC)
+              .queryParam("isMy", true)
+              .build()
+          }
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("내가 생성한 완료된 Project 목록을 반환한다") {
+          performRequest.expectBody<RestSliceImpl<SearchCompleteProjectResponseDto>>().consumeWith { response ->
+            response.responseBody?.content?.size shouldBe 10
           }
         }
       }

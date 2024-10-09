@@ -69,6 +69,8 @@ internal class ProjectRepositoryUnitTest(
           false,
           null,
           null,
+          userId,
+          false,
           PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, ProjectSortProperty.BOOK_MARKERS.name))
         ).collectList().block()
 
@@ -98,6 +100,8 @@ internal class ProjectRepositoryUnitTest(
           true,
           null,
           null,
+          userId,
+          false,
           PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, ProjectSortProperty.BOOK_MARKERS.name))
         ).collectList().block()
 
@@ -128,6 +132,8 @@ internal class ProjectRepositoryUnitTest(
           false,
           filterType,
           filterValue,
+          userId,
+          false,
           PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, ProjectSortProperty.BOOK_MARKERS.name))
         ).collectList().block()
 
@@ -158,6 +164,8 @@ internal class ProjectRepositoryUnitTest(
           false,
           filterType,
           filterValue,
+          userId,
+          false,
           PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, ProjectSortProperty.BOOK_MARKERS.name))
         ).collectList().block()
 
@@ -189,6 +197,8 @@ internal class ProjectRepositoryUnitTest(
           false,
           filterType,
           filterValue,
+          userId,
+          false,
           PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, ProjectSortProperty.BOOK_MARKERS.name))
         ).collectList().block()
 
@@ -221,6 +231,8 @@ internal class ProjectRepositoryUnitTest(
           false,
           null,
           null,
+          userId,
+          false,
           PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, ProjectSortProperty.BOOK_MARKERS.property))
         ).collectList().block()
 
@@ -254,6 +266,8 @@ internal class ProjectRepositoryUnitTest(
           false,
           null,
           null,
+          userId,
+          false,
           PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, ProjectSortProperty.BOOK_MARKERS.property))
         ).collectList().block()
 
@@ -289,6 +303,8 @@ internal class ProjectRepositoryUnitTest(
           false,
           null,
           null,
+          userId,
+          false,
           PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, ProjectSortProperty.CREATED_AT.property))
         ).collectList().block()
 
@@ -324,6 +340,8 @@ internal class ProjectRepositoryUnitTest(
           false,
           null,
           null,
+          userId,
+          false,
           PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, ProjectSortProperty.CREATED_AT.property))
         ).collectList().block()
 
@@ -359,6 +377,8 @@ internal class ProjectRepositoryUnitTest(
           false,
           null,
           null,
+          userId,
+          false,
           PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, ProjectSortProperty.UPDATED_AT.property))
         ).collectList().block()
 
@@ -394,6 +414,8 @@ internal class ProjectRepositoryUnitTest(
           false,
           null,
           null,
+          userId,
+          false,
           PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, ProjectSortProperty.UPDATED_AT.property))
         ).collectList().block()
 

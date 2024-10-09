@@ -7,7 +7,7 @@ import reactor.core.publisher.Mono
 
 interface ProjectMemberRepository : ReactiveMongoRepository<ProjectMember, String> {
 
-  fun findAllByProjectId(projectId: String): Flux<ProjectMember>
+  fun findAllByProjectIdIn(projectId: Set<String>): Flux<ProjectMember>
 
   fun deleteAllByProjectId(projectId: String): Mono<Boolean>
 

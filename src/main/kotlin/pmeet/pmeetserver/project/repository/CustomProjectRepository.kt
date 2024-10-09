@@ -19,6 +19,8 @@ interface CustomProjectRepository {
     isCompleted: Boolean,
     filterType: ProjectFilterType?,
     filterValue: String?,
+    userId: String,
+    isMy: Boolean?,
     pageable: Pageable
   ): Flux<Project>
 
