@@ -57,7 +57,7 @@ class ProjectFacadeService(
         .map { Recruitment(it.jobName, it.numberOfRecruitment) }
         .toList()
 
-    val project = Project(
+    var project = Project(
       userId = userId,
       title = requestDto.title,
       startDate = requestDto.startDate,
@@ -68,8 +68,20 @@ class ProjectFacadeService(
       description = requestDto.description
     )
 
+    val user = userService.getUserById(userId)
+    project = projectService.save(project)
+
+    val projectMember = ProjectMember(
+      userId = userId,
+      userName = user.name,
+      userThumbnail = user.profileImageUrl,
+      projectId = project.id!!,
+      createdAt = LocalDateTime.now()
+    )
+    projectMemberService.save(projectMember)
+
     return ProjectResponseDto.of(
-      projectService.save(project),
+      project,
       userId,
       project.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
     )

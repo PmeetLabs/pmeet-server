@@ -8,12 +8,12 @@ import java.time.LocalDateTime
 class ProjectMember(
   @Id
   var id: String? = null,
-  val resumeId: String,
+  val resumeId: String? = null,
   val tryoutId: String? = null,
   val userId: String,
   val userName: String,
   val userThumbnail: String? = null,
-  val userSelfDescription: String,
+  val userSelfDescription: String? = null,
   var positionName: String? = null,
   val projectId: String,
   val createdAt: LocalDateTime,
