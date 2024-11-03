@@ -1,10 +1,12 @@
 package pmeet.pmeetserver.project.repository
 
+import org.bson.Document
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate
 import org.springframework.data.mongodb.core.aggregation.Aggregation
+import org.springframework.data.mongodb.core.aggregation.AggregationOperation
 import org.springframework.data.mongodb.core.aggregation.ArrayOperators
 import org.springframework.data.mongodb.core.aggregation.ConditionalOperators
 import org.springframework.data.mongodb.core.query.Criteria
@@ -13,12 +15,15 @@ import pmeet.pmeetserver.project.domain.ProjectBookmark
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import reactor.core.publisher.Flux
 
+
 class CustomProjectRepositoryImpl(
   @Autowired private val mongoTemplate: ReactiveMongoTemplate
 ) : CustomProjectRepository {
 
   companion object {
-    private const val DOCUMENT_NAME = "project"
+    private const val DOCUMENT_NAME_PROJECT = "project"
+    private const val DOCUMENT_NAME_PROJECT_MEMBER = "projectMember"
+    private const val PROPERTY_NAME_ID = "_id"
     private const val PROPERTY_NAME_BOOK_MARKERS = "bookmarkers"
     private const val PROPERTY_NAME_CREATOR_ID = "userId"
     private const val PROPERTY_NAME_JOB_NAME = "recruitments.jobName"
@@ -27,6 +32,7 @@ class CustomProjectRepositoryImpl(
     private const val PROPERTY_NAME_BOOK_MARKERS_SIZE = "bookmarkersSize"
     private const val PROPERTY_NAME_USER_ID = "userId"
     private const val PROPERTY_NAME_CREATED_AT = "createdAt"
+    private const val PROPERTY_NAME_PROJECT_ID = "projectId"
   }
 
   override fun findAllByFilter(
@@ -55,10 +61,57 @@ class CustomProjectRepositoryImpl(
         skip,
         limit
       ),
-      DOCUMENT_NAME,
+      DOCUMENT_NAME_PROJECT,
       Project::class.java
     )
   }
+
+  override fun findProjectsByProjectMemberUserIdAndIsCompletedOrderByCreatedAtDesc(
+    userId: String,
+    isCompleted: Boolean,
+    pageable: Pageable
+  ): Flux<Project> {
+    val criteria = Criteria.where(PROPERTY_NAME_USER_ID).`is`(userId)
+
+    val addFields = AggregationOperation { context ->
+      Document.parse("{ \$addFields: { projectId: { \$toObjectId: \"\$projectId\" } } }")
+    }
+
+    val lookup = Aggregation.lookup(
+      DOCUMENT_NAME_PROJECT,
+      PROPERTY_NAME_PROJECT_ID,
+      PROPERTY_NAME_ID,
+      DOCUMENT_NAME_PROJECT
+    )
+
+    val unwind = Aggregation.unwind(DOCUMENT_NAME_PROJECT)
+    val replaceRoot = Aggregation.replaceRoot("project")
+
+    val sort = Sort.by(Sort.Order.desc(PROPERTY_NAME_CREATED_AT))
+    val limit = Aggregation.limit(pageable.pageSize.toLong() + 1)
+    val skip = Aggregation.skip((pageable.pageNumber * pageable.pageSize).toLong())
+
+    val newAggregation = Aggregation.newAggregation(
+      Aggregation.match(criteria),
+      Aggregation.sort(sort),
+      skip,
+      limit,
+      addFields,
+      lookup,
+      unwind,
+      replaceRoot,
+      Aggregation.match(Criteria.where(PROPERTY_NAME_IS_COMPLETED).`is`(isCompleted))
+    )
+
+    val aggregate = mongoTemplate.aggregate(
+      newAggregation,
+      DOCUMENT_NAME_PROJECT_MEMBER,
+      Project::class.java
+    )
+
+    return aggregate
+  }
+
 
   /**
    * 프로젝트 필터 조건인 Criteria 생성
@@ -102,7 +155,7 @@ class CustomProjectRepositoryImpl(
    */
   private fun aggregateProjects(isCompleted: Boolean, criteria: Criteria, pageable: Pageable): Flux<Project> {
     val aggregation = generateSearchAggregation(isCompleted, criteria, pageable)
-    return mongoTemplate.aggregate(aggregation, DOCUMENT_NAME, Project::class.java)
+    return mongoTemplate.aggregate(aggregation, DOCUMENT_NAME_PROJECT, Project::class.java)
   }
 
   /**

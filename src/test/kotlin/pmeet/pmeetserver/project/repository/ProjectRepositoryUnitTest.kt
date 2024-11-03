@@ -16,6 +16,7 @@ import org.springframework.test.util.ReflectionTestUtils
 import pmeet.pmeetserver.config.BaseMongoDBTestForRepository
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectBookmark
+import pmeet.pmeetserver.project.domain.ProjectMember
 import pmeet.pmeetserver.project.domain.Recruitment
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
@@ -33,6 +34,7 @@ internal class ProjectRepositoryUnitTest(
   val factory = ReactiveMongoRepositoryFactory(template)
   val customRepository = CustomProjectRepositoryImpl(template)
   val projectRepository = factory.getRepository(ProjectRepository::class.java, customRepository)
+  val projectMemberRepository = factory.getRepository(ProjectMemberRepository::class.java)
 
   lateinit var userId: String
 
@@ -43,6 +45,7 @@ internal class ProjectRepositoryUnitTest(
 
   afterSpec {
     projectRepository.deleteAll().block()
+    projectMemberRepository.deleteAll().block()
     Dispatchers.resetMain()
   }
 
@@ -470,6 +473,95 @@ internal class ProjectRepositoryUnitTest(
         result?.last()?.title shouldBe "testTitle10"
       }
     }
+  }
+
+  describe("findProjectsByProjectMemberUserIdAndIsCompletedOrderByCreatedAtDesc") {
+    context("주어진 userId와 isCompleted가 일치한 Project가 존재하지 않으면") {
+      it("빈 Flux를 반환한다") {
+        val result = projectRepository.findProjectsByProjectMemberUserIdAndIsCompletedOrderByCreatedAtDesc(
+          "notExistUserId",
+          true,
+          PageRequest.of(0, 10)
+        ).collectList().block()
+
+        result?.size shouldBe 0
+      }
+    }
+    context("주어진 userId와 isCompleted가 일치한 Project가 존재하면") {
+      it("ProjectMember 생성일 내림차순으로 Project를 반환한다") {
+        for (i in 1..20) {
+          val project = Project(
+            userId = userId,
+            title = "testTitle$i",
+            startDate = LocalDateTime.of(2024, 7, 21, 0, 0, 0),
+            endDate = LocalDateTime.of(2024, 7, 22, 0, 0, 0),
+            recruitments = listOf(
+              Recruitment(
+                jobName = "testJobName$i",
+                numberOfRecruitment = 1
+              )
+            ),
+            description = "testDescription$i",
+            isCompleted = true
+          )
+          projectRepository.save(project).block()
+
+          val projectMember = ProjectMember(
+            projectId = project.id!!,
+            userId = userId,
+            userName = "testUserName$i",
+            createdAt = LocalDateTime.of(2024, 8, 23, 0, 0, 0).minusMinutes(i.toLong())
+          )
+          projectMemberRepository.save(projectMember).block()
+        }
+        val result = projectRepository.findProjectsByProjectMemberUserIdAndIsCompletedOrderByCreatedAtDesc(
+          userId,
+          true,
+          PageRequest.of(0, 10)
+        ).collectList().block()
+
+        result?.size shouldBe 11
+        result?.first()?.title shouldBe "testTitle1"
+        result?.last()?.title shouldBe "testTitle11"
+      }
+    }
+    context("주어진 userId와 isCompleted가 일치한 Project가 존재하지 않으면") {
+      it("빈 Flux를 반환한다") {
+        for (i in 1..20) {
+          val project = Project(
+            userId = userId,
+            title = "testTitle$i",
+            startDate = LocalDateTime.of(2024, 7, 21, 0, 0, 0),
+            endDate = LocalDateTime.of(2024, 7, 22, 0, 0, 0),
+            recruitments = listOf(
+              Recruitment(
+                jobName = "testJobName$i",
+                numberOfRecruitment = 1
+              )
+            ),
+            description = "testDescription$i",
+            isCompleted = true
+          )
+          projectRepository.save(project).block()
+
+          val projectMember = ProjectMember(
+            projectId = project.id!!,
+            userId = userId,
+            userName = "testUserName$i",
+            createdAt = LocalDateTime.of(2024, 8, 23, 0, 0, 0).plusDays(i.toLong())
+          )
+          projectMemberRepository.save(projectMember).block()
+        }
+        val result = projectRepository.findProjectsByProjectMemberUserIdAndIsCompletedOrderByCreatedAtDesc(
+          userId,
+          false,
+          PageRequest.of(0, 10)
+        ).collectList().block()
+
+        result?.size shouldBe 0
+      }
+    }
+
   }
 
 })

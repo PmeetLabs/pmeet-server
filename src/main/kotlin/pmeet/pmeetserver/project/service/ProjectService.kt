@@ -87,4 +87,20 @@ class ProjectService(
     project.complete()
     return projectRepository.save(project).awaitSingle()
   }
+
+  @Transactional(readOnly = true)
+  suspend fun getProjectsByProjectMemberUserIdAndIsCompletedOrderByCreatedAtDesc(
+    userId: String,
+    isCompleted: Boolean,
+    pageable: Pageable
+  ): Slice<Project> {
+    return SliceResponse.of(
+      projectRepository.findProjectsByProjectMemberUserIdAndIsCompletedOrderByCreatedAtDesc(
+        userId,
+        isCompleted,
+        pageable
+      ).collectList().awaitSingle(),
+      pageable
+    )
+  }
 }

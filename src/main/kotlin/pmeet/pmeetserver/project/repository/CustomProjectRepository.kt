@@ -26,10 +26,23 @@ interface CustomProjectRepository {
 
 
   /**
-   * User ID로 프로젝트 목록 조회
+   * User ID로 내가 만든 프로젝트 목록 조회
    *
    * @param userId 사용자 ID
    * @param pageable 페이징 정보
    */
   fun findProjectByUserIdOrderByCreatedAtDesc(userId: String, pageable: Pageable): Flux<Project>
+
+  /**
+   * User ID로 내가 속한 프로젝트 목록 조회
+   *
+   * @param userId 사용자 ID
+   * @param isCompleted 완료 여부
+   * @param pageable 페이징 정보
+   */
+  fun findProjectsByProjectMemberUserIdAndIsCompletedOrderByCreatedAtDesc(
+    userId: String,
+    isCompleted: Boolean,
+    pageable: Pageable
+  ): Flux<Project>
 }

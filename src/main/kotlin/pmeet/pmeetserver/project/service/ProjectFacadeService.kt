@@ -23,7 +23,9 @@ import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.response.CompletedProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.GetMyInProgressProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.ProjectMemberInfoDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
 import pmeet.pmeetserver.project.dto.response.SearchCompleteProjectResponseDto
@@ -399,6 +401,48 @@ class ProjectFacadeService(
     val thumbNailUrl =
       project.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
     return CompletedProjectResponseDto.from(project, thumbNailUrl)
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun getMyProjectSliceInProgress(
+    userId: String,
+    pageable: Pageable
+  ): Slice<GetMyInProgressProjectResponseDto> {
+    val projects =
+      projectService.getProjectsByProjectMemberUserIdAndIsCompletedOrderByCreatedAtDesc(userId, false, pageable)
+
+    val projectIds = projects.content.mapNotNull { it.id }.toSet()
+
+    val projectMembers = projectMemberService.findAllMembersByProjectId(projectIds)
+
+    val membersByProjectId = projectMembers.groupBy { it.projectId }
+
+    val responseDtos = projects.content.map { project ->
+      val members = membersByProjectId[project.id!!] ?: emptyList()
+
+      val myMember = members.find { it.userId == userId }
+      val positionName = myMember?.positionName
+
+      val userInfos = members.filter { it.userId != userId }
+        .map { member ->
+          ProjectMemberInfoDto.of(
+            member.userId,
+            member.userName,
+            member.userThumbnail?.let { fileService.generatePreSignedUrlToDownload(it) }
+          )
+        }
+
+      val thumbNailDownloadUrl = project.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+
+      GetMyInProgressProjectResponseDto.of(
+        project,
+        positionName,
+        thumbNailDownloadUrl,
+        userInfos
+      )
+    }
+
+    return SliceImpl(responseDtos, pageable, projects.hasNext())
   }
 
   /**
