@@ -24,6 +24,7 @@ import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.response.CompletedProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyInProgressProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.GetMyInReviewProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectMemberInfoDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
@@ -443,6 +444,27 @@ class ProjectFacadeService(
     }
 
     return SliceImpl(responseDtos, pageable, projects.hasNext())
+  }
+
+  suspend fun getMyProjectSliceInReview(
+    userId: String,
+    pageable: Pageable
+  ): Slice<GetMyInReviewProjectResponseDto> {
+    val projectsWithProjectTryout =
+      projectService.getProjectsByProjectTryoutInReviewUserIdAndIsCompletedOrderByCreatedAtDesc(userId, false, pageable)
+
+    val responseDtos = projectsWithProjectTryout.content.map { projectWithTryout ->
+      val thumbNailDownloadUrl = projectWithTryout.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+      GetMyInReviewProjectResponseDto.of(
+        projectWithTryout.id,
+        projectWithTryout.title,
+        projectWithTryout.description,
+        thumbNailDownloadUrl,
+        projectWithTryout.positionName
+      )
+    }
+
+    return SliceImpl(responseDtos, pageable, projectsWithProjectTryout.hasNext())
   }
 
   /**

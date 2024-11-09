@@ -2,7 +2,9 @@ package pmeet.pmeetserver.project.repository
 
 import org.springframework.data.domain.Pageable
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.enums.ProjectFilterType
+import pmeet.pmeetserver.project.repository.vo.ProjectWithProjectTryout
 import reactor.core.publisher.Flux
 
 interface CustomProjectRepository {
@@ -45,4 +47,20 @@ interface CustomProjectRepository {
     isCompleted: Boolean,
     pageable: Pageable
   ): Flux<Project>
+
+
+  /**
+   * User ID로 내가 지원한 프로젝트와 지원서 목록 조회
+   *
+   * @param userId 사용자 ID
+   * @param isCompleted 완료 여부
+   * @param tryoutStatus 지원 상태
+   * @param pageable 페이징 정보
+   */
+  fun findProjectsByProjectTryoutUserIdAndIsCompletedOrderByCreatedAtDesc(
+    userId: String,
+    isCompleted: Boolean,
+    tryoutStatus: ProjectTryoutStatus,
+    pageable: Pageable
+  ): Flux<ProjectWithProjectTryout>
 }

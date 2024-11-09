@@ -10,9 +10,11 @@ import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.common.utils.page.SliceResponse
 import pmeet.pmeetserver.project.domain.Project
+import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.dto.request.CompleteProjectRequestDto
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.repository.ProjectRepository
+import pmeet.pmeetserver.project.repository.vo.ProjectWithProjectTryout
 
 @Service
 class ProjectService(
@@ -98,6 +100,23 @@ class ProjectService(
       projectRepository.findProjectsByProjectMemberUserIdAndIsCompletedOrderByCreatedAtDesc(
         userId,
         isCompleted,
+        pageable
+      ).collectList().awaitSingle(),
+      pageable
+    )
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun getProjectsByProjectTryoutInReviewUserIdAndIsCompletedOrderByCreatedAtDesc(
+    userId: String,
+    isCompleted: Boolean,
+    pageable: Pageable
+  ): Slice<ProjectWithProjectTryout> {
+    return SliceResponse.of(
+      projectRepository.findProjectsByProjectTryoutUserIdAndIsCompletedOrderByCreatedAtDesc(
+        userId,
+        isCompleted,
+        ProjectTryoutStatus.INREVIEW,
         pageable
       ).collectList().awaitSingle(),
       pageable

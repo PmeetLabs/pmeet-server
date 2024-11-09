@@ -26,6 +26,7 @@ import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.response.CompletedProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyInProgressProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.GetMyInReviewProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectMemberInfoDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
@@ -864,6 +865,74 @@ internal class ProjectControllerUnitTest : DescribeSpec() {
 
             performRequest.expectStatus().isUnauthorized
           }
+        }
+      }
+    }
+
+    describe("GET /api/v1/projects/my-project-slice/in-review") {
+      context("인증된 유저의 지원한 프로젝트 조회 요청이 들어오면") {
+        val userId = "1234"
+        val pageNumber = 0
+        val pageSize = 6
+        val pageable = PageRequest.of(pageNumber, pageSize)
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+
+        val responseDto = mutableListOf<GetMyInReviewProjectResponseDto>()
+        for (i in 1..20) {
+          val getMyInReviewProjectResponseDto = GetMyInReviewProjectResponseDto(
+            id = "testId$i",
+            title = "testTitle$i",
+            description = "testDescription$i",
+            thumbNailUrl = "testThumbNailUrl$i",
+            positionName = "testPositionName$i"
+          ).also { responseDto.add(it) }
+        }
+
+        coEvery { projectFacadeService.getMyProjectSliceInReview(userId, pageable) } answers {
+          SliceImpl(responseDto.subList(0, pageSize), pageable, true)
+        }
+
+        it("서비스를 통해 데이터를 조회한다") {
+          val performRequest = webTestClient
+            .mutateWith(mockAuthentication(mockAuthentication))
+            .get()
+            .uri { uriBuilder ->
+              uriBuilder.path("/api/v1/projects/my-project-slice/in-review")
+                .queryParam("page", pageNumber)
+                .queryParam("size", pageSize)
+                .build()
+            }
+            .exchange()
+
+          coVerify(exactly = 1) { projectFacadeService.getMyProjectSliceInReview(userId, pageable) }
+          performRequest.expectStatus().isOk
+          performRequest.expectBody<RestSliceImpl<GetMyInReviewProjectResponseDto>>().consumeWith { response ->
+            response.responseBody?.content?.size shouldBe pageSize
+            response.responseBody?.content?.forEachIndexed { index, getMyInReviewProjectResponseDto ->
+              getMyInReviewProjectResponseDto.id shouldBe responseDto[index].id
+              getMyInReviewProjectResponseDto.title shouldBe responseDto[index].title
+              getMyInReviewProjectResponseDto.description shouldBe responseDto[index].description
+              getMyInReviewProjectResponseDto.thumbNailUrl shouldBe responseDto[index].thumbNailUrl
+              getMyInReviewProjectResponseDto.positionName shouldBe responseDto[index].positionName
+            }
+          }
+        }
+      }
+      context("인증되지 않은 사용자의 요청이면") {
+        it("요청은 실패한다") {
+          val pageNumber = 0
+          val pageSize = 6
+          val performRequest = webTestClient
+            .get()
+            .uri { uriBuilder ->
+              uriBuilder.path("/api/v1/projects/my-project-slice/in-review")
+                .queryParam("page", pageNumber)
+                .queryParam("size", pageSize)
+                .build()
+            }
+            .exchange()
+
+          performRequest.expectStatus().isUnauthorized
         }
       }
     }

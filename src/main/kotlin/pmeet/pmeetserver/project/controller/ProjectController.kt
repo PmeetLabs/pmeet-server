@@ -25,6 +25,7 @@ import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.response.CompletedProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyInProgressProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.GetMyInReviewProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
@@ -181,5 +182,16 @@ class ProjectController(
     @RequestParam(defaultValue = "6") size: Int
   ): Slice<GetMyInProgressProjectResponseDto> {
     return projectFacadeService.getMyProjectSliceInProgress(userId.awaitSingle(), PageRequest.of(page, size))
+  }
+
+  @GetMapping("/my-project-slice/in-review")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "지원한 프밋 목록 조회", description = "마이페이지 - 마이 프로젝트 - 지원한 프로젝트")
+  suspend fun getInReviewProjectSlice(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @RequestParam(defaultValue = "0") page: Int,
+    @RequestParam(defaultValue = "6") size: Int
+  ): Slice<GetMyInReviewProjectResponseDto> {
+    return projectFacadeService.getMyProjectSliceInReview(userId.awaitSingle(), PageRequest.of(page, size))
   }
 }

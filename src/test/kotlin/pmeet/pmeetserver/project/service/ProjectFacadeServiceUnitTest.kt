@@ -41,6 +41,7 @@ import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.tryout.request.CreateProjectTryoutRequestDto
 import pmeet.pmeetserver.project.dto.tryout.request.PatchProjectTryoutRequestDto
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
+import pmeet.pmeetserver.project.repository.vo.ProjectWithProjectTryout
 import pmeet.pmeetserver.user.domain.User
 import pmeet.pmeetserver.user.domain.enum.Gender
 import pmeet.pmeetserver.user.domain.resume.Resume
@@ -721,7 +722,7 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
               description = "testDescription"
             )
             projects.add(newProject)
-            downloadUrls.add("testThumbNailDownloadUrl%i")
+            downloadUrls.add("testThumbNailDownloadUrl$i")
           }
           coEvery {
             projectService.getProjectSliceByUserIdOrderByCreatedAtDesc(
@@ -729,7 +730,9 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
               pageable
             )
           } answers { SliceImpl(projects.subList(0, pageable.pageSize), pageable, true) }
-          coEvery { fileService.generatePreSignedUrlToDownload(any()) } answers { downloadUrls.iterator().next() }
+
+          val downloadUrlIterator = downloadUrls.iterator()
+          coEvery { fileService.generatePreSignedUrlToDownload(any()) } answers { downloadUrlIterator.next() }
 
           val result = projectFacadeService.getMyProjectSlice(userId, pageable)
 
@@ -929,6 +932,68 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
             responseDto.positionName shouldBe projectMembers[index * 2 + 1].positionName
             responseDto.userInfos[0].userId shouldBe projectMembers[index * 2].userId
             responseDto.userInfos[0].userName shouldBe projectMembers[index * 2].userName
+          }
+          responseDtos.hasNext() shouldBe true
+          responseDtos.isFirst shouldBe true
+          responseDtos.isLast shouldBe false
+        }
+      }
+    }
+  }
+
+  describe("getMyProjectSliceInReview") {
+    context("userId와 Pageable이 주어지면") {
+      val pageable = PageRequest.of(0, 10)
+      val projectsWithProjectTryout = mutableListOf<ProjectWithProjectTryout>()
+      val downloadUrls = mutableListOf<String>()
+      for (i in 1..20) {
+        val newProjectWithTryout = ProjectWithProjectTryout(
+          id = "testProjectId$i",
+          projectCreatedBy = userId,
+          title = "testTitle$i",
+          thumbNailUrl = "testThumbNailUrl$i",
+          description = "testDescription$i",
+          isCompleted = false,
+          resumeId = "testResumeId$i",
+          userId = userId,
+          userName = "testUserName$i",
+          userSelfDescription = "testUserSelfDescription$i",
+          userProfileImageUrl = "testUserProfileImageUrl$i",
+          positionName = "testPositionName$i",
+          tryoutStatus = ProjectTryoutStatus.INREVIEW
+        )
+        projectsWithProjectTryout.add(newProjectWithTryout)
+        downloadUrls.add("testThumbNailDownloadUrl$i")
+      }
+      coEvery {
+        projectService.getProjectsByProjectTryoutInReviewUserIdAndIsCompletedOrderByCreatedAtDesc(
+          userId,
+          false,
+          pageable
+        )
+      } answers {
+        SliceImpl(projectsWithProjectTryout.subList(0, pageable.pageSize), pageable, true)
+      }
+
+      val downloadUrlIterator = downloadUrls.iterator()
+      coEvery {
+        fileService.generatePreSignedUrlToDownload(any())
+      } answers { downloadUrlIterator.next() }
+
+      it("내가 지원한 검토 중인 프로젝트 정보를 반환한다") {
+        runTest {
+          val responseDtos = projectFacadeService.getMyProjectSliceInReview(
+            userId,
+            pageable
+          )
+
+          responseDtos.size shouldBe pageable.pageSize
+          responseDtos.forEachIndexed { index, responseDto ->
+            responseDto.id shouldBe projectsWithProjectTryout[index].id
+            responseDto.title shouldBe projectsWithProjectTryout[index].title
+            responseDto.description shouldBe projectsWithProjectTryout[index].description
+            responseDto.positionName shouldBe projectsWithProjectTryout[index].positionName
+            responseDto.thumbNailUrl shouldBe downloadUrls[index]
           }
           responseDtos.hasNext() shouldBe true
           responseDtos.isFirst shouldBe true

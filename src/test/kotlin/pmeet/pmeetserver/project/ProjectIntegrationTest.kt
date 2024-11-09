@@ -34,6 +34,7 @@ import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.RecruitmentRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.response.GetMyInProgressProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.GetMyInReviewProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.ProjectWithUserResponseDto
@@ -1357,6 +1358,78 @@ internal class ProjectIntegrationTest : BaseMongoDBTestForIntegration() {
               getMyInProgressProjectResponseDto.positionName shouldBe "realPositionName${index + 1}"
               getMyInProgressProjectResponseDto.userInfos.size shouldBe 1
               getMyInProgressProjectResponseDto.userInfos[0].userId shouldBe "userId${index + 1}"
+            }
+          }
+        }
+      }
+    }
+
+    describe("GET /api/v1/projects/my-project-slice/in-review") {
+      context("인증된 유저의 지원중인 Project Slice 조회 요청이 들어오면") {
+        val userId = "anotherTestUserId"
+        val pageNumber = 0
+        val pageSize = 10
+        val mockAuthentication = UsernamePasswordAuthenticationToken(userId, null, null)
+        for (i in 1..20) {
+          val newProject = Project(
+            userId = userId + i,
+            title = "testTitle$i",
+            startDate = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
+            endDate = LocalDateTime.of(2021, 12, 31, 23, 59, 59),
+            thumbNailUrl = "testThumbNailUrl$i",
+            techStacks = listOf("testTechStack1", "testTechStack2"),
+            recruitments = recruitments,
+            description = "testDescription$i",
+            createdAt = LocalDateTime.of(2024, 8, 1, 0, 0, 0).plusDays(i.toLong())
+          )
+          withContext(Dispatchers.IO) {
+            projectRepository.save(newProject).block()
+          }
+
+          val newProjectTryout = ProjectTryout(
+            projectId = newProject.id!!,
+            resumeId = "resumeId$i",
+            userId = userId,
+            userName = "testUser$i",
+            userSelfDescription = "testDescription$i",
+            userProfileImageUrl = "userProfileImageUrl$i",
+            positionName = "position$i",
+            tryoutStatus = ProjectTryoutStatus.INREVIEW,
+            createdAt = LocalDateTime.of(2024, 8, 1, 0, 0, 0).minusMinutes(i.toLong())
+          )
+          withContext(Dispatchers.IO) {
+            projectTryoutRepository.save(newProjectTryout).block()
+          }
+
+        }
+        val performRequest = webTestClient
+          .mutateWith(mockAuthentication(mockAuthentication))
+          .get()
+          .uri {
+            it.path("/api/v1/projects/my-project-slice/in-review")
+              .queryParam("page", pageNumber)
+              .queryParam("size", pageSize)
+              .build()
+          }
+          .accept(MediaType.APPLICATION_JSON)
+          .exchange()
+
+        it("요청은 성공한다") {
+          performRequest.expectStatus().isOk
+        }
+
+        it("내가 지원중인 Project를 대상으로 PageSize만큼 참여일 순으로 Slice를 반환한다") {
+          performRequest.expectBody<RestSliceImpl<GetMyInReviewProjectResponseDto>>().consumeWith { response ->
+            response.responseBody?.content?.size shouldBe pageSize
+            response.responseBody?.isFirst shouldBe true
+            response.responseBody?.isLast shouldBe false
+            response.responseBody?.hasNext() shouldBe true
+            response.responseBody?.content?.forEachIndexed { index, getMyInReviewProjectResponseDto ->
+              getMyInReviewProjectResponseDto.title shouldBe "testTitle${index + 1}"
+              getMyInReviewProjectResponseDto.description shouldBe "testDescription${index + 1}"
+              getMyInReviewProjectResponseDto.positionName shouldBe "position${index + 1}"
+              getMyInReviewProjectResponseDto.id shouldNotBe null
+              getMyInReviewProjectResponseDto.thumbNailUrl shouldNotBe "testThumbNailUrl${index + 1}"
             }
           }
         }

@@ -17,7 +17,9 @@ import pmeet.pmeetserver.config.BaseMongoDBTestForRepository
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectBookmark
 import pmeet.pmeetserver.project.domain.ProjectMember
+import pmeet.pmeetserver.project.domain.ProjectTryout
 import pmeet.pmeetserver.project.domain.Recruitment
+import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.enums.ProjectFilterType
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import java.time.LocalDateTime
@@ -35,6 +37,7 @@ internal class ProjectRepositoryUnitTest(
   val customRepository = CustomProjectRepositoryImpl(template)
   val projectRepository = factory.getRepository(ProjectRepository::class.java, customRepository)
   val projectMemberRepository = factory.getRepository(ProjectMemberRepository::class.java)
+  val projectTryoutRepository = factory.getRepository(ProjectTryoutRepository::class.java)
 
   lateinit var userId: String
 
@@ -46,6 +49,7 @@ internal class ProjectRepositoryUnitTest(
   afterSpec {
     projectRepository.deleteAll().block()
     projectMemberRepository.deleteAll().block()
+    projectTryoutRepository.deleteAll().block()
     Dispatchers.resetMain()
   }
 
@@ -562,6 +566,114 @@ internal class ProjectRepositoryUnitTest(
       }
     }
 
+  }
+
+  describe("findProjectsByProjectTryoutUserIdAndIsCompletedOrderByCreatedAtDesc") {
+    context("주어진 userId와 일치한 Project가 존재하지 않으면") {
+      it("빈 Flux를 반환한다") {
+        val result = projectRepository.findProjectsByProjectTryoutUserIdAndIsCompletedOrderByCreatedAtDesc(
+          "notExistUserId",
+          true,
+          ProjectTryoutStatus.INREVIEW,
+          PageRequest.of(0, 10)
+        ).collectList().block()
+
+        result?.size shouldBe 0
+      }
+    }
+    context("주어진 userId와 isCompleted는 일치하지만 InReview 상태인 ProjectTryout이 없으면") {
+      it("빈 Flux를 반환한다") {
+        for (i in 1..20) {
+          val project = Project(
+            userId = userId,
+            title = "testTitle$i",
+            startDate = LocalDateTime.of(2024, 7, 21, 0, 0, 0),
+            endDate = LocalDateTime.of(2024, 7, 22, 0, 0, 0),
+            recruitments = listOf(
+              Recruitment(
+                jobName = "testJobName$i",
+                numberOfRecruitment = 1
+              )
+            ),
+            description = "testDescription$i",
+            isCompleted = true
+          )
+          projectRepository.save(project).block()
+
+          val projectTryout = ProjectTryout(
+            resumeId = "testResumeId$i",
+            userId = userId,
+            userName = "testUserName$i",
+            userSelfDescription = "testUserSelfDescription$i",
+            userProfileImageUrl = "testUserProfileImageUrl$i",
+            positionName = "testPositionName$i",
+            tryoutStatus = ProjectTryoutStatus.ACCEPTED,
+            projectId = project.id!!,
+            createdAt = LocalDateTime.of(2024, 8, 23, 0, 0, 0).minusMinutes(i.toLong())
+          )
+          template.save(projectTryout).block()
+        }
+        val result = projectRepository.findProjectsByProjectTryoutUserIdAndIsCompletedOrderByCreatedAtDesc(
+          userId,
+          true,
+          ProjectTryoutStatus.INREVIEW,
+          PageRequest.of(0, 10)
+        ).collectList().block()
+
+        result?.size shouldBe 0
+      }
+    }
+    context("주어진 userId와 isCompleted가 일치한 InReview 상태인 ProjectTryout이 존재하면") {
+      it("ProjectTryout 생성일 내림차순으로 ProjectWithProjectTryOut를 반환한다") {
+        for (i in 1..20) {
+          val project = Project(
+            userId = "testAnotherUserId",
+            title = "testTitle$i",
+            startDate = LocalDateTime.of(2024, 7, 21, 0, 0, 0),
+            endDate = LocalDateTime.of(2024, 7, 22, 0, 0, 0),
+            recruitments = listOf(
+              Recruitment(
+                jobName = "testJobName$i",
+                numberOfRecruitment = 1
+              )
+            ),
+            description = "testDescription$i",
+            isCompleted = true
+          )
+          projectRepository.save(project).block()
+
+          val projectTryout = ProjectTryout(
+            resumeId = "testResumeId$i",
+            userId = userId,
+            userName = "testUserName$i",
+            userSelfDescription = "testUserSelfDescription$i",
+            userProfileImageUrl = "testUserProfileImageUrl$i",
+            positionName = "testPositionName$i",
+            tryoutStatus = ProjectTryoutStatus.INREVIEW,
+            projectId = project.id!!,
+            createdAt = LocalDateTime.of(2024, 8, 23, 0, 0, 0).minusMinutes(i.toLong())
+          )
+          projectTryoutRepository.save(projectTryout).block()
+        }
+
+        val result = projectRepository.findProjectsByProjectTryoutUserIdAndIsCompletedOrderByCreatedAtDesc(
+          userId,
+          true,
+          ProjectTryoutStatus.INREVIEW,
+          PageRequest.of(0, 10)
+        ).collectList().block()
+
+        result?.size shouldBe 11
+        result?.first()?.title shouldBe "testTitle1"
+        result?.first()?.tryoutStatus shouldBe ProjectTryoutStatus.INREVIEW
+        result?.first()?.userId shouldBe userId
+        result?.first()?.projectCreatedBy shouldBe "testAnotherUserId"
+        result?.last()?.title shouldBe "testTitle11"
+        result?.last()?.tryoutStatus shouldBe ProjectTryoutStatus.INREVIEW
+        result?.last()?.userId shouldBe userId
+        result?.last()?.projectCreatedBy shouldBe "testAnotherUserId"
+      }
+    }
   }
 
 })

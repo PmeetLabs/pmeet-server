@@ -20,8 +20,10 @@ import pmeet.pmeetserver.common.ErrorCode
 import pmeet.pmeetserver.common.exception.EntityNotFoundException
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.Recruitment
+import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.enums.ProjectSortProperty
 import pmeet.pmeetserver.project.repository.ProjectRepository
+import pmeet.pmeetserver.project.repository.vo.ProjectWithProjectTryout
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.LocalDateTime
@@ -316,7 +318,7 @@ internal class ProjectServiceUnitTest : DescribeSpec({
         ReflectionTestUtils.setField(newProject, "createdAt", LocalDateTime.of(2024, 8, i, 0, 0, 0))
         projects.add(newProject)
       }
-      
+
       it("Slice<Project>를 반환한다") {
         runTest {
           every {
@@ -340,6 +342,62 @@ internal class ProjectServiceUnitTest : DescribeSpec({
           result.content shouldBe projects.subList(0, pageSize)
           result.content.first().id shouldBe projects[0].id
           result.content.last().id shouldBe projects[pageSize - 1].id
+          result.isFirst shouldBe true
+          result.isLast shouldBe false
+        }
+      }
+    }
+  }
+
+  describe("getProjectsByProjectTryoutInReviewUserIdAndIsCompletedOrderByCreatedAtDesc") {
+    context("유저 ID와 완료 여부, 페이지 정보가 주어지면") {
+      val pageNumber = 0
+      val pageSize = 10
+      val projectsWithProjectTryout: MutableList<ProjectWithProjectTryout> = mutableListOf();
+      for (i in 1..20) {
+        val newProjectWithTryout = ProjectWithProjectTryout(
+          id = "testProjectId$i",
+          projectCreatedBy = userId,
+          title = "testTitle$i",
+          thumbNailUrl = "testThumbNailUrl",
+          description = "testDescription",
+          isCompleted = false,
+          resumeId = "testResumeId",
+          userId = userId,
+          userName = "testUserName",
+          userSelfDescription = "testUserSelfDescription",
+          userProfileImageUrl = "testUserProfileImageUrl",
+          positionName = "testPositionName",
+          tryoutStatus = ProjectTryoutStatus.INREVIEW
+        )
+        projectsWithProjectTryout.add(newProjectWithTryout)
+      }
+      every {
+        projectRepository.findProjectsByProjectTryoutUserIdAndIsCompletedOrderByCreatedAtDesc(
+          any(),
+          any(),
+          ProjectTryoutStatus.INREVIEW,
+          any()
+        )
+      } answers { Flux.fromIterable(projectsWithProjectTryout.subList(0, pageSize + 1)) }
+
+      it("Slice<ProjectWithProjectTryout>를 반환한다") {
+        runTest {
+          val result = projectService.getProjectsByProjectTryoutInReviewUserIdAndIsCompletedOrderByCreatedAtDesc(
+            userId = userId,
+            isCompleted = false,
+            pageable = PageRequest.of(
+              pageNumber,
+              pageSize
+            )
+          )
+
+          result.size shouldBe pageSize
+          result.content shouldBe projectsWithProjectTryout.subList(0, pageSize)
+          result.content.first().id shouldBe projectsWithProjectTryout[0].id
+          result.content.last().id shouldBe projectsWithProjectTryout[pageSize - 1].id
+          result.content.first().tryoutStatus shouldBe ProjectTryoutStatus.INREVIEW
+          result.content.last().tryoutStatus shouldBe ProjectTryoutStatus.INREVIEW
           result.isFirst shouldBe true
           result.isLast shouldBe false
         }

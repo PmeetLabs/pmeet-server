@@ -12,7 +12,9 @@ import org.springframework.data.mongodb.core.aggregation.ConditionalOperators
 import org.springframework.data.mongodb.core.query.Criteria
 import pmeet.pmeetserver.project.domain.Project
 import pmeet.pmeetserver.project.domain.ProjectBookmark
+import pmeet.pmeetserver.project.domain.enum.ProjectTryoutStatus
 import pmeet.pmeetserver.project.enums.ProjectFilterType
+import pmeet.pmeetserver.project.repository.vo.ProjectWithProjectTryout
 import reactor.core.publisher.Flux
 
 
@@ -23,6 +25,8 @@ class CustomProjectRepositoryImpl(
   companion object {
     private const val DOCUMENT_NAME_PROJECT = "project"
     private const val DOCUMENT_NAME_PROJECT_MEMBER = "projectMember"
+    private const val DOCUMENT_NAME_PROJECT_TRYOUT = "projectTryout"
+
     private const val PROPERTY_NAME_ID = "_id"
     private const val PROPERTY_NAME_BOOK_MARKERS = "bookmarkers"
     private const val PROPERTY_NAME_CREATOR_ID = "userId"
@@ -33,6 +37,7 @@ class CustomProjectRepositoryImpl(
     private const val PROPERTY_NAME_USER_ID = "userId"
     private const val PROPERTY_NAME_CREATED_AT = "createdAt"
     private const val PROPERTY_NAME_PROJECT_ID = "projectId"
+    private const val PROPERTY_NAME_PROJECT_TRYOUT_STATUS = "tryoutStatus"
   }
 
   override fun findAllByFilter(
@@ -112,6 +117,67 @@ class CustomProjectRepositoryImpl(
     return aggregate
   }
 
+  override fun findProjectsByProjectTryoutUserIdAndIsCompletedOrderByCreatedAtDesc(
+    userId: String,
+    isCompleted: Boolean,
+    tryoutStatus: ProjectTryoutStatus,
+    pageable: Pageable
+  ): Flux<ProjectWithProjectTryout> {
+    val criteria = Criteria.where(PROPERTY_NAME_USER_ID).`is`(userId).and(PROPERTY_NAME_PROJECT_TRYOUT_STATUS)
+      .`is`(tryoutStatus)
+
+    val addFields = AggregationOperation { context ->
+      Document.parse("{ \$addFields: { projectId: { \$toObjectId: \"\$projectId\" } } }")
+    }
+
+    val lookup = Aggregation.lookup(
+      DOCUMENT_NAME_PROJECT,
+      PROPERTY_NAME_PROJECT_ID,
+      PROPERTY_NAME_ID,
+      DOCUMENT_NAME_PROJECT
+    )
+
+    val unwind = Aggregation.unwind(DOCUMENT_NAME_PROJECT)
+
+    val sort = Sort.by(Sort.Order.desc(PROPERTY_NAME_CREATED_AT))
+    val limit = Aggregation.limit(pageable.pageSize.toLong() + 1)
+    val skip = Aggregation.skip((pageable.pageNumber * pageable.pageSize).toLong())
+
+    val projectStage = Aggregation.project()
+      .and("project._id").`as`("id")
+      .and("project.userId").`as`("projectCreatedBy")
+      .and("project.title").`as`("title")
+      .and("project.thumbNailUrl").`as`("thumbNailUrl")
+      .and("project.description").`as`("description")
+      .and("project.isCompleted").`as`("isCompleted")
+      .and("resumeId").`as`("resumeId")
+      .and("userId").`as`("userId")
+      .and("userName").`as`("userName")
+      .and("userSelfDescription").`as`("userSelfDescription")
+      .and("userProfileImageUrl").`as`("userProfileImageUrl")
+      .and("positionName").`as`("positionName")
+      .and("tryoutStatus").`as`("tryoutStatus")
+
+    val newAggregation = Aggregation.newAggregation(
+      Aggregation.match(criteria),
+      Aggregation.sort(sort),
+      skip,
+      limit,
+      addFields,
+      lookup,
+      unwind,
+      projectStage,
+      Aggregation.match(Criteria.where(PROPERTY_NAME_IS_COMPLETED).`is`(isCompleted))
+    )
+
+    val aggregate = mongoTemplate.aggregate(
+      newAggregation,
+      DOCUMENT_NAME_PROJECT_TRYOUT,
+      ProjectWithProjectTryout::class.java
+    )
+
+    return aggregate
+  }
 
   /**
    * 프로젝트 필터 조건인 Criteria 생성
