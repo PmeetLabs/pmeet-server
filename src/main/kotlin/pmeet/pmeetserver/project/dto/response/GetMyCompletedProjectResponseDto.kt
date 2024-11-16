@@ -2,7 +2,7 @@ package pmeet.pmeetserver.project.dto.response
 
 import pmeet.pmeetserver.project.domain.Project
 
-data class GetMyInProgressProjectResponseDto(
+data class GetMyCompletedProjectResponseDto(
   val id: String,
   val title: String,
   val description: String,
@@ -10,15 +10,15 @@ data class GetMyInProgressProjectResponseDto(
   val positionName: String?,
   val userInfos: List<ProjectMemberInfoDto>,
 ) {
-
+  
   companion object {
     fun of(
       project: Project,
       positionName: String?,
       thumbNailDownloadUrl: String?,
       userInfos: List<ProjectMemberInfoDto>
-    ): GetMyInProgressProjectResponseDto {
-      return GetMyInProgressProjectResponseDto(
+    ): GetMyCompletedProjectResponseDto {
+      return GetMyCompletedProjectResponseDto(
         id = project.id!!,
         title = project.title,
         description = project.description,

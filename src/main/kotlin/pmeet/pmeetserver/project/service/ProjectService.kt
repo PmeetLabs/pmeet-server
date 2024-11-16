@@ -122,4 +122,19 @@ class ProjectService(
       pageable
     )
   }
+
+  suspend fun getProjectsByProjectMemberUserIdAndIsCompletedOrderByCompletedAtDesc(
+    userId: String,
+    isCompleted: Boolean,
+    pageable: Pageable
+  ): Slice<Project> {
+    return SliceResponse.of(
+      projectRepository.findProjectsByProjectMemberUserIdAndIsCompletedOrderByCompletedAtDesc(
+        userId,
+        isCompleted,
+        pageable
+      ).collectList().awaitSingle(),
+      pageable
+    )
+  }
 }

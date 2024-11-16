@@ -23,6 +23,7 @@ import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.response.CompletedProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.GetMyCompletedProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyInProgressProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyInReviewProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
@@ -465,6 +466,48 @@ class ProjectFacadeService(
     }
 
     return SliceImpl(responseDtos, pageable, projectsWithProjectTryout.hasNext())
+  }
+
+  @Transactional(readOnly = true)
+  suspend fun getMyProjectSliceCompleted(
+    userId: String,
+    pageable: Pageable
+  ): Slice<GetMyCompletedProjectResponseDto> {
+    val projects =
+      projectService.getProjectsByProjectMemberUserIdAndIsCompletedOrderByCompletedAtDesc(userId, true, pageable)
+
+    val projectIds = projects.content.mapNotNull { it.id }.toSet()
+
+    val projectMembers = projectMemberService.findAllMembersByProjectId(projectIds)
+
+    val membersByProjectId = projectMembers.groupBy { it.projectId }
+
+    val responseDtos = projects.content.map { project ->
+      val members = membersByProjectId[project.id!!] ?: emptyList()
+
+      val myMember = members.find { it.userId == userId }
+      val positionName = myMember?.positionName
+
+      val userInfos = members.filter { it.userId != userId }
+        .map { member ->
+          ProjectMemberInfoDto.of(
+            member.userId,
+            member.userName,
+            member.userThumbnail?.let { fileService.generatePreSignedUrlToDownload(it) }
+          )
+        }
+
+      val thumbNailDownloadUrl = project.thumbNailUrl?.let { fileService.generatePreSignedUrlToDownload(it) }
+
+      GetMyCompletedProjectResponseDto.of(
+        project,
+        positionName,
+        thumbNailDownloadUrl,
+        userInfos
+      )
+    }
+
+    return SliceImpl(responseDtos, pageable, projects.hasNext())
   }
 
   /**

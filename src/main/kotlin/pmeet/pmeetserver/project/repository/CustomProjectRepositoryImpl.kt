@@ -38,6 +38,7 @@ class CustomProjectRepositoryImpl(
     private const val PROPERTY_NAME_CREATED_AT = "createdAt"
     private const val PROPERTY_NAME_PROJECT_ID = "projectId"
     private const val PROPERTY_NAME_PROJECT_TRYOUT_STATUS = "tryoutStatus"
+    private const val PROPERTY_NAME_COMPLETED_AT = "completedAt"
   }
 
   override fun findAllByFilter(
@@ -174,6 +175,52 @@ class CustomProjectRepositoryImpl(
       newAggregation,
       DOCUMENT_NAME_PROJECT_TRYOUT,
       ProjectWithProjectTryout::class.java
+    )
+
+    return aggregate
+  }
+
+  override fun findProjectsByProjectMemberUserIdAndIsCompletedOrderByCompletedAtDesc(
+    userId: String,
+    isCompleted: Boolean,
+    pageable: Pageable
+  ): Flux<Project> {
+    val criteria = Criteria.where(PROPERTY_NAME_USER_ID).`is`(userId)
+
+    val addFields = AggregationOperation { context ->
+      Document.parse("{ \$addFields: { projectId: { \$toObjectId: \"\$projectId\" } } }")
+    }
+
+    val lookup = Aggregation.lookup(
+      DOCUMENT_NAME_PROJECT,
+      PROPERTY_NAME_PROJECT_ID,
+      PROPERTY_NAME_ID,
+      DOCUMENT_NAME_PROJECT
+    )
+
+    val unwind = Aggregation.unwind(DOCUMENT_NAME_PROJECT)
+    val replaceRoot = Aggregation.replaceRoot("project")
+
+    val sort = Sort.by(Sort.Order.desc(PROPERTY_NAME_COMPLETED_AT))
+    val limit = Aggregation.limit(pageable.pageSize.toLong() + 1)
+    val skip = Aggregation.skip((pageable.pageNumber * pageable.pageSize).toLong())
+
+    val newAggregation = Aggregation.newAggregation(
+      Aggregation.match(criteria),
+      skip,
+      limit,
+      addFields,
+      lookup,
+      unwind,
+      replaceRoot,
+      Aggregation.match(Criteria.where(PROPERTY_NAME_IS_COMPLETED).`is`(isCompleted)),
+      Aggregation.sort(sort),
+    )
+
+    val aggregate = mongoTemplate.aggregate(
+      newAggregation,
+      DOCUMENT_NAME_PROJECT_MEMBER,
+      Project::class.java
     )
 
     return aggregate

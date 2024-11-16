@@ -1003,4 +1003,78 @@ internal class ProjectFacadeServiceUnitTest : DescribeSpec({
     }
   }
 
+  describe("getMyProjectSliceCompleted") {
+    context("userId와 Pageable이 주어지면") {
+      val pageable = PageRequest.of(0, 10)
+      val projects = mutableListOf<Project>()
+      for (i in 1..20) {
+        val newProject = Project(
+          id = "testId$i",
+          userId = userId,
+          title = "testTitle$i",
+          startDate = LocalDateTime.of(2021, 1, 1, 0, 0, 0),
+          endDate = LocalDateTime.of(2021, 12, 31, 23, 59, 59),
+          thumbNailUrl = "testThumbNailUrl",
+          techStacks = listOf("testTechStack1", "testTechStack2"),
+          recruitments = recruitments,
+          description = "testDescription"
+        )
+        newProject.complete()
+        projects.add(newProject)
+      }
+      coEvery {
+        projectService.getProjectsByProjectMemberUserIdAndIsCompletedOrderByCompletedAtDesc(
+          userId,
+          true,
+          pageable
+        )
+      } answers {
+        SliceImpl(projects.subList(0, pageable.pageSize), pageable, true)
+      }
+
+      val projectMembers = mutableListOf<ProjectMember>()
+      for (i in 1..20) {
+        val newProjectMember = ProjectMember(
+          projectId = "testId$i",
+          userId = "userId$i",
+          userName = "testUserName$i",
+          createdAt = LocalDateTime.of(2021, 1, 1, 0, 0, 0).plusDays(i.toLong()),
+          positionName = "testPositionName$i",
+        )
+        projectMembers.add(newProjectMember)
+        val newProjectMember2 = ProjectMember(
+          projectId = "testId$i",
+          userId = userId,
+          userName = "testUserName$i",
+          createdAt = LocalDateTime.of(2021, 1, 1, 0, 0, 0).plusDays(i.toLong()),
+          positionName = "positionName$i",
+        )
+        projectMembers.add(newProjectMember2)
+      }
+      coEvery { projectMemberService.findAllMembersByProjectId(any()) } answers {
+        projectMembers
+      }
+      it("내가 속한 완료된 프로젝트 정보와 다른 참여자들 정보를 반환한다") {
+        runTest {
+          val responseDtos = projectFacadeService.getMyProjectSliceCompleted(
+            userId,
+            pageable
+          )
+
+          responseDtos.size shouldBe pageable.pageSize
+          responseDtos.forEachIndexed { index, responseDto ->
+            responseDto.id shouldBe projects[index].id
+            responseDto.title shouldBe projects[index].title
+            responseDto.description shouldBe projects[index].description
+            responseDto.positionName shouldBe projectMembers[index * 2 + 1].positionName
+            responseDto.userInfos[0].userId shouldBe projectMembers[index * 2].userId
+            responseDto.userInfos[0].userName shouldBe projectMembers[index * 2].userName
+          }
+          responseDtos.hasNext() shouldBe true
+          responseDtos.isFirst shouldBe true
+          responseDtos.isLast shouldBe false
+        }
+      }
+    }
+  }
 })
