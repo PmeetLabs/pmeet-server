@@ -63,4 +63,10 @@ interface CustomProjectRepository {
     tryoutStatus: ProjectTryoutStatus,
     pageable: Pageable
   ): Flux<ProjectWithProjectTryout>
+
+  fun findProjectsByProjectMemberUserIdAndIsCompletedOrderByCompletedAtDesc(
+    userId: String,
+    isCompleted: Boolean,
+    pageable: Pageable
+  ): Flux<Project>
 }

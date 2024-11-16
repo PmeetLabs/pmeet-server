@@ -24,6 +24,7 @@ import pmeet.pmeetserver.project.dto.request.CreateProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.SearchProjectRequestDto
 import pmeet.pmeetserver.project.dto.request.UpdateProjectRequestDto
 import pmeet.pmeetserver.project.dto.response.CompletedProjectResponseDto
+import pmeet.pmeetserver.project.dto.response.GetMyCompletedProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyInProgressProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyInReviewProjectResponseDto
 import pmeet.pmeetserver.project.dto.response.GetMyProjectResponseDto
@@ -193,5 +194,16 @@ class ProjectController(
     @RequestParam(defaultValue = "6") size: Int
   ): Slice<GetMyInReviewProjectResponseDto> {
     return projectFacadeService.getMyProjectSliceInReview(userId.awaitSingle(), PageRequest.of(page, size))
+  }
+
+  @GetMapping("/my-project-slice/completed")
+  @ResponseStatus(HttpStatus.OK)
+  @Operation(summary = "완료된 프밋 목록 조회", description = "마이페이지 - 마이 프로젝트 - 완료된 프로젝트")
+  suspend fun getCompletedProjectSlice(
+    @AuthenticationPrincipal userId: Mono<String>,
+    @RequestParam(defaultValue = "0") page: Int,
+    @RequestParam(defaultValue = "6") size: Int
+  ): Slice<GetMyCompletedProjectResponseDto> {
+    return projectFacadeService.getMyProjectSliceCompleted(userId.awaitSingle(), PageRequest.of(page, size))
   }
 }
