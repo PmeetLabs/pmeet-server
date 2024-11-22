@@ -32,7 +32,7 @@ class ResumeFacadeService(
     return ResumeResponseDto.of(
       resumeService.save(resume),
       resume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
-      resume.portfolioFileUrls.let { fileService.generatePreSignedUrlsToDownload(it) }
+      resume.portfolioFileUrls?.let { fileService.generatePreSignedUrlsToDownload(it) }
     )
   }
 
@@ -42,7 +42,7 @@ class ResumeFacadeService(
     return ResumeResponseDto.of(
       resume,
       resume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
-      resume.portfolioFileUrls.let { fileService.generatePreSignedUrlsToDownload(it) }
+      resume.portfolioFileUrls?.let { fileService.generatePreSignedUrlsToDownload(it) }
     )
   }
 
@@ -53,7 +53,7 @@ class ResumeFacadeService(
       ResumeResponseDto.of(
         it,
         it.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
-        it.portfolioFileUrls.let { fileService.generatePreSignedUrlsToDownload(it) }
+        it.portfolioFileUrls?.let { fileService.generatePreSignedUrlsToDownload(it) }
       )
     }
   }
@@ -79,7 +79,7 @@ class ResumeFacadeService(
     return ResumeResponseDto.of(
       updatedResume,
       updatedResume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
-      updatedResume.portfolioFileUrls.let { fileService.generatePreSignedUrlsToDownload(it) }
+      updatedResume.portfolioFileUrls?.let { fileService.generatePreSignedUrlsToDownload(it) }
     )
   }
 
@@ -102,7 +102,7 @@ class ResumeFacadeService(
     return ResumeResponseDto.of(
       copiedResume,
       copiedResume.userProfileImageUrl?.let { fileService.generatePreSignedUrlToDownload(it) },
-      copiedResume.portfolioFileUrls.let { fileService.generatePreSignedUrlsToDownload(it) }
+      copiedResume.portfolioFileUrls?.let { fileService.generatePreSignedUrlsToDownload(it) }
     )
   }
 
@@ -151,8 +151,8 @@ class ResumeFacadeService(
   @Transactional
   suspend fun searchResumeSlice(
     userId: String,
-    filterType: ResumeFilterType,
-    filterValue: String,
+    filterType: ResumeFilterType?,
+    filterValue: String?,
     orderType: ResumeOrderType,
     pageable: PageRequest
   ): Slice<SearchedResumeResponseDto> {

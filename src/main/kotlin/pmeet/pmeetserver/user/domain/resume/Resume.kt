@@ -46,7 +46,7 @@ class Resume(
   var techStacks: List<TechStack>,
   var jobExperiences: List<JobExperience>,
   var projectExperiences: List<ProjectExperience>,
-  var portfolioFileUrls: List<String>,
+  var portfolioFileUrls: List<String>?,
   var portfolioUrl: List<String>,
   var selfDescription: String?,
   var bookmarkers: MutableList<ResumeBookMarker> = mutableListOf(),

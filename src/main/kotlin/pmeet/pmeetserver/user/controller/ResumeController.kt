@@ -130,8 +130,8 @@ class ResumeController(
   @ResponseStatus(HttpStatus.OK)
   suspend fun getResumeListByCondition(
     @AuthenticationPrincipal userId: Mono<String>,
-    @RequestParam(required = true) filterType: ResumeFilterType,
-    @RequestParam(required = true) filterValue: String,
+    @RequestParam(required = false) filterType: ResumeFilterType?,
+    @RequestParam(required = false) filterValue: String?,
     @RequestParam(required = true) orderType: ResumeOrderType,
     @RequestParam(defaultValue = "0") page: Int,
     @RequestParam(defaultValue = "8") size: Int,
