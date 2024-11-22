@@ -63,8 +63,8 @@ class ResumeService(private val resumeRepository: ResumeRepository) {
   @Transactional(readOnly = true)
   suspend fun searchSliceByFilter(
     searchedUserId: String,
-    filterType: ResumeFilterType,
-    filterValue: String,
+    filterType: ResumeFilterType?,
+    filterValue: String?,
     orderType: ResumeOrderType,
     pageable: PageRequest
   ): Slice<Resume> {
