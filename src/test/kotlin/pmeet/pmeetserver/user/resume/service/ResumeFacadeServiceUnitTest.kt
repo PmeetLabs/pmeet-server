@@ -94,7 +94,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           val profileImageDownloadUrl = "profile-image-download-url"
           val portfolioFileDownloadUrls = listOf("portfolio-file-download-url", "portfolio-file-download-url2")
           coEvery { fileService.generatePreSignedUrlToDownload(resume.userProfileImageUrl!!) } answers { profileImageDownloadUrl }
-          coEvery { fileService.generatePreSignedUrlsToDownload(resume.portfolioFileUrls) } answers { portfolioFileDownloadUrls }
+          coEvery { fileService.generatePreSignedUrlsToDownload(resume.portfolioFileUrls!!) } answers { portfolioFileDownloadUrls }
 
           val result = resumeFacadeService.createResume(resumeCreateRequest)
 
@@ -248,7 +248,7 @@ class ResumeFacadeServiceUnitTest : DescribeSpec({
           val profileImageDownloadUrl = "profile-image-download-url"
           val portfolioFileDownloadUrls = listOf("portfolio-file-download-url", "portfolio-file-download-url2")
           coEvery { fileService.generatePreSignedUrlToDownload(originalResume.userProfileImageUrl!!) } answers { profileImageDownloadUrl }
-          coEvery { fileService.generatePreSignedUrlsToDownload(originalResume.portfolioFileUrls) } answers { portfolioFileDownloadUrls }
+          coEvery { fileService.generatePreSignedUrlsToDownload(originalResume.portfolioFileUrls!!) } answers { portfolioFileDownloadUrls }
 
           val result = resumeFacadeService.copyResume(resume.userId, copyRequest)
           result.title shouldBe "[복사] ${originalResume.title.toString()}"

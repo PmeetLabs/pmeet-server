@@ -21,8 +21,8 @@ interface CustomResumeRepository {
    */
   fun findAllByFilter(
     searchedUserId: String,
-    filterType: ResumeFilterType,
-    filterValue: String,
+    filterType: ResumeFilterType?,
+    filterValue: String?,
     orderType: ResumeOrderType,
     pageable: Pageable
   ): Flux<Resume>

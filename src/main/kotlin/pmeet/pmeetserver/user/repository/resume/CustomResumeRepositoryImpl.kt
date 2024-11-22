@@ -43,8 +43,8 @@ class CustomResumeRepositoryImpl(
 
   override fun findAllByFilter(
     searchedUserId: String,
-    filterType: ResumeFilterType,
-    filterValue: String,
+    filterType: ResumeFilterType?,
+    filterValue: String?,
     orderType: ResumeOrderType,
     pageable: Pageable
   ): Flux<Resume> {
@@ -80,8 +80,8 @@ class CustomResumeRepositoryImpl(
    * @param filterType 필터 타입(TOTAL, TITLE, JOB, NICKNAME)
    * @param filterValue 필터 값
    */
-  private fun createCriteria(filterType: ResumeFilterType, filterValue: String): Criteria {
-    return if (filterValue == "") {
+  private fun createCriteria(filterType: ResumeFilterType?, filterValue: String?): Criteria {
+    return if (filterValue == null || filterType == null) {
       Criteria()
     } else {
       when (filterType) {
