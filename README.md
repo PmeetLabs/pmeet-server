@@ -23,3 +23,8 @@
 API 확인을 위한 Swagger 를 제공하고 있습니다.
 
 > http://13.125.167.44:8080/webjars/swagger-ui/index.html#/
+
+## ERD
+
+![mermaid-diagram-2024-12-21-192945](https://github.com/user-attachments/assets/85d29f65-1234-42fb-bdff-2e0b8cc96840)
+
